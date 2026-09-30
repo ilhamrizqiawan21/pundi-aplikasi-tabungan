@@ -1,0 +1,29 @@
+# Data dan rahasia — jangan pernah di-commit (NFR-02)
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+*.db
+*.mdb
+*.bundle
+backups/
+logs/
+aset/
+.env
+.env.*
+akun*.md
+*.pem
+*.p12
+*.cer
+
+# Build dan dependensi
+node_modules/
+dist/
+dist-electron/
+out/
+release/
+.vite/
+
+# Sistem
+.DS_Store
+Thumbs.db
