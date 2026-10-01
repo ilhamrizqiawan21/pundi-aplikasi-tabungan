@@ -8,6 +8,7 @@ import { LaporanScreen } from './screens/LaporanScreen.js';
 import { ImporScreen } from './screens/ImporScreen.js';
 import { CadanganScreen } from './screens/CadanganScreen.js';
 import { AkademikScreen } from './screens/AkademikScreen.js';
+import { KenaikanScreen } from './screens/KenaikanScreen.js';
 import { PengaturanScreen } from './screens/PengaturanScreen.js';
 
 export type ScreenId =
@@ -218,11 +219,7 @@ export default function App() {
               <PengaturanScreen onThemeChange={(newTheme) => setTema(newTheme)} />
             )}
 
-            {screen === 'kenaikan' && (
-              <p style={{ color: 'var(--muted)', fontSize: '14px' }}>
-                Modul Kenaikan Kelas & Kelulusan dijadwalkan pada rilis 0.2 (CAP-12).
-              </p>
-            )}
+            {screen === 'kenaikan' && <KenaikanScreen />}
           </div>
         </main>
       </div>

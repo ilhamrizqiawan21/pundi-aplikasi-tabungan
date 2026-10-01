@@ -60,7 +60,7 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | ID | Tugas | CAP | Bukti | ✓ |
 | --- | --- | --- | --- | --- |
 | F4-1 | Biaya administrasi (sesuai D-06) | 08 | Uji | [ ] |
-| F4-2 | Kenaikan kelas dan kelulusan | 12 | Uji alur | [ ] |
+| F4-2 | Kenaikan kelas dan kelulusan | 12 | Uji lulus: kenaikan.test.ts (7 uji: pindah/lulus/keluar, saldo dan CAP-17 tak berubah, riwayat kelas lama tetap, semua-atau-tidak-sama-sekali) + Playwright kenaikan.spec.ts. Dimajukan ke rilis 0.1 atas permintaan pemilik; PRD §7 diperbarui. Pembatalan sebelum disimpan lewat langkah Tinjau | [x] |
 | F4-3 | Migrasi dari aplikasi lama lewat Excel, dengan layar pencocokan | 14 | Uji dengan data sintetis | [ ] |
 | F4-4 | Tema (lima) dan PIN aplikasi | 15, 16 | Uji | [ ] |
 

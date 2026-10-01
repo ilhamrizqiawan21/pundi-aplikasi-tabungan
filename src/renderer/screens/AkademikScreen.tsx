@@ -1,57 +1,12 @@
-import { useState, useEffect, useCallback, type CSSProperties, type FormEvent } from 'react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import type { TahunAjaran, Kelas } from '../../shared/types.js';
 import { Modal } from '../components/Modal.js';
+import { tombol, tombolUtama, kolom, labelStyle, kartu, kartuKepala, sel } from '../styles/ui.js';
 
 interface AkademikScreenProps {
   /** Dipanggil setelah data berubah agar bilah atas ikut diperbarui. */
   onChanged: () => void;
 }
-
-const tombol: CSSProperties = {
-  padding: '6px 12px',
-  fontSize: '12px',
-  fontWeight: 500,
-  backgroundColor: 'var(--bg)',
-  border: '1px solid var(--border)',
-  borderRadius: '4px',
-  cursor: 'pointer',
-  color: 'var(--text)',
-};
-const tombolUtama: CSSProperties = {
-  padding: '8px 16px',
-  fontSize: '13px',
-  fontWeight: 600,
-  backgroundColor: 'var(--accent)',
-  color: 'var(--accent-text)',
-  border: 'none',
-  borderRadius: '6px',
-  cursor: 'pointer',
-};
-const kolom: CSSProperties = {
-  width: '100%',
-  padding: '8px 12px',
-  borderRadius: '6px',
-  border: '1px solid var(--border)',
-  backgroundColor: 'var(--surface)',
-  color: 'var(--text)',
-};
-const labelStyle: CSSProperties = { display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' };
-const kartu: CSSProperties = {
-  backgroundColor: 'var(--bg)',
-  border: '1px solid var(--border)',
-  borderRadius: '8px',
-  overflow: 'hidden',
-};
-const kartuKepala: CSSProperties = {
-  padding: '12px 18px',
-  backgroundColor: 'var(--surface)',
-  borderBottom: '1px solid var(--border)',
-  display: 'flex',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  gap: '12px',
-};
-const sel: CSSProperties = { padding: '10px 16px' };
 
 function tanggalIndonesia(s: string): string {
   return new Date(`${s}T12:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
