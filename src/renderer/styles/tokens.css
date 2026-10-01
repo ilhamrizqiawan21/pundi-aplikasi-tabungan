@@ -85,3 +85,9 @@ input, button, select, textarea {
 .tabular-nums {
   font-variant-numeric: tabular-nums;
 }
+
+/* Fokus keyboard selalu terlihat (DESIGN §5) */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

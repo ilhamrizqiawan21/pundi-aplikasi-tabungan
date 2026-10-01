@@ -1,4 +1,4 @@
-import { app, BrowserWindow, protocol, net } from 'electron';
+import { app, BrowserWindow, Menu, protocol, net, type MenuItemConstructorOptions } from 'electron';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { initDb, closeDb } from './db/index.js';
@@ -21,8 +21,31 @@ protocol.registerSchemesAsPrivileged([
   },
 ]);
 
+/**
+ * Aplikasi terpaket tidak memakai menu bawaan Electron: Ctrl+R memuat ulang halaman (isian transaksi hilang) dan
+ * View memuat DevTools. Yang disisakan hanya menu Edit agar salin/tempel/urungkan tetap bekerja; bilahnya disembunyikan
+ * di window.ts. Saat pengembangan menu bawaan dipertahankan.
+ */
+function pasangMenuAplikasi(): void {
+  if (!app.isPackaged) return;
+  const edit: MenuItemConstructorOptions = {
+    label: 'Edit',
+    submenu: [
+      { role: 'undo' },
+      { role: 'redo' },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { role: 'selectAll' },
+    ],
+  };
+  Menu.setApplicationMenu(Menu.buildFromTemplate(process.platform === 'darwin' ? [{ role: 'appMenu' }, edit] : [edit]));
+}
+
 async function bootstrap() {
   await app.whenReady();
+  pasangMenuAplikasi();
 
   // Inisialisasi basis data SQLite di folder data pengguna
   const userDataDir = path.join(app.getPath('userData'), 'Pundi');

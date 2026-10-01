@@ -39,6 +39,9 @@ export function Modal({ isOpen, onClose, title, children, width = '480px' }: Mod
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
         style={{
           backgroundColor: 'var(--bg)',
           borderRadius: '8px',

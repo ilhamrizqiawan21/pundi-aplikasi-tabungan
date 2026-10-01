@@ -40,9 +40,12 @@ export function createMainWindow(): BrowserWindow {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
+      devTools: !app.isPackaged,
       preload: preloadPath,
     },
   });
+
+  if (app.isPackaged) win.setMenuBarVisibility(false);
 
   // Blokir pembukaan jendela baru (NFR-07)
   win.webContents.setWindowOpenHandler(() => {

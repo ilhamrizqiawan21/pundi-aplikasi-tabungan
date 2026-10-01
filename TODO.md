@@ -45,7 +45,7 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | F3-3 | `akademik` (tahun ajaran, kelas) | 02 | F2-4 | Uji lulus: akademik.test.ts (9 uji: satu aktif, duplikat, kelas tak bisa pindah tahun, hapus bersyarat, salin kelas, penempatan hanya di tahun aktif) + Playwright akademik.spec.ts (5 alur dari instalasi kosong) | [x] |
 | F3-4 | `siswa` (CRUD, penempatan, status, nomor unik) | 03 | F3-3 | Uji lulus (siswa.test.ts & SiswaScreen.tsx) | [x] |
 | F3-5 | Profil sekolah dan pengaturan | 01 | F2-4 | `pengaturan.ts` dan PengaturanScreen ada, **belum ada uji** | [ ] |
-| F3-6 | Layar Catat Transaksi (keyboard penuh) | 05, 06 | F3-2, F3-4 | Uji alur Playwright lulus: cari, setor, tarik, tolak saldo kurang, semua dengan keyboard. **Pintasan global Ctrl+K, Alt+1, dan Esc yang tertulis di layar belum ada** (3 `test.fixme`) | [ ] |
+| F3-6 | Layar Catat Transaksi (keyboard penuh) | 05, 06 | F3-2, F3-4 | Playwright lulus (22 uji total): cari, setor, tarik, tolak saldo kurang tanpa mouse; Ctrl+K global, Alt+1..9, Esc bertingkat, pintasan nonaktif saat dialog, fokus terlihat. Sebelumnya 3 `test.fixme` kini hidup | [x] |
 | F3-7 | Koreksi (dialog + pembalik) | 07 | F3-2 | Ledger teruji; alur "Batalkan (Koreksi)" teruji di Playwright. **Tombol itu memakai alasan tetap, padahal CAP-07 mewajibkan alasan dari pengguna**; dialog KoreksiModal belum diuji alur | [ ] |
 | F3-8 | Buku besar per siswa | 10 | F3-2 | Layanan ledger teruji; layar buku besar belum ada uji alur | [ ] |
 | F3-9 | Impor siswa Excel/CSV (pratinjau, atomik) | 04 | F3-4, S-04 | impor.test.ts lulus dengan berkas sintetis buatan sendiri; **S-04 belum selesai** | [ ] |

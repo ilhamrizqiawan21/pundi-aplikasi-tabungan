@@ -139,32 +139,100 @@ test.describe.serial('alur utama', () => {
   });
 });
 
-// Teks di layar menjanjikan pintasan ini, tetapi belum ada handlernya. Aktifkan setelah dibuat.
-test.describe('pintasan yang dijanjikan layar', () => {
+// Pintasan keyboard (DESIGN §6, NFR-08)
+test.describe('pintasan keyboard', () => {
   let s: AppSesi;
   test.beforeAll(async () => {
     s = await jalankanApp();
+    await s.page.evaluate(async () => {
+      await window.pundi.siswaSimpan({ nama: 'Ahmad Fiktif', status: 'aktif' });
+    });
   });
   test.afterAll(async () => {
     await s.tutup();
   });
 
-  test.fixme('Alt+1 membuka Beranda (label menu "Alt+1")', async () => {
-    await s.page.locator('nav').getByRole('button', { name: 'Pengaturan' }).click();
+  const nav = () => s.page.locator('nav');
+  const judul = () => s.page.getByRole('main').getByRole('heading', { level: 2 });
+  const URUTAN = [
+    'Beranda (Kas Harian)',
+    'Catat Transaksi',
+    'Data Siswa & Buku Besar',
+    'Laporan Tabungan',
+    'Tahun Ajaran & Kelas',
+    'Kenaikan Kelas & Kelulusan',
+    'Impor Data Excel / CSV',
+    'Cadangan & Pemulihan',
+    'Pengaturan Aplikasi',
+  ];
+
+  test('label pintasan di menu sesuai kenyataan: Alt+1..9 dan Ctrl+K untuk Catat Transaksi', async () => {
+    const tombol = nav().getByRole('button');
+    await expect(tombol).toHaveCount(9);
+    for (let i = 0; i < 9; i++) {
+      await expect(tombol.nth(i)).toContainText(i === 1 ? 'Ctrl+K' : `Alt+${i + 1}`);
+    }
+  });
+
+  test('Alt+1 sampai Alt+9 membuka menu sesuai urutan, dari layar mana pun', async () => {
+    for (const n of [9, 5, 1, 4, 7, 3, 8, 6, 2]) {
+      await s.page.keyboard.press(`Alt+${n}`);
+      await expect(judul()).toHaveText(URUTAN[n - 1]);
+      await expect(nav().getByRole('button').nth(n - 1)).toHaveAttribute('aria-current', 'page');
+    }
+  });
+
+  test('Ctrl+K dari layar lain membuka Catat Transaksi dan memfokuskan pencarian', async () => {
     await s.page.keyboard.press('Alt+1');
-    await expect(s.page.getByRole('heading', { name: 'Beranda (Kas Harian)', level: 2 })).toBeVisible();
-  });
-
-  test.fixme('Ctrl+K dari layar mana pun membuka Catat Transaksi (label menu "Ctrl+K")', async () => {
-    await s.page.locator('nav').getByRole('button', { name: 'Beranda' }).click();
+    await expect(judul()).toHaveText(URUTAN[0]);
     await s.page.keyboard.press('Control+k');
-    await expect(s.page.getByRole('heading', { name: 'Catat Transaksi', level: 2 })).toBeVisible();
+    await expect(judul()).toHaveText('Catat Transaksi');
+    await expect(s.page.getByPlaceholder(/Ketik nama siswa/)).toBeFocused();
   });
 
-  test.fixme('Esc pada form transaksi kembali ke pencarian (tombol "Ganti Siswa (Esc)")', async () => {
-    await s.page.locator('nav').getByRole('button', { name: 'Catat Transaksi' }).click();
-    await s.page.keyboard.type('a');
+  test('Esc membatalkan selangkah: dari kartu siswa ke pencarian, lalu mengosongkan pencarian', async () => {
+    const cari = s.page.getByPlaceholder(/Ketik nama siswa/);
+    await s.page.keyboard.type('Ahmad');
+    await expect(s.page.getByText(/T-000001/)).toBeVisible();
+    await s.page.keyboard.press('Enter');
+    await expect(s.page.getByPlaceholder('Rp 0')).toBeFocused();
+
     await s.page.keyboard.press('Escape');
-    await expect(s.page.getByPlaceholder(/Ketik nama siswa/)).toBeFocused();
+    await expect(s.page.getByText('Belum ada siswa yang dipilih')).toBeVisible();
+    await expect(cari).toBeFocused();
+
+    await s.page.keyboard.type('zzz');
+    await expect(cari).toHaveValue('zzz');
+    await s.page.keyboard.press('Escape');
+    await expect(cari).toHaveValue('');
+  });
+
+  test('saat dialog terbuka, pintasan layar tidak aktif dan Esc menutup dialog', async () => {
+    await s.page.keyboard.press('Alt+5');
+    await expect(judul()).toHaveText('Tahun Ajaran & Kelas');
+    await s.page.getByRole('button', { name: /Tambah Tahun Ajaran/ }).click();
+    const dialog = s.page.getByRole('dialog', { name: 'Tambah Tahun Ajaran' });
+    await expect(dialog).toBeVisible();
+
+    await s.page.keyboard.press('Alt+1');
+    await s.page.keyboard.press('Control+k');
+    await expect(judul()).toHaveText('Tahun Ajaran & Kelas');
+    await expect(dialog).toBeVisible();
+
+    await s.page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+  });
+
+  test('fokus keyboard selalu terlihat', async () => {
+    await s.page.keyboard.press('Alt+8');
+    await s.page.keyboard.press('Tab');
+    const gaya = await s.page.evaluate(() => {
+      const el = document.activeElement as HTMLElement;
+      const g = getComputedStyle(el);
+      return { tag: el.tagName, gaya: g.outlineStyle, lebar: g.outlineWidth };
+    });
+    expect(gaya.tag).not.toBe('BODY');
+    expect(gaya.gaya).not.toBe('none');
+    expect(gaya.lebar).toBe('2px');
   });
 });

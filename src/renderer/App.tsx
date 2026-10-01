@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ProfilSekolah, TahunAjaran, TemaAplikasi } from '../shared/types.js';
 
 import { BerandaScreen } from './screens/BerandaScreen.js';
@@ -22,15 +22,68 @@ export type ScreenId =
   | 'cadangan'
   | 'pengaturan';
 
+interface ItemNav {
+  id: ScreenId;
+  label: string;
+  judul: string;
+  highlight?: boolean;
+  /** Bila kosong, memakai Alt+nomor urut. */
+  pintasan?: string;
+}
+
+// Urutan di sini = urutan menu = nomor Alt+1 sampai Alt+9 (DESIGN §6)
+const NAV: ItemNav[] = [
+  { id: 'beranda', label: 'Beranda', judul: 'Beranda (Kas Harian)' },
+  { id: 'catat', label: 'Catat Transaksi', judul: 'Catat Transaksi', highlight: true, pintasan: 'Ctrl+K' },
+  { id: 'siswa', label: 'Siswa', judul: 'Data Siswa & Buku Besar' },
+  { id: 'laporan', label: 'Laporan', judul: 'Laporan Tabungan' },
+  { id: 'akademik', label: 'Tahun Ajaran & Kelas', judul: 'Tahun Ajaran & Kelas' },
+  { id: 'kenaikan', label: 'Kenaikan Kelas', judul: 'Kenaikan Kelas & Kelulusan' },
+  { id: 'impor', label: 'Impor Data', judul: 'Impor Data Excel / CSV' },
+  { id: 'cadangan', label: 'Cadangan', judul: 'Cadangan & Pemulihan' },
+  { id: 'pengaturan', label: 'Pengaturan', judul: 'Pengaturan Aplikasi' },
+];
+
 export default function App() {
   const [screen, setScreen] = useState<ScreenId>('beranda');
   const [profil, setProfil] = useState<ProfilSekolah | null>(null);
   const [tahunAjaranAktif, setTahunAjaranAktif] = useState<TahunAjaran | null>(null);
   const [tema, setTema] = useState<TemaAplikasi>('putih');
+  const kontenRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', tema);
   }, [tema]);
+
+  // Pintasan global (DESIGN §6). Dinonaktifkan saat dialog terbuka agar tidak berpindah layar di belakangnya.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (document.querySelector('[role="dialog"]')) return;
+      const mod = e.ctrlKey || e.metaKey;
+
+      if (mod && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setScreen('catat');
+        return;
+      }
+
+      if (e.altKey && !mod && !e.shiftKey) {
+        const m = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
+        const item = m ? NAV[Number(m[1]) - 1] : undefined;
+        if (item) {
+          e.preventDefault();
+          setScreen(item.id);
+        }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
+
+  // Setelah berpindah layar, fokus ke konten agar Tab berikutnya langsung ke isi layar (Catat Transaksi memfokuskan pencarian sendiri)
+  useEffect(() => {
+    if (screen !== 'catat') kontenRef.current?.focus();
+  }, [screen]);
 
   const muatTahunAjaranAktif = useCallback(() => {
     window.pundi.tahunAjaranDaftar().then((res) => {
@@ -74,55 +127,17 @@ export default function App() {
           </p>
         </div>
 
-        <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <NavButton
-            active={screen === 'beranda'}
-            onClick={() => setScreen('beranda')}
-            label="Beranda"
-            shortcut="Alt+1"
-          />
-          <NavButton
-            active={screen === 'catat'}
-            onClick={() => setScreen('catat')}
-            label="Catat Transaksi"
-            highlight
-            shortcut="Ctrl+K"
-          />
-          <NavButton
-            active={screen === 'siswa'}
-            onClick={() => setScreen('siswa')}
-            label="Siswa"
-          />
-          <NavButton
-            active={screen === 'laporan'}
-            onClick={() => setScreen('laporan')}
-            label="Laporan"
-          />
-          <NavButton
-            active={screen === 'akademik'}
-            onClick={() => setScreen('akademik')}
-            label="Tahun Ajaran & Kelas"
-          />
-          <NavButton
-            active={screen === 'kenaikan'}
-            onClick={() => setScreen('kenaikan')}
-            label="Kenaikan Kelas"
-          />
-          <NavButton
-            active={screen === 'impor'}
-            onClick={() => setScreen('impor')}
-            label="Impor Data"
-          />
-          <NavButton
-            active={screen === 'cadangan'}
-            onClick={() => setScreen('cadangan')}
-            label="Cadangan"
-          />
-          <NavButton
-            active={screen === 'pengaturan'}
-            onClick={() => setScreen('pengaturan')}
-            label="Pengaturan"
-          />
+        <nav aria-label="Menu utama" style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {NAV.map((n, idx) => (
+            <NavButton
+              key={n.id}
+              active={screen === n.id}
+              onClick={() => setScreen(n.id)}
+              label={n.label}
+              highlight={n.highlight}
+              shortcut={n.pintasan ?? `Alt+${idx + 1}`}
+            />
+          ))}
         </nav>
 
         <div style={{ padding: '12px 16px', borderTop: '1px solid var(--border)', fontSize: '12px', color: 'var(--muted)' }}>
@@ -192,18 +207,10 @@ export default function App() {
         </header>
 
         {/* Layar Aktif */}
-        <main style={{ flex: 1, overflow: 'auto', padding: '24px', backgroundColor: 'var(--bg)' }}>
+        <main ref={kontenRef} tabIndex={-1} style={{ flex: 1, overflow: 'auto', padding: '24px', backgroundColor: 'var(--bg)', outline: 'none' }}>
           <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
             <h2 style={{ fontSize: '20px', fontWeight: 600, marginBottom: '20px' }}>
-              {screen === 'beranda' && 'Beranda (Kas Harian)'}
-              {screen === 'catat' && 'Catat Transaksi'}
-              {screen === 'siswa' && 'Data Siswa & Buku Besar'}
-              {screen === 'laporan' && 'Laporan Tabungan'}
-              {screen === 'akademik' && 'Tahun Ajaran & Kelas'}
-              {screen === 'kenaikan' && 'Kenaikan Kelas & Kelulusan'}
-              {screen === 'impor' && 'Impor Data Excel / CSV'}
-              {screen === 'cadangan' && 'Cadangan & Pemulihan'}
-              {screen === 'pengaturan' && 'Pengaturan Aplikasi'}
+              {NAV.find((n) => n.id === screen)?.judul}
             </h2>
 
             {screen === 'beranda' && (
@@ -243,6 +250,7 @@ function NavButton({
   return (
     <button
       onClick={onClick}
+      aria-current={active ? 'page' : undefined}
       style={{
         display: 'flex',
         alignItems: 'center',

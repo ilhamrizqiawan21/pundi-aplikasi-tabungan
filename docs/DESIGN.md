@@ -81,11 +81,14 @@ Tombol (primer, sekunder, bahaya), kolom teks dengan label tetap, kolom rupiah, 
 
 | Kunci | Aksi |
 | --- | --- |
-| `Ctrl/Cmd + K` | Fokus ke pencarian siswa |
+| `Ctrl/Cmd + K` | Buka Catat Transaksi dan fokus ke pencarian siswa (dari layar mana pun) |
 | `S` / `T` | Setoran / Penarikan (di layar Catat) |
 | `Enter` | Simpan |
-| `Esc` | Batal/tutup |
+| `Alt + 1` … `Alt + 9` | Buka menu sesuai urutan di bilah samping (Beranda = 1, Catat Transaksi = 2, dan seterusnya); label pintasan tampil di tiap menu |
+| `Esc` | Batal/tutup: di Catat Transaksi dari kartu siswa kembali ke pencarian, lalu mengosongkan pencarian; saat dialog terbuka, menutup dialog |
 | `Ctrl/Cmd + P` | Cetak struk terakhir |
+
+Pintasan layar tidak aktif selama dialog terbuka. Fokus keyboard selalu terlihat (garis 2 px warna aksen). Aplikasi terpaket tidak menampilkan menu bawaan (tanpa muat ulang dan DevTools); hanya Edit (urungkan, potong, salin, tempel) yang tersisa.
 
 ## 7. Desain cetak
 

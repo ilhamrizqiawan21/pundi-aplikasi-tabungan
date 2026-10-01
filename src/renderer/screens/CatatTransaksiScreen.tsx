@@ -33,7 +33,7 @@ export function CatatTransaksiScreen() {
     searchInputRef.current?.focus();
   }, []);
 
-  // Shortcut global Ctrl+K / Alt+S / Alt+T
+  // Shortcut global Ctrl+K / Esc (DESIGN §6)
   useEffect(() => {
     function handleKeyDown(e: globalThis.KeyboardEvent) {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
@@ -41,10 +41,23 @@ export function CatatTransaksiScreen() {
         searchInputRef.current?.focus();
         searchInputRef.current?.select();
       }
+      // Esc membatalkan selangkah: dari kartu siswa kembali ke pencarian, lalu mengosongkan pencarian.
+      // Saat dialog terbuka, Esc menjadi milik dialog itu.
+      if (e.key === 'Escape' && !document.querySelector('[role="dialog"]')) {
+        if (selectedSiswa) {
+          e.preventDefault();
+          setSelectedSiswa(null);
+          setErrorMsg(null);
+          setTimeout(() => searchInputRef.current?.focus(), 0);
+        } else if (query) {
+          e.preventDefault();
+          setQuery('');
+        }
+      }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [selectedSiswa, query]);
 
   // Live search siswa
   useEffect(() => {
@@ -272,7 +285,6 @@ export function CatatTransaksiScreen() {
             borderRadius: '8px',
             border: '2px solid var(--accent)',
             backgroundColor: 'var(--surface)',
-            outline: 'none',
           }}
         />
 
