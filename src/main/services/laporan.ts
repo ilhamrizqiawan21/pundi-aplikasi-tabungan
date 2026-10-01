@@ -10,6 +10,7 @@ import type {
   Result,
 } from '../../shared/types.js';
 import { ERROR_MESSAGES } from '../../shared/errors.js';
+import { hariIniLokal } from '../../shared/tanggal.js';
 
 // Batas baris yang dikirim ke layar; total tetap dihitung atas semua baris yang cocok
 const BATAS_TAMPIL = 1000;
@@ -20,7 +21,7 @@ export class LaporanService {
    */
   public kasHarian(tanggalInput?: string): Result<RingkasanKasHarian> {
     const db = getDb();
-    const tanggal = tanggalInput || new Date().toISOString().substring(0, 10);
+    const tanggal = tanggalInput || hariIniLokal();
 
     try {
       const row = db.prepare(`

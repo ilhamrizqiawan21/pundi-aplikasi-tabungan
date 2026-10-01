@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { Siswa, Transaksi, JenisTransaksi } from '../../shared/types.js';
+import { hariIniLokal } from '../../shared/tanggal.js';
 import { formatRupiah, parseRupiah } from '../../shared/rupiah.js';
 
 export function CatatTransaksiScreen() {
@@ -11,7 +12,7 @@ export function CatatTransaksiScreen() {
   // Form Transaksi
   const [jenis, setJenis] = useState<JenisTransaksi>('setoran');
   const [nominalRaw, setNominalRaw] = useState('');
-  const [tanggal, setTanggal] = useState(() => new Date().toISOString().substring(0, 10));
+  const [tanggal, setTanggal] = useState(() => hariIniLokal());
   const [keterangan, setKeterangan] = useState('');
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);

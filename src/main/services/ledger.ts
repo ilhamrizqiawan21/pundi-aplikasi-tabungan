@@ -1,4 +1,5 @@
 import { getDb } from '../db/index.js';
+import { hariIniLokal } from '../../shared/tanggal.js';
 import type { Transaksi, Result } from '../../shared/types.js';
 import { ERROR_MESSAGES } from '../../shared/errors.js';
 
@@ -82,7 +83,7 @@ export class LedgerService {
    */
   public setor(input: SetorInput): Result<Transaksi> {
     const db = getDb();
-    const tanggal = input.tanggal || new Date().toISOString().substring(0, 10);
+    const tanggal = input.tanggal || hariIniLokal();
 
     if (!Number.isInteger(input.nominal) || input.nominal <= 0) {
       return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
@@ -163,7 +164,7 @@ export class LedgerService {
    */
   public tarik(input: TarikInput): Result<Transaksi> {
     const db = getDb();
-    const tanggal = input.tanggal || new Date().toISOString().substring(0, 10);
+    const tanggal = input.tanggal || hariIniLokal();
 
     if (!Number.isInteger(input.nominal) || input.nominal <= 0) {
       return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
@@ -281,7 +282,7 @@ export class LedgerService {
           throw new Error('SALDO_TIDAK_CUKUP');
         }
 
-        const tanggal = new Date().toISOString().substring(0, 10);
+        const tanggal = hariIniLokal();
         const nomorBukti = this.generateNomorBukti(db, tanggal);
         const dibuatPada = new Date().toISOString();
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { RingkasanKasHarian, Transaksi } from '../../shared/types.js';
+import { hariIniLokal } from '../../shared/tanggal.js';
 import { formatRupiah } from '../../shared/rupiah.js';
 
 interface BerandaScreenProps {
@@ -14,7 +15,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const today = new Date().toISOString().substring(0, 10);
+      const today = hariIniLokal();
       const [kasRes, trxRes] = await Promise.all([
         window.pundi.laporanKasHarian(today),
         window.pundi.transaksiRiwayat({ limit: 10 }),
