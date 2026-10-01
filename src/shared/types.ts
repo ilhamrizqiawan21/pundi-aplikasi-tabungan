@@ -203,19 +203,49 @@ export interface HasilPeriksaIntegritas {
   }>;
 }
 
+/** Indeks kolom berkas (mulai 0) untuk tiap isian; -1 berarti tidak dipakai. */
+export interface PemetaanKolom {
+  nama: number;
+  nis: number;
+  kelas: number;
+  alamat: number;
+  saldo: number;
+}
+
+export interface OpsiImpor {
+  /** Bila kosong, pemetaan ditebak dari judul kolom. */
+  pemetaan?: PemetaanKolom;
+  /** Tanggal pencatatan saldo awal; bawaan hari ini. */
+  tanggal_saldo_awal?: string;
+  /** Angka dari aplikasi lama untuk dicocokkan sebelum disimpan (CAP-14). */
+  kontrol?: { jumlah_siswa?: number; total_saldo?: number };
+}
+
+export interface BarisImpor {
+  nomor_baris: number;
+  nama: string;
+  nis: string | null;
+  kelas: string | null;
+  alamat: string | null;
+  saldo: number | null;
+  valid: boolean;
+  alasan_galat?: string;
+  catatan?: string;
+}
+
 export interface HasilPratinjauImpor {
+  kolom: string[];
+  baris_header: number;
+  pemetaan: PemetaanKolom;
+  contoh: string[][];
   total_baris: number;
   valid_count: number;
   invalid_count: number;
-  baris: Array<{
-    nomor_baris: number;
-    nama: string;
-    nis: string | null;
-    kelas: string | null;
-    alamat: string | null;
-    valid: boolean;
-    alasan_galat?: string;
-  }>;
+  total_saldo: number;
+  jumlah_dengan_saldo: number;
+  kelas_baru: string[];
+  peringatan: string[];
+  baris: BarisImpor[];
 }
 
 // Tipe Antarmuka IPC Renderer
@@ -234,8 +264,11 @@ export interface PundiApi {
   siswaHapus: (id: number) => Promise<Result<{ sukses: boolean }>>;
 
   // Impor
-  imporPratinjau: (tokenBerkas: string) => Promise<Result<HasilPratinjauImpor>>;
-  imporTerapkan: (tokenBerkas: string) => Promise<Result<{ jumlah_diimpor: number }>>;
+  imporPratinjau: (tokenBerkas: string, opsi?: OpsiImpor) => Promise<Result<HasilPratinjauImpor>>;
+  imporTerapkan: (
+    tokenBerkas: string,
+    opsi?: OpsiImpor
+  ) => Promise<Result<{ jumlah_diimpor: number; jumlah_saldo_awal: number; total_saldo: number }>>;
 
   // Akademik
   tahunAjaranDaftar: () => Promise<Result<TahunAjaran[]>>;

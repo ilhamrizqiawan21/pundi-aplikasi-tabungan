@@ -19,6 +19,7 @@ import {
   KelasSimpanSchema,
   KelasSalinSchema,
   KenaikanDaftarSchema,
+  ImporOpsiSchema,
   KenaikanTerapkanSchema,
   TransaksiSetorSchema,
   TransaksiTarikSchema,
@@ -172,26 +173,18 @@ export function registerIpcHandlers(opts: IpcOptions): void {
   );
 
   // --- IMPOR DATA (Tokenized) ---
-  ipcMain.handle('impor.pratinjau', async (event, data: { tokenBerkas: string }) => {
-    if (!verifySender(event)) {
-      return { ok: false, kode: 'AKSES_DITOLAK', pesan: 'Akses ditolak.' };
-    }
-    const realPath = fileTokenStore.get(data.tokenBerkas);
-    if (!realPath) {
-      return { ok: false, kode: 'FILE_TIDAK_VALID', pesan: 'Sesi berkas kadaluarsa. Silakan pilih kembali berkas Anda.' };
-    }
-    return impor.pratinjau(realPath);
+  const sesiBerkasKadaluarsa = {
+    ok: false as const,
+    kode: 'FILE_TIDAK_VALID' as const,
+    pesan: 'Sesi berkas kadaluarsa. Silakan pilih kembali berkas Anda.',
+  };
+  handle('impor.pratinjau', ImporOpsiSchema, async ({ tokenBerkas, ...opsi }) => {
+    const realPath = fileTokenStore.get(tokenBerkas);
+    return realPath ? impor.pratinjau(realPath, opsi) : sesiBerkasKadaluarsa;
   });
-
-  ipcMain.handle('impor.terapkan', async (event, data: { tokenBerkas: string }) => {
-    if (!verifySender(event)) {
-      return { ok: false, kode: 'AKSES_DITOLAK', pesan: 'Akses ditolak.' };
-    }
-    const realPath = fileTokenStore.get(data.tokenBerkas);
-    if (!realPath) {
-      return { ok: false, kode: 'FILE_TIDAK_VALID', pesan: 'Sesi berkas kadaluarsa. Silakan pilih kembali berkas Anda.' };
-    }
-    return impor.terapkan(realPath);
+  handle('impor.terapkan', ImporOpsiSchema, async ({ tokenBerkas, ...opsi }) => {
+    const realPath = fileTokenStore.get(tokenBerkas);
+    return realPath ? impor.terapkan(realPath, opsi) : sesiBerkasKadaluarsa;
   });
 
   // --- INTEGRITAS & BACKUP ---

@@ -10,10 +10,10 @@ const api: PundiApi = {
   siswaHapus: (id) => ipcRenderer.invoke('siswa.hapus', { id }),
 
   // Impor
-  imporPratinjau: (tokenBerkas) =>
-    ipcRenderer.invoke('impor.pratinjau', { tokenBerkas }),
-  imporTerapkan: (tokenBerkas) =>
-    ipcRenderer.invoke('impor.terapkan', { tokenBerkas }),
+  imporPratinjau: (tokenBerkas, opsi) =>
+    ipcRenderer.invoke('impor.pratinjau', { tokenBerkas, ...opsi }),
+  imporTerapkan: (tokenBerkas, opsi) =>
+    ipcRenderer.invoke('impor.terapkan', { tokenBerkas, ...opsi }),
 
   // Akademik
   tahunAjaranDaftar: () => ipcRenderer.invoke('akademik.tahunAjaranDaftar'),

@@ -86,6 +86,22 @@ export const KenaikanTerapkanSchema = z.object({
 const Tanggal = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD');
 const JenisTrx = z.enum(['setoran', 'penarikan', 'biaya_adm', 'pembalik', 'saldo_awal']);
 
+const IndeksKolom = z.number().int().min(-1).max(200);
+
+export const ImporOpsiSchema = z.object({
+  tokenBerkas: z.string().min(1).max(100),
+  pemetaan: z
+    .object({ nama: IndeksKolom, nis: IndeksKolom, kelas: IndeksKolom, alamat: IndeksKolom, saldo: IndeksKolom })
+    .optional(),
+  tanggal_saldo_awal: Tanggal.optional(),
+  kontrol: z
+    .object({
+      jumlah_siswa: z.number().int().min(0).optional(),
+      total_saldo: z.number().int().min(0).optional(),
+    })
+    .optional(),
+});
+
 export const LaporanTransaksiSchema = z
   .object({
     dari: Tanggal,
