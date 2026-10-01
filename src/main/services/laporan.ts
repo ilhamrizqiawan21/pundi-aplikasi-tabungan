@@ -4,9 +4,15 @@ import type {
   RingkasanKasHarian,
   ItemRekapKelas,
   ItemLaporanSiswa,
+  FilterLaporanTransaksi,
+  ItemLaporanTransaksi,
+  HasilLaporanTransaksi,
   Result,
 } from '../../shared/types.js';
 import { ERROR_MESSAGES } from '../../shared/errors.js';
+
+// Batas baris yang dikirim ke layar; total tetap dihitung atas semua baris yang cocok
+const BATAS_TAMPIL = 1000;
 
 export class LaporanService {
   /**
@@ -132,6 +138,104 @@ export class LaporanService {
       return { ok: true, data: rows };
     } catch {
       return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
+  /**
+   * Transaksi pada rentang tanggal (CAP-11: transaksi harian dan per periode).
+   * `batas` membatasi baris yang dikembalikan; total dan jumlah selalu mencakup semuanya.
+   */
+  public transaksi(
+    filter: FilterLaporanTransaksi,
+    batas: number | null = BATAS_TAMPIL
+  ): Result<HasilLaporanTransaksi> {
+    const db = getDb();
+    try {
+      const kondisi = ['t.tanggal >= ?', 't.tanggal <= ?'];
+      const params: unknown[] = [filter.dari, filter.sampai];
+      if (filter.jenis) {
+        kondisi.push('t.jenis = ?');
+        params.push(filter.jenis);
+      }
+      if (filter.kelasId) {
+        kondisi.push('t.kelas_id = ?');
+        params.push(filter.kelasId);
+      }
+      const where = `WHERE ${kondisi.join(' AND ')}`;
+
+      const agg = db
+        .prepare(
+          `SELECT COUNT(*) AS jumlah,
+                  COALESCE(SUM(CASE WHEN t.nilai > 0 THEN t.nilai END), 0) AS masuk,
+                  COALESCE(SUM(CASE WHEN t.nilai < 0 THEN -t.nilai END), 0) AS keluar
+           FROM transaksi t ${where}`
+        )
+        .get(...params) as { jumlah: number; masuk: number; keluar: number };
+
+      const baris = db
+        .prepare(
+          `SELECT t.id, t.tanggal, t.nomor_bukti, s.nama AS siswa_nama, s.nomor AS siswa_nomor,
+                  k.nama AS kelas_nama, t.jenis, t.nilai, t.saldo_setelah, t.keterangan
+           FROM transaksi t
+           JOIN siswa s ON s.id = t.siswa_id
+           LEFT JOIN kelas k ON k.id = t.kelas_id
+           ${where}
+           ORDER BY t.tanggal ASC, t.id ASC
+           ${batas === null ? '' : 'LIMIT ?'}`
+        )
+        .all(...params, ...(batas === null ? [] : [batas])) as ItemLaporanTransaksi[];
+
+      return {
+        ok: true,
+        data: {
+          baris,
+          jumlah: agg.jumlah,
+          total_masuk: agg.masuk,
+          total_keluar: agg.keluar,
+          terpotong: batas !== null && agg.jumlah > batas,
+        },
+      };
+    } catch {
+      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
+  /**
+   * Ekspor transaksi pada rentang tanggal ke Excel (CAP-11); seluruh baris, tanpa batas tampilan.
+   */
+  public async eksporTransaksi(
+    targetPath: string,
+    filter: FilterLaporanTransaksi
+  ): Promise<Result<{ berkas: string }>> {
+    const dataRes = this.transaksi(filter, null);
+    if (!dataRes.ok) return dataRes;
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Transaksi');
+      sheet.columns = [
+        { header: 'Tanggal', key: 'tanggal', width: 12 },
+        { header: 'No. Bukti', key: 'nomor_bukti', width: 18 },
+        { header: 'No. Rekening', key: 'siswa_nomor', width: 14 },
+        { header: 'Nama Siswa', key: 'siswa_nama', width: 28 },
+        { header: 'Kelas', key: 'kelas_nama', width: 10 },
+        { header: 'Jenis', key: 'jenis', width: 12 },
+        { header: 'Nilai (Rp)', key: 'nilai', width: 16, style: { numFmt: '#,##0' } },
+        { header: 'Saldo Setelah (Rp)', key: 'saldo_setelah', width: 18, style: { numFmt: '#,##0' } },
+        { header: 'Keterangan', key: 'keterangan', width: 36 },
+      ];
+      for (const r of dataRes.data.baris) {
+        sheet.addRow({ ...r, kelas_nama: r.kelas_nama ?? '-', keterangan: r.keterangan ?? '' });
+      }
+      sheet.addRow({});
+      sheet.addRow({ siswa_nama: 'Total masuk', nilai: dataRes.data.total_masuk });
+      sheet.addRow({ siswa_nama: 'Total keluar', nilai: dataRes.data.total_keluar });
+      sheet.addRow({ siswa_nama: 'Selisih bersih', nilai: dataRes.data.total_masuk - dataRes.data.total_keluar });
+
+      await workbook.xlsx.writeFile(targetPath);
+      return { ok: true, data: { berkas: targetPath } };
+    } catch {
+      return { ok: false, kode: 'FILE_TIDAK_VALID', pesan: 'Gagal mengekspor laporan ke Excel.' };
     }
   }
 

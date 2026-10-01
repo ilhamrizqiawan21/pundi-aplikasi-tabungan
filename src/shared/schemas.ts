@@ -83,6 +83,34 @@ export const KenaikanTerapkanSchema = z.object({
     .max(5000),
 });
 
+const Tanggal = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD');
+const JenisTrx = z.enum(['setoran', 'penarikan', 'biaya_adm', 'pembalik', 'saldo_awal']);
+
+export const LaporanTransaksiSchema = z
+  .object({
+    dari: Tanggal,
+    sampai: Tanggal,
+    jenis: JenisTrx.optional(),
+    kelasId: z.number().int().positive().optional(),
+  })
+  .refine((v) => v.sampai >= v.dari, { message: 'Tanggal akhir tidak boleh sebelum tanggal awal.' });
+
+export const LaporanEksporSchema = z.discriminatedUnion('jenis', [
+  z.object({
+    jenis: z.literal('transaksi'),
+    dari: Tanggal,
+    sampai: Tanggal,
+    kelasId: z.number().int().positive().optional(),
+    // jenis transaksi disaring lewat kolom terpisah agar tidak bentrok dengan diskriminator
+    jenisTransaksi: JenisTrx.optional(),
+  }),
+  z.object({
+    jenis: z.literal('rekapSiswa'),
+    tahunAjaranId: z.number().int().positive().optional(),
+    kelasId: z.number().int().positive().optional(),
+  }),
+]);
+
 // Transaksi (NFR-03: nominal bilangan bulat positif)
 export const TransaksiSetorSchema = z.object({
   siswa_id: z.number().int().positive('ID Siswa tidak valid'),

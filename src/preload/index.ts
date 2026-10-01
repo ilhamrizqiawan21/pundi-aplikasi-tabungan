@@ -46,6 +46,9 @@ const api: PundiApi = {
   laporanRekapSiswa: (filter) =>
     ipcRenderer.invoke('laporan.rekapSiswa', filter),
 
+  laporanTransaksi: (filter) => ipcRenderer.invoke('laporan.transaksi', filter),
+  laporanEkspor: (data) => ipcRenderer.invoke('laporan.ekspor', data),
+
   // Pengaturan & Profil
   profilSekolahBaca: () => ipcRenderer.invoke('pengaturan.profilBaca'),
   profilSekolahSimpan: (data) =>

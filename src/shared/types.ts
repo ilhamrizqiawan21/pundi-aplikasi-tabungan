@@ -156,6 +156,39 @@ export interface ItemLaporanSiswa {
   saldo_akhir: number;
 }
 
+export interface FilterLaporanTransaksi {
+  dari: string; // YYYY-MM-DD
+  sampai: string; // YYYY-MM-DD
+  jenis?: JenisTransaksi;
+  kelasId?: number;
+}
+
+export interface ItemLaporanTransaksi {
+  id: number;
+  tanggal: string;
+  nomor_bukti: string;
+  siswa_nama: string;
+  siswa_nomor: string;
+  kelas_nama: string | null;
+  jenis: JenisTransaksi;
+  nilai: number; // bertanda
+  saldo_setelah: number;
+  keterangan: string | null;
+}
+
+export interface HasilLaporanTransaksi {
+  baris: ItemLaporanTransaksi[];
+  /** Jumlah seluruh transaksi yang cocok (bisa lebih banyak dari baris yang dikirim). */
+  jumlah: number;
+  total_masuk: number; // jumlah nilai positif
+  total_keluar: number; // jumlah nilai negatif, sebagai bilangan positif
+  terpotong: boolean;
+}
+
+export type PermintaanEkspor =
+  | { jenis: 'transaksi'; dari: string; sampai: string; kelasId?: number; jenisTransaksi?: JenisTransaksi }
+  | { jenis: 'rekapSiswa'; tahunAjaranId?: number; kelasId?: number };
+
 export interface HasilPeriksaIntegritas {
   apakah_seimbang: boolean;
   total_siswa_diperiksa: number;
@@ -266,6 +299,10 @@ export interface PundiApi {
     tahunAjaranId?: number;
     kelasId?: number;
   }) => Promise<Result<ItemLaporanSiswa[]>>;
+
+  laporanTransaksi: (filter: FilterLaporanTransaksi) => Promise<Result<HasilLaporanTransaksi>>;
+  /** Membuka dialog simpan lalu menulis berkas Excel; mengembalikan null bila dibatalkan. */
+  laporanEkspor: (data: PermintaanEkspor) => Promise<Result<{ nama_berkas: string } | null>>;
 
   // Pengaturan & Profil
   profilSekolahBaca: () => Promise<Result<ProfilSekolah>>;

@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import path from 'node:path';
 import { ipcMain, dialog, type IpcMainInvokeEvent } from 'electron';
 import { LedgerService } from '../services/ledger.js';
 import { SiswaService } from '../services/siswa.js';
@@ -25,6 +26,8 @@ import {
   TransaksiRiwayatSchema,
   ProfilSekolahSimpanSchema,
   PengaturanSimpanSchema,
+  LaporanTransaksiSchema,
+  LaporanEksporSchema,
 } from '../../shared/schemas.js';
 import type { Result } from '../../shared/types.js';
 import { isTrustedSender } from '../security.js';
@@ -130,6 +133,33 @@ export function registerIpcHandlers(opts: IpcOptions): void {
   handle('laporan.rekapSiswa', null, (data: { tahunAjaranId?: number; kelasId?: number }) =>
     laporan.rekapSiswa(data || {})
   );
+
+  handle('laporan.transaksi', LaporanTransaksiSchema, (data) => laporan.transaksi(data));
+
+  // Berkas ekspor dipilih lewat dialog simpan di proses utama; renderer tidak pernah memegang jalur (NFR-07)
+  handle('laporan.ekspor', LaporanEksporSchema, async (data) => {
+    const judul = data.jenis === 'transaksi' ? `transaksi_${data.dari}_${data.sampai}` : 'rekap_siswa';
+    const pilihan = await dialog.showSaveDialog({
+      defaultPath: `${judul}.xlsx`,
+      filters: [{ name: 'Excel', extensions: ['xlsx'] }],
+    });
+    if (pilihan.canceled || !pilihan.filePath) return { ok: true, data: null };
+
+    const hasil =
+      data.jenis === 'transaksi'
+        ? await laporan.eksporTransaksi(pilihan.filePath, {
+            dari: data.dari,
+            sampai: data.sampai,
+            kelasId: data.kelasId,
+            jenis: data.jenisTransaksi,
+          })
+        : await laporan.eksporRekapSiswa(pilihan.filePath, {
+            tahunAjaranId: data.tahunAjaranId,
+            kelasId: data.kelasId,
+          });
+    if (!hasil.ok) return hasil;
+    return { ok: true, data: { nama_berkas: path.basename(pilihan.filePath) } };
+  });
 
   // --- PENGATURAN & PROFIL ---
   handle('pengaturan.profilBaca', null, () => pengaturan.profilBaca());
