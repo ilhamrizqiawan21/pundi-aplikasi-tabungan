@@ -84,7 +84,7 @@ export function parseRupiahKetat(input: unknown): HasilParseRupiah {
 
   if (typeof input !== 'string') return { ok: false, alasan: 'Nominal tidak dikenali' };
 
-  let s = input.replace(/ /g, ' ').trim().replace(/^rp\.?\s*/i, '').trim();
+  let s = input.split(String.fromCharCode(160)).join(' ').trim().replace(/^rp\.?\s*/i, '').trim();
   if (s === '' || s === '-') return { ok: true, nilai: 0 };
   if (/^[-(]/.test(s)) return { ok: false, alasan: 'Nominal tidak boleh negatif' };
 
