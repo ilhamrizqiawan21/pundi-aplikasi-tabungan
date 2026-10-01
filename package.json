@@ -14,8 +14,11 @@
     "lint": "eslint . --ext .ts,.tsx",
     "test": "vitest run",
     "test:watch": "vitest",
-    "pack:win": "npm run build && electron-builder --win",
-    "build:preload": "esbuild src/preload/index.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist-electron/preload/index.cjs"
+    "pack:win": "npm run native:electron && npm run build && electron-builder --win",
+    "build:preload": "esbuild src/preload/index.ts --bundle --platform=node --format=cjs --external:electron --outfile=dist-electron/preload/index.cjs",
+    "native:node": "node scripts/native.mjs node",
+    "native:electron": "node scripts/native.mjs electron",
+    "pretest": "npm run native:node"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",
@@ -37,5 +40,8 @@
     "typescript": "^5.7.3",
     "vite": "^6.2.0",
     "vitest": "^3.0.7"
+  },
+  "engines": {
+    "node": ">=22 <23"
   }
 }
