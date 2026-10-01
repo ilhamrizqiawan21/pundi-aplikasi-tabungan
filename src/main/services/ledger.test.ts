@@ -5,6 +5,7 @@ import os from 'node:os';
 import { initDb, closeDb } from '../db/index.js';
 import { LedgerService } from './ledger.js';
 import { SiswaService } from './siswa.js';
+import { LaporanService } from './laporan.js';
 import { IntegritasService } from './integritas.js';
 
 describe('LedgerService (Buku Besar & Properti Invarian)', () => {
@@ -108,12 +109,44 @@ describe('LedgerService (Buku Besar & Properti Invarian)', () => {
     }
   });
 
+  it('saldo awal: dicatat sebagai jenis saldo_awal, hanya untuk siswa tanpa transaksi, dan tidak dihitung kas harian', () => {
+    const s = siswaSvc.simpan({ nama: 'Siswa Saldo Awal', status: 'aktif' });
+    if (!s.ok) throw new Error(s.pesan);
+
+    const r = ledger.saldoAwal({ siswa_id: s.data.id, nominal: 250000, tanggal: '2026-03-01' });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.data).toMatchObject({ jenis: 'saldo_awal', nilai: 250000, saldo_setelah: 250000 });
+    expect(ledger.getSaldoSiswa(s.data.id)).toBe(250000);
+
+    // Sudah punya transaksi: ditolak, saldo tidak berubah
+    expect(ledger.saldoAwal({ siswa_id: s.data.id, nominal: 1000, tanggal: '2026-03-01' }).ok).toBe(false);
+    expect(ledger.getSaldoSiswa(s.data.id)).toBe(250000);
+
+    // Nominal tidak valid
+    const baru = siswaSvc.simpan({ nama: 'Siswa Lain', status: 'aktif' });
+    if (!baru.ok) throw new Error(baru.pesan);
+    for (const nominal of [0, -5, 1.5, Number.NaN]) {
+      expect(ledger.saldoAwal({ siswa_id: baru.data.id, nominal, tanggal: '2026-03-01' }).ok).toBe(false);
+    }
+
+    // Setoran sesudahnya melanjutkan saldo; kas harian hanya memuat setoran, bukan saldo awal
+    expect(ledger.setor({ siswa_id: s.data.id, nominal: 10000, tanggal: '2026-03-01' }).ok).toBe(true);
+    const kas = new LaporanService().kasHarian('2026-03-01');
+    expect(kas.ok && kas.data).toMatchObject({ total_setoran: 10000, jumlah_transaksi: 1, saldo_seluruh_siswa: 260000 });
+    const periksa = integritas.periksa();
+    expect(periksa.ok && periksa.data.apakah_seimbang).toBe(true);
+  });
+
   it('uji berbasis properti: 500 transaksi acak selalu menjaga saldo >= 0 dan CAP-17 nol selisih', () => {
     // Buat 5 siswa
     const siswaIds: number[] = [];
     for (let i = 1; i <= 5; i++) {
       const res = siswaSvc.simpan({ nama: `Siswa Uji Properti ${i}`, status: 'aktif' });
       if (res.ok) siswaIds.push(res.data.id);
+    }
+    // Sebagian siswa dimulai dari saldo awal (CAP-14); koreksi acak boleh membalikkannya
+    for (const id of siswaIds.slice(0, 3)) {
+      expect(ledger.saldoAwal({ siswa_id: id, nominal: 100000, tanggal: '2026-01-01' }).ok).toBe(true);
     }
 
     const nominals = [10000, 20000, 25000, 50000, 100000, 250000];

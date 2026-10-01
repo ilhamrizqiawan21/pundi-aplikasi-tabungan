@@ -10,6 +10,14 @@ export interface SetorInput {
   keterangan?: string;
 }
 
+export interface SaldoAwalInput {
+  siswa_id: number;
+  nominal: number;
+  tanggal: string;
+  impor_id?: number | null;
+  keterangan?: string;
+}
+
 export interface TarikInput {
   siswa_id: number;
   nominal: number;
@@ -154,6 +162,93 @@ export class LedgerService {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg === 'SISWA_TIDAK_DITEMUKAN') {
         return { ok: false, kode: 'SISWA_TIDAK_DITEMUKAN', pesan: ERROR_MESSAGES.SISWA_TIDAK_DITEMUKAN };
+      }
+      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
+  /**
+   * CAP-14: Saldo awal siswa hasil migrasi dari aplikasi lama.
+   * Dicatat sebagai transaksi `saldo_awal` (bukan setoran) dan hanya untuk siswa yang belum punya transaksi.
+   * Aman dipanggil di dalam transaksi SQL pemanggil (menjadi savepoint), sehingga impor tetap atomik.
+   */
+  public saldoAwal(input: SaldoAwalInput): Result<Transaksi> {
+    const db = getDb();
+
+    if (!Number.isSafeInteger(input.nominal) || input.nominal <= 0) {
+      return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
+    }
+
+    try {
+      let dibuat: Transaksi | null = null;
+
+      const tx = db.transaction(() => {
+        const siswa = db.prepare(`SELECT id FROM siswa WHERE id = ?`).get(input.siswa_id);
+        if (!siswa) throw new Error('SISWA_TIDAK_DITEMUKAN');
+
+        const sudahAda = db.prepare(`SELECT COUNT(*) AS n FROM transaksi WHERE siswa_id = ?`).get(input.siswa_id) as {
+          n: number;
+        };
+        if (sudahAda.n > 0) throw new Error('SALDO_AWAL_DITOLAK');
+
+        const nomorBukti = this.generateNomorBukti(db, input.tanggal);
+        const kelasId = this.getKelasAktifSiswa(db, input.siswa_id);
+        const dibuatPada = new Date().toISOString();
+        const keterangan = input.keterangan || 'Saldo awal';
+
+        const insert = db
+          .prepare(
+            `INSERT INTO transaksi (
+               nomor_bukti, siswa_id, kelas_id, tanggal, jenis, nilai,
+               saldo_setelah, keterangan, membalik_id, impor_id, dibuat_pada
+             ) VALUES (?, ?, ?, ?, 'saldo_awal', ?, ?, ?, NULL, ?, ?)`
+          )
+          .run(
+            nomorBukti,
+            input.siswa_id,
+            kelasId,
+            input.tanggal,
+            input.nominal,
+            input.nominal,
+            keterangan,
+            input.impor_id ?? null,
+            dibuatPada
+          );
+
+        db.prepare(
+          `INSERT INTO audit_log (waktu, aksi, entitas, entitas_id, ringkasan)
+           VALUES (?, 'transaksi.saldo_awal', 'transaksi', ?, 'Saldo awal dicatat')`
+        ).run(dibuatPada, insert.lastInsertRowid);
+
+        dibuat = {
+          id: Number(insert.lastInsertRowid),
+          nomor_bukti: nomorBukti,
+          siswa_id: input.siswa_id,
+          kelas_id: kelasId,
+          tanggal: input.tanggal,
+          jenis: 'saldo_awal',
+          nilai: input.nominal,
+          saldo_setelah: input.nominal,
+          keterangan,
+          membalik_id: null,
+          impor_id: input.impor_id ?? null,
+          dibuat_pada: dibuatPada,
+        };
+      });
+      tx();
+
+      return { ok: true, data: dibuat! };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg === 'SISWA_TIDAK_DITEMUKAN') {
+        return { ok: false, kode: 'SISWA_TIDAK_DITEMUKAN', pesan: ERROR_MESSAGES.SISWA_TIDAK_DITEMUKAN };
+      }
+      if (msg === 'SALDO_AWAL_DITOLAK') {
+        return {
+          ok: false,
+          kode: 'VALIDASI_GAGAL',
+          pesan: 'Saldo awal hanya bisa dicatat untuk siswa yang belum punya transaksi.',
+        };
       }
       return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
     }

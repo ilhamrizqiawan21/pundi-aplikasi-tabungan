@@ -30,7 +30,7 @@ export class LaporanService {
           COALESCE(SUM(CASE WHEN nilai < 0 THEN ABS(nilai) ELSE 0 END), 0) AS total_penarikan,
           COUNT(*) AS jumlah_transaksi
         FROM transaksi
-        WHERE tanggal = ?
+        WHERE tanggal = ? AND jenis <> 'saldo_awal'
       `).get(tanggal) as {
         total_setoran: number;
         total_penarikan: number;
