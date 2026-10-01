@@ -1,0 +1,102 @@
+import { z } from 'zod';
+
+export const StatusSiswaSchema = z.enum(['aktif', 'lulus', 'keluar']);
+export const JenisTransaksiSchema = z.enum([
+  'setoran',
+  'penarikan',
+  'biaya_adm',
+  'pembalik',
+  'saldo_awal',
+]);
+export const TemaAplikasiSchema = z.enum([
+  'putih',
+  'hijau',
+  'biru',
+  'ungu',
+  'grafit',
+]);
+export const UkuranStrukSchema = z.enum(['58', '80', 'a6']);
+
+// Siswa
+export const SiswaCariSchema = z.object({
+  query: z.string().default(''),
+  kelasId: z.number().int().positive().optional(),
+  status: StatusSiswaSchema.optional(),
+});
+
+export const SiswaSimpanSchema = z.object({
+  id: z.number().int().positive().optional(),
+  nis: z.string().trim().max(50).nullable().optional(),
+  nama: z.string().trim().min(1, 'Nama siswa wajib diisi').max(200),
+  alamat: z.string().trim().max(500).nullable().optional(),
+  status: StatusSiswaSchema.default('aktif'),
+  kelas_id: z.number().int().positive().nullable().optional(),
+});
+
+export const IdSchema = z.object({
+  id: z.number().int().positive(),
+});
+
+// Akademik
+export const TahunAjaranSimpanSchema = z.object({
+  id: z.number().int().positive().optional(),
+  nama: z.string().trim().min(1).max(50),
+  mulai: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD'),
+  selesai: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD'),
+  aktif: z.boolean().default(false),
+});
+
+export const KelasSimpanSchema = z.object({
+  id: z.number().int().positive().optional(),
+  tahun_ajaran_id: z.number().int().positive(),
+  nama: z.string().trim().min(1).max(50),
+  tingkat: z.number().int().min(1).max(20),
+  urutan: z.number().int().default(1),
+});
+
+// Transaksi (NFR-03: nominal bilangan bulat positif)
+export const TransaksiSetorSchema = z.object({
+  siswa_id: z.number().int().positive('ID Siswa tidak valid'),
+  nominal: z.number().int().positive('Nominal setoran harus lebih dari 0'),
+  tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD').optional(),
+  keterangan: z.string().trim().max(255).optional(),
+});
+
+export const TransaksiTarikSchema = z.object({
+  siswa_id: z.number().int().positive('ID Siswa tidak valid'),
+  nominal: z.number().int().positive('Nominal penarikan harus lebih dari 0'),
+  tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD').optional(),
+  keterangan: z.string().trim().max(255).optional(),
+});
+
+export const TransaksiBalikSchema = z.object({
+  transaksi_id: z.number().int().positive('ID Transaksi tidak valid'),
+  alasan: z.string().trim().min(3, 'Alasan koreksi minimal 3 karakter').max(255),
+});
+
+export const TransaksiRiwayatSchema = z.object({
+  siswa_id: z.number().int().positive().optional(),
+  tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  dari_tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  sampai_tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  kelas_id: z.number().int().positive().optional(),
+  limit: z.number().int().positive().max(500).optional(),
+});
+
+// Pengaturan & Profil
+export const ProfilSekolahSimpanSchema = z.object({
+  nama: z.string().trim().min(1, 'Nama sekolah wajib diisi').max(200),
+  alamat: z.string().trim().max(500).nullable().optional(),
+  kota: z.string().trim().max(100).nullable().optional(),
+  bendahara: z.string().trim().max(100).nullable().optional(),
+  kepala: z.string().trim().max(100).nullable().optional(),
+  logo_rel_path: z.string().nullable().optional(),
+});
+
+export const PengaturanSimpanSchema = z.object({
+  tema: TemaAplikasiSchema.optional(),
+  folder_backup: z.string().optional(),
+  backup_otomatis: z.boolean().optional(),
+  ukuran_struk: UkuranStrukSchema.optional(),
+  pin_hash: z.string().nullable().optional(),
+});

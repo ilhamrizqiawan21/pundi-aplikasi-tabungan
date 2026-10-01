@@ -105,4 +105,9 @@ Memenuhi acceptance criteria CAP/NFR terkait; lint, typecheck, dan uji lulus den
 
 ## Perintah
 
-Belum ada. Scaffold dikerjakan di TODO F2. Setelah ada, catat di sini perintah aktual untuk: pengembangan, lint, typecheck, uji unit, uji alur, bangun installer Windows, bangun macOS.
+- **Pengembangan (Renderer)**: `npm run dev`
+- **Typecheck**: `npm run typecheck` (`tsc --noEmit && tsc -p tsconfig.node.json --noEmit`)
+- **Uji Unit**: `npm test` (`vitest run`)
+- **Build Aplikasi**: `npm run build` (`npm run build:renderer && npm run build:main`)
+- **Bangun Installer Windows**: `npm run pack:win` (`electron-builder --win`)
+

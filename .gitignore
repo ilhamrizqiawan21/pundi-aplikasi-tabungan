@@ -1,20 +1,36 @@
 # Data dan rahasia — jangan pernah di-commit (NFR-02)
+# Basis data
 *.sqlite
 *.sqlite-wal
 *.sqlite-shm
 *.sqlite3
 *.db
+*.db-wal
+*.db-shm
 *.mdb
+*.accdb
 *.bundle
 backups/
 logs/
+*.log
 aset/
+
+# Data siswa nyata (hasil ekspor/impor). Berkas contoh sintetis taruh di fixtures/.
+*.xlsx
+*.xls
+*.csv
+!**/fixtures/**/*.xlsx
+!**/fixtures/**/*.csv
+
+# Kredensial dan sertifikat
 .env
 .env.*
 akun*.md
 *.pem
 *.p12
+*.pfx
 *.cer
+*.key
 
 # Build dan dependensi
 node_modules/
@@ -23,7 +39,21 @@ dist-electron/
 out/
 release/
 .vite/
+coverage/
+*.tsbuildinfo
+*.exe
+*.dmg
+*.blockmap
 
-# Sistem
+# Hasil uji
+playwright-report/
+test-results/
+
+# Editor, alat agen, dan sistem
+.vscode/
+.idea/
+.claude/
 .DS_Store
 Thumbs.db
+desktop.ini
+npm-debug.log*
