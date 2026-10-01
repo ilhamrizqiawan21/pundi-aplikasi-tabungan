@@ -39,8 +39,15 @@ export function SiswaScreen() {
     }
   }, [query, filterKelasId, filterStatus]);
 
+  // Penempatan siswa selalu pada tahun ajaran aktif, jadi hanya kelasnya yang ditawarkan
   const fetchKelas = async () => {
-    const res = await window.pundi.kelasDaftar();
+    const ta = await window.pundi.tahunAjaranDaftar();
+    const aktif = ta.ok ? ta.data.find((t) => t.aktif === 1) : undefined;
+    if (!aktif) {
+      setKelasList([]);
+      return;
+    }
+    const res = await window.pundi.kelasDaftar(aktif.id);
     if (res.ok) {
       setKelasList(res.data);
     }

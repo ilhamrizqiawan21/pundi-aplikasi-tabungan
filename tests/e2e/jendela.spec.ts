@@ -7,6 +7,7 @@ const MENU: Array<{ label: string; judul: string }> = [
   { label: 'Catat Transaksi', judul: 'Catat Transaksi' },
   { label: 'Siswa', judul: 'Data Siswa & Buku Besar' },
   { label: 'Laporan', judul: 'Laporan Tabungan' },
+  { label: 'Tahun Ajaran & Kelas', judul: 'Tahun Ajaran & Kelas' },
   { label: 'Kenaikan Kelas', judul: 'Kenaikan Kelas & Kelulusan' },
   { label: 'Impor Data', judul: 'Impor Data Excel / CSV' },
   { label: 'Cadangan', judul: 'Cadangan & Pemulihan' },

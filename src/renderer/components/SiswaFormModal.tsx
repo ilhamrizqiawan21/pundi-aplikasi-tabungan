@@ -160,6 +160,11 @@ export function SiswaFormModal({
                 </option>
               ))}
             </select>
+            {kelasList.length === 0 && (
+              <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '6px' }}>
+                Belum ada kelas pada tahun ajaran aktif. Buat di menu Tahun Ajaran &amp; Kelas.
+              </p>
+            )}
           </div>
         </div>
 

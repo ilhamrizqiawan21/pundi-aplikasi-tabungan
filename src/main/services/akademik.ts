@@ -165,6 +165,35 @@ export class AkademikService {
     }
   }
 
+  /** Menyalin daftar kelas (tanpa siswa) dari satu tahun ajaran ke tahun ajaran lain; yang sudah ada dilewati. */
+  public kelasSalin(dariId: number, keId: number): Result<{ disalin: number; dilewati: number }> {
+    const db = getDb();
+    if (dariId === keId) {
+      return gagal('VALIDASI_GAGAL', 'Pilih tahun ajaran asal yang berbeda dari tahun ajaran tujuan.');
+    }
+    try {
+      const ada = db.prepare(`SELECT COUNT(*) AS n FROM tahun_ajaran WHERE id IN (?, ?)`).get(dariId, keId) as { n: number };
+      if (ada.n !== 2) return gagal('TAHUN_AJARAN_TIDAK_DITEMUKAN');
+
+      const tx = db.transaction(() => {
+        const sumber = db
+          .prepare(`SELECT nama, tingkat, urutan FROM kelas WHERE tahun_ajaran_id = ? ORDER BY tingkat, urutan, nama`)
+          .all(dariId) as Array<{ nama: string; tingkat: number; urutan: number }>;
+        const sisip = db.prepare(
+          `INSERT OR IGNORE INTO kelas (tahun_ajaran_id, nama, tingkat, urutan) VALUES (?, ?, ?, ?)`
+        );
+        let disalin = 0;
+        for (const k of sumber) {
+          disalin += sisip.run(keId, k.nama, k.tingkat, k.urutan).changes;
+        }
+        return { disalin, dilewati: sumber.length - disalin };
+      });
+      return { ok: true, data: tx() };
+    } catch {
+      return gagal('DATABASE_ERROR');
+    }
+  }
+
   /** Kelas yang sudah pernah berisi siswa atau transaksi tidak dihapus agar riwayatnya utuh. */
   public kelasHapus(id: number): Result<{ id: number }> {
     const db = getDb();

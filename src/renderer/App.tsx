@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { ProfilSekolah, TahunAjaran, TemaAplikasi } from '../shared/types.js';
 
 import { BerandaScreen } from './screens/BerandaScreen.js';
@@ -7,6 +7,7 @@ import { SiswaScreen } from './screens/SiswaScreen.js';
 import { LaporanScreen } from './screens/LaporanScreen.js';
 import { ImporScreen } from './screens/ImporScreen.js';
 import { CadanganScreen } from './screens/CadanganScreen.js';
+import { AkademikScreen } from './screens/AkademikScreen.js';
 import { PengaturanScreen } from './screens/PengaturanScreen.js';
 
 export type ScreenId =
@@ -14,6 +15,7 @@ export type ScreenId =
   | 'catat'
   | 'siswa'
   | 'laporan'
+  | 'akademik'
   | 'kenaikan'
   | 'impor'
   | 'cadangan'
@@ -29,24 +31,25 @@ export default function App() {
     document.documentElement.setAttribute('data-theme', tema);
   }, [tema]);
 
+  const muatTahunAjaranAktif = useCallback(() => {
+    window.pundi.tahunAjaranDaftar().then((res) => {
+      if (res.ok) setTahunAjaranAktif(res.data.find((ta) => ta.aktif === 1) || null);
+    });
+  }, []);
+
   useEffect(() => {
     if (window.pundi) {
       window.pundi.profilSekolahBaca().then((res) => {
         if (res.ok) setProfil(res.data);
       });
-      window.pundi.tahunAjaranDaftar().then((res) => {
-        if (res.ok) {
-          const aktif = res.data.find((ta) => ta.aktif === 1) || null;
-          setTahunAjaranAktif(aktif);
-        }
-      });
+      muatTahunAjaranAktif();
       window.pundi.pengaturanBaca().then((res) => {
         if (res.ok && res.data.tema) {
           setTema(res.data.tema);
         }
       });
     }
-  }, []);
+  }, [muatTahunAjaranAktif]);
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden' }}>
@@ -93,6 +96,11 @@ export default function App() {
             active={screen === 'laporan'}
             onClick={() => setScreen('laporan')}
             label="Laporan"
+          />
+          <NavButton
+            active={screen === 'akademik'}
+            onClick={() => setScreen('akademik')}
+            label="Tahun Ajaran & Kelas"
           />
           <NavButton
             active={screen === 'kenaikan'}
@@ -190,6 +198,7 @@ export default function App() {
               {screen === 'catat' && 'Catat Transaksi'}
               {screen === 'siswa' && 'Data Siswa & Buku Besar'}
               {screen === 'laporan' && 'Laporan Tabungan'}
+              {screen === 'akademik' && 'Tahun Ajaran & Kelas'}
               {screen === 'kenaikan' && 'Kenaikan Kelas & Kelulusan'}
               {screen === 'impor' && 'Impor Data Excel / CSV'}
               {screen === 'cadangan' && 'Cadangan & Pemulihan'}
@@ -202,6 +211,7 @@ export default function App() {
             {screen === 'catat' && <CatatTransaksiScreen />}
             {screen === 'siswa' && <SiswaScreen />}
             {screen === 'laporan' && <LaporanScreen />}
+            {screen === 'akademik' && <AkademikScreen onChanged={muatTahunAjaranAktif} />}
             {screen === 'impor' && <ImporScreen />}
             {screen === 'cadangan' && <CadanganScreen />}
             {screen === 'pengaturan' && (

@@ -58,6 +58,11 @@ export const KelasSimpanSchema = z.object({
   urutan: z.number().int().default(1),
 });
 
+export const KelasSalinSchema = z.object({
+  dari_id: z.number().int().positive(),
+  ke_id: z.number().int().positive(),
+});
+
 // Transaksi (NFR-03: nominal bilangan bulat positif)
 export const TransaksiSetorSchema = z.object({
   siswa_id: z.number().int().positive('ID Siswa tidak valid'),

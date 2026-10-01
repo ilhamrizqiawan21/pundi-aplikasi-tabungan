@@ -58,6 +58,9 @@ Tabel dengan pencarian, filter kelas dan status. Detail siswa: data diri, saldo,
 ### 4.4 Laporan
 Pilih jenis (harian, per kelas, per siswa, rekap saldo), rentang tanggal, kelas. Pratinjau di layar, tombol **PDF** dan **Excel**.
 
+### 4.4a Tahun Ajaran & Kelas
+Menu tersendiri (sebelumnya direncanakan di Pengaturan, dipindah atas arahan pemilik agar mudah ditemukan). Daftar tahun ajaran dengan lencana **Aktif**, tombol **Jadikan Aktif**, **Ubah**, **Hapus** (hanya bila tidak aktif dan belum punya kelas). Di bawahnya daftar kelas tahun yang dipilih (nama, tingkat, urutan, jumlah siswa) dengan **Tambah Kelas**, **Ubah**, **Hapus** (hanya bila tanpa siswa dan tanpa transaksi) dan **Salin Kelas dari Tahun Lain** (daftar kelas tanpa siswa). Keadaan kosong: "Belum ada tahun ajaran. Buat tahun ajaran pertama untuk mulai mengelompokkan siswa ke dalam kelas." Form tahun ajaran terisi saran (Juli–Juni). Mengaktifkan tahun ajaran baru menampilkan peringatan bahwa siswa belum punya kelas di tahun itu sampai dipindahkan.
+
 ### 4.5 Kenaikan Kelas
 Pilih kelas asal → daftar siswa (semua tercentang) → pilih kelas tujuan (tahun ajaran baru) → **Tinjau** (daftar perubahan) → **Terapkan**. Pilihan lulus/keluar per siswa.
 
@@ -68,7 +71,7 @@ Langkah: 1 Pilih berkas, 2 Petakan kolom, 3 Pratinjau (baris baik, baris bermasa
 Tombol **Cadangkan sekarang**, daftar cadangan (tanggal, ukuran), **Pulihkan** (dialog peringatan merah: data saat ini akan diganti; cadangan otomatis dibuat dulu). Teks pengingat: "Simpan salinan di flashdisk atau drive lain."
 
 ### 4.8 Pengaturan
-Profil sekolah (nama, alamat, kota, bendahara, kepala, logo), tahun ajaran dan kelas, tampilan (tema), ukuran struk, PIN, periksa saldo.
+Profil sekolah (nama, alamat, kota, bendahara, kepala, logo), tampilan (tema), ukuran struk, PIN, periksa saldo.
 
 ## 5. Komponen
 

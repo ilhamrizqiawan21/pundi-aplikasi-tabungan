@@ -24,6 +24,7 @@ const api: PundiApi = {
     ipcRenderer.invoke('akademik.kelasDaftar', { tahunAjaranId }),
   kelasSimpan: (data) => ipcRenderer.invoke('akademik.kelasSimpan', data),
   kelasHapus: (id) => ipcRenderer.invoke('akademik.kelasHapus', { id }),
+  kelasSalin: (dariId, keId) => ipcRenderer.invoke('akademik.kelasSalin', { dari_id: dariId, ke_id: keId }),
 
   // Transaksi & Buku Besar
   transaksiSetor: (data) => ipcRenderer.invoke('transaksi.setor', data),

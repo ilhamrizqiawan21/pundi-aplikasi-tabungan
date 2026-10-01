@@ -131,6 +131,25 @@ describe('AkademikService (CAP-02)', () => {
     expect(akademik.tahunAjaranHapus(kosong.id).ok).toBe(true);
   });
 
+  it('menyalin kelas ke tahun ajaran baru tanpa siswa dan melewati yang sudah ada', () => {
+    const lama = buatTahun('2025/2026', true);
+    buatKelas(lama.id, '7A', 7);
+    buatKelas(lama.id, '8A', 8);
+    const baru = buatTahun('2026/2027', false, '2026-07-01', '2027-06-30');
+    buatKelas(baru.id, '7A', 7);
+
+    const salin = akademik.kelasSalin(lama.id, baru.id);
+    expect(salin.ok && salin.data).toEqual({ disalin: 1, dilewati: 1 });
+
+    const kelas = akademik.kelasDaftar(baru.id);
+    expect(kelas.ok && kelas.data.map((k) => [k.nama, k.jumlah_siswa])).toEqual([
+      ['7A', 0],
+      ['8A', 0],
+    ]);
+    expect(akademik.kelasSalin(lama.id, lama.id).ok).toBe(false);
+    expect(akademik.kelasSalin(lama.id, 9999).ok).toBe(false);
+  });
+
   it('siswa hanya bisa ditempatkan pada kelas tahun ajaran aktif', () => {
     const lama = buatTahun('2025/2026');
     const kelasLama = buatKelas(lama.id, '7A');

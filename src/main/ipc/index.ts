@@ -15,6 +15,7 @@ import {
   TokenBerkasSchema,
   TahunAjaranSimpanSchema,
   KelasSimpanSchema,
+  KelasSalinSchema,
   TransaksiSetorSchema,
   TransaksiTarikSchema,
   TransaksiBalikSchema,
@@ -100,6 +101,7 @@ export function registerIpcHandlers(opts: IpcOptions): void {
   handle('akademik.kelasSimpan', KelasSimpanSchema, (data) =>
     akademik.kelasSimpan(data)
   );
+  handle('akademik.kelasSalin', KelasSalinSchema, (data) => akademik.kelasSalin(data.dari_id, data.ke_id));
   handle('akademik.kelasHapus', IdSchema, (data) => akademik.kelasHapus(data.id));
 
   // --- TRANSAKSI & BUKU BESAR ---

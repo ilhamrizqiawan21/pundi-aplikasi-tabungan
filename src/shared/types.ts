@@ -201,6 +201,7 @@ export interface PundiApi {
   tahunAjaranHapus: (id: number) => Promise<Result<{ id: number }>>;
   kelasDaftar: (tahunAjaranId?: number) => Promise<Result<Kelas[]>>;
   kelasHapus: (id: number) => Promise<Result<{ id: number }>>;
+  kelasSalin: (dariId: number, keId: number) => Promise<Result<{ disalin: number; dilewati: number }>>;
   kelasSimpan: (data: {
     id?: number;
     tahun_ajaran_id: number;

@@ -42,7 +42,7 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | --- | --- | --- | --- | --- | --- |
 | F3-1 | `shared/rupiah.ts` dan skema `zod` | NFR-03 | F2-2 | Uji lulus (rupiah.test.ts) | [x] |
 | F3-2 | Layanan `ledger` + uji berbasis properti | 05–07, 17 | F2-4, F3-1 | Uji lulus: 500 transaksi acak & CAP-17 nol selisih | [x] |
-| F3-3 | `akademik` (tahun ajaran, kelas) | 02 | F2-4 | Uji lulus lewat siswa.test.ts. **Tidak ada layar untuk membuat tahun ajaran/kelas** (`tahunAjaranSimpan`/`kelasSimpan` tak dipakai UI, tanpa data awal): Rekap per Kelas selalu kosong | [ ] |
+| F3-3 | `akademik` (tahun ajaran, kelas) | 02 | F2-4 | Uji lulus: akademik.test.ts (9 uji: satu aktif, duplikat, kelas tak bisa pindah tahun, hapus bersyarat, salin kelas, penempatan hanya di tahun aktif) + Playwright akademik.spec.ts (5 alur dari instalasi kosong) | [x] |
 | F3-4 | `siswa` (CRUD, penempatan, status, nomor unik) | 03 | F3-3 | Uji lulus (siswa.test.ts & SiswaScreen.tsx) | [x] |
 | F3-5 | Profil sekolah dan pengaturan | 01 | F2-4 | `pengaturan.ts` dan PengaturanScreen ada, **belum ada uji** | [ ] |
 | F3-6 | Layar Catat Transaksi (keyboard penuh) | 05, 06 | F3-2, F3-4 | Uji alur Playwright lulus: cari, setor, tarik, tolak saldo kurang, semua dengan keyboard. **Pintasan global Ctrl+K, Alt+1, dan Esc yang tertulis di layar belum ada** (3 `test.fixme`) | [ ] |
