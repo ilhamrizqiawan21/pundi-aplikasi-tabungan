@@ -52,3 +52,35 @@ describe('shared/rupiah', () => {
     });
   });
 });
+
+import { parseRupiahKetat } from './rupiah.js';
+
+describe('parseRupiahKetat (impor saldo)', () => {
+  it('menerima bentuk yang wajar dan menghasilkan bilangan bulat', () => {
+    const ok = (x: unknown) => parseRupiahKetat(x);
+    expect(ok(1250000)).toEqual({ ok: true, nilai: 1250000 });
+    expect(ok('1250000')).toEqual({ ok: true, nilai: 1250000 });
+    expect(ok('Rp 1.250.000')).toEqual({ ok: true, nilai: 1250000 });
+    expect(ok('Rp. 50.000,00')).toEqual({ ok: true, nilai: 50000 });
+    expect(ok('1,250,000')).toEqual({ ok: true, nilai: 1250000 });
+    expect(ok(' 75.000 ')).toEqual({ ok: true, nilai: 75000 });
+    expect(ok(5000.0000001)).toEqual({ ok: true, nilai: 5000 });
+  });
+
+  it('kosong, nol, dan strip dianggap 0', () => {
+    for (const v of [null, undefined, '', '  ', '-', 0, 'Rp 0']) {
+      expect(parseRupiahKetat(v)).toEqual({ ok: true, nilai: 0 });
+    }
+  });
+
+  it('menolak pecahan, negatif, dan format meragukan alih-alih menebak', () => {
+    for (const v of [1250.5, '1.250,50', '1.25', '12.34.56', '-1.000', '(1.000)', 'abc', 'Rp seribu', -5, NaN, Infinity, {}, true]) {
+      expect(parseRupiahKetat(v).ok).toBe(false);
+    }
+  });
+
+  it('menolak angka di atas batas aman', () => {
+    expect(parseRupiahKetat('9999999999999999999').ok).toBe(false);
+    expect(parseRupiahKetat(Number.MAX_SAFE_INTEGER + 2).ok).toBe(false);
+  });
+});

@@ -62,3 +62,41 @@ export function isValidNominal(amount: unknown): amount is number {
     amount <= Number.MAX_SAFE_INTEGER
   );
 }
+
+export type HasilParseRupiah = { ok: true; nilai: number } | { ok: false; alasan: string };
+
+/**
+ * Pengurai nominal ketat untuk data dari berkas (impor): menolak pecahan, negatif, dan format yang meragukan
+ * alih-alih menebak. Kosong atau "-" dianggap 0. Menerima angka Excel, "1250000", "Rp 1.250.000", "1,250,000",
+ * serta ",00"/".00" di belakang. Berbeda dengan parseRupiah yang longgar (mis. "1.250,50" menjadi 125050).
+ */
+export function parseRupiahKetat(input: unknown): HasilParseRupiah {
+  if (input === null || input === undefined) return { ok: true, nilai: 0 };
+
+  if (typeof input === 'number') {
+    if (!Number.isFinite(input)) return { ok: false, alasan: 'Nominal tidak valid' };
+    const bulat = Math.round(input);
+    if (Math.abs(input - bulat) > 1e-6) return { ok: false, alasan: 'Nominal harus bilangan bulat rupiah (tanpa sen)' };
+    if (bulat < 0) return { ok: false, alasan: 'Nominal tidak boleh negatif' };
+    if (bulat > Number.MAX_SAFE_INTEGER) return { ok: false, alasan: 'Nominal terlalu besar' };
+    return { ok: true, nilai: bulat };
+  }
+
+  if (typeof input !== 'string') return { ok: false, alasan: 'Nominal tidak dikenali' };
+
+  let s = input.replace(/ /g, ' ').trim().replace(/^rp\.?\s*/i, '').trim();
+  if (s === '' || s === '-') return { ok: true, nilai: 0 };
+  if (/^[-(]/.test(s)) return { ok: false, alasan: 'Nominal tidak boleh negatif' };
+
+  s = s.replace(/[,.]0{1,2}$/, ''); // ",00" atau ".00" di belakang
+
+  let digit: string;
+  if (/^\d+$/.test(s)) digit = s;
+  else if (/^\d{1,3}(\.\d{3})+$/.test(s)) digit = s.replace(/\./g, '');
+  else if (/^\d{1,3}(,\d{3})+$/.test(s)) digit = s.replace(/,/g, '');
+  else return { ok: false, alasan: `Format nominal tidak dikenali: "${input.trim()}"` };
+
+  const nilai = Number(digit);
+  if (!Number.isSafeInteger(nilai)) return { ok: false, alasan: 'Nominal terlalu besar' };
+  return { ok: true, nilai };
+}
