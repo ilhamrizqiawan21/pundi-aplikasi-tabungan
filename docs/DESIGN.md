@@ -65,7 +65,7 @@ Menu tersendiri (sebelumnya direncanakan di Pengaturan, dipindah atas arahan pem
 Pilih kelas asal → daftar siswa (semua tercentang) → pilih kelas tujuan (tahun ajaran baru) → **Tinjau** (daftar perubahan) → **Terapkan**. Pilihan lulus/keluar per siswa.
 
 ### 4.6 Impor
-Langkah: 1 Pilih berkas, 2 Petakan kolom, 3 Pratinjau (baris baik, baris bermasalah dengan alasan), 4 Terapkan. Untuk migrasi (CAP-14): layar pencocokan "Jumlah siswa dan total saldo" dibandingkan dengan angka dari aplikasi lama.
+Satu layar dengan empat langkah yang terbuka bertahap: 1 **Pilih berkas** (Excel atau CSV, dengan tombol **Unduh Format Contoh**), 2 **Petakan kolom** (kolom ditebak dari judul dan dapat diganti; ada contoh tiga baris pertama), 3 **Pratinjau** (baris baik dan bermasalah dengan nomor baris dan alasan, peringatan seperti kelas baru atau nama sama), 4 **Cocokkan dan terapkan**. Kolom saldo bersifat opsional; bila dipakai, saldo dicatat sebagai transaksi "Saldo awal" pada tanggal yang dipilih. Untuk migrasi (CAP-14) pengguna dapat mengisi angka dari aplikasi lama (jumlah siswa dan total saldo); selisih ditampilkan dan Terapkan dinonaktifkan sampai cocok. Impor hanya berjalan bila semua baris baik dan bersifat atomik.
 
 ### 4.7 Cadangan
 Tombol **Cadangkan sekarang**, daftar cadangan (tanggal, ukuran), **Pulihkan** (dialog peringatan merah: data saat ini akan diganti; cadangan otomatis dibuat dulu). Teks pengingat: "Simpan salinan di flashdisk atau drive lain."

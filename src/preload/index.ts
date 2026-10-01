@@ -10,6 +10,7 @@ const api: PundiApi = {
   siswaHapus: (id) => ipcRenderer.invoke('siswa.hapus', { id }),
 
   // Impor
+  imporContoh: () => ipcRenderer.invoke('impor.contoh'),
   imporPratinjau: (tokenBerkas, opsi) =>
     ipcRenderer.invoke('impor.pratinjau', { tokenBerkas, ...opsi }),
   imporTerapkan: (tokenBerkas, opsi) =>

@@ -83,8 +83,8 @@ Prioritas: **M** wajib rilis 0.1, **S** sebaiknya ada, **C** bila sempat.
 
 | Rilis | Isi |
 | --- | --- |
-| **0.1 (Windows)** | CAP-01 sampai CAP-07, CAP-09 sampai CAP-11, CAP-12 (dimajukan atas arahan pemilik), CAP-13, CAP-17 |
-| **0.2 (Windows)** | CAP-08, CAP-14, CAP-15, CAP-16 |
+| **0.1 (Windows)** | CAP-01 sampai CAP-07, CAP-09 sampai CAP-11, CAP-12 dan CAP-14 (dimajukan atas arahan pemilik), CAP-13, CAP-17 |
+| **0.2 (Windows)** | CAP-08, CAP-15, CAP-16 |
 | **0.3** | Bergantung D-02/D-03/D-04/D-05 |
 | **macOS Apple Silicon** | Setelah 0.1 stabil di Windows; butuh penandatanganan dan notarisasi Apple |
 

@@ -298,6 +298,21 @@ describe('ImporService (CAP-04)', () => {
       expect(r.data.baris.map((b) => b.nis)).toEqual(['007', '1E3']);
     });
 
+    it('berkas contoh yang diunduh bisa langsung diimpor kembali tanpa pemetaan manual', async () => {
+      const target = path.join(tmpDir, 'contoh.xlsx');
+      expect((await imporSvc.buatContoh(target)).ok).toBe(true);
+
+      const wb = new ExcelJS.Workbook();
+      await wb.xlsx.readFile(target);
+      expect(wb.worksheets.map((w) => w.name)).toEqual(['Siswa', 'Petunjuk']);
+
+      const r = await imporSvc.pratinjau(target);
+      expect(r.ok).toBe(true);
+      if (!r.ok) return;
+      expect(r.data.pemetaan).toEqual({ nama: 0, nis: 1, kelas: 2, alamat: 3, saldo: 4 });
+      expect(r.data).toMatchObject({ valid_count: 2, invalid_count: 0, total_saldo: 50000 });
+    });
+
     it('memberi catatan untuk nama yang sama dengan siswa lama tanpa NIS, dan tanggal saldo bawaan adalah hari ini', async () => {
       siswaSvc.simpan({ nama: 'Ani Fiktif', status: 'aktif' });
       const f = await buatLembar('sama.xlsx', [

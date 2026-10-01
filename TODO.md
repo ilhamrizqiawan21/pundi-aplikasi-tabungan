@@ -48,7 +48,7 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | F3-6 | Layar Catat Transaksi (keyboard penuh) | 05, 06 | F3-2, F3-4 | Playwright lulus (22 uji total): cari, setor, tarik, tolak saldo kurang tanpa mouse; Ctrl+K global, Alt+1..9, Esc bertingkat, pintasan nonaktif saat dialog, fokus terlihat. Sebelumnya 3 `test.fixme` kini hidup | [x] |
 | F3-7 | Koreksi (dialog + pembalik) | 07 | F3-2 | Ledger teruji; alur "Batalkan (Koreksi)" teruji di Playwright. **Tombol itu memakai alasan tetap, padahal CAP-07 mewajibkan alasan dari pengguna**; dialog KoreksiModal belum diuji alur | [ ] |
 | F3-8 | Buku besar per siswa | 10 | F3-2 | Layanan ledger teruji; layar buku besar belum ada uji alur | [ ] |
-| F3-9 | Impor siswa Excel/CSV (pratinjau, atomik) | 04 | F3-4, S-04 | impor.test.ts lulus dengan berkas sintetis buatan sendiri; **S-04 belum selesai** | [ ] |
+| F3-9 | Impor siswa Excel/CSV (pratinjau, atomik) | 04 | F3-4, S-04 | Uji lulus: impor.test.ts (14 uji) + Playwright impor.spec.ts (5 alur). Memenuhi CAP-04: format contoh dapat diunduh, pratinjau, baris bermasalah dengan nomor baris dan alasan, atomik, tanpa menggandakan (NIS). Memperbaiki cacat lama (CSV mengubah "50.000" jadi 50 dan NIS "007" jadi 7). **S-04 tetap terbuka**: belum dicoba dengan hasil ekspor aplikasi lama yang sebenarnya | [x] |
 | F3-10 | Struk dan cetak | 09 | S-02, S-03 | Template HTML ter-escape (receipt.ts). **Belum diukur pada cetak nyata (S-02/S-03)** | [ ] |
 | F3-11 | Laporan harian, kelas, siswa, rekap + ekspor PDF/Excel | 11 | F3-2, S-03 | Uji lulus: laporan.test.ts (6 uji) + Playwright (tab Transaksi, ekspor Excel dibaca kembali). Tersedia: rekap per kelas, rekap per siswa, transaksi per rentang tanggal; ekspor Excel untuk rekap siswa dan transaksi. **Belum: ekspor PDF dan pratinjau cetak (S-03), ekspor Excel rekap per kelas** | [ ] |
 | F3-12 | Backup manual/otomatis + restore | 13 | F2-4, S-05 | Uji lulus (backup.test.ts, 8 uji): backup, retensi 7 otomatis (manual tidak dihapus), restore + cadangan pengaman + penolakan berkas rusak/tanpa pemicu/saldo tak cocok. Terbukti di aplikasi terpaket (folder data terisolasi). **Belum: backup otomatis harian, cadangan sebelum migrasi, salin ke folder pilihan, uji alur UI** | [ ] |
@@ -61,7 +61,7 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | --- | --- | --- | --- | --- |
 | F4-1 | Biaya administrasi (sesuai D-06) | 08 | Uji | [ ] |
 | F4-2 | Kenaikan kelas dan kelulusan | 12 | Uji lulus: kenaikan.test.ts (7 uji: pindah/lulus/keluar, saldo dan CAP-17 tak berubah, riwayat kelas lama tetap, semua-atau-tidak-sama-sekali) + Playwright kenaikan.spec.ts. Dimajukan ke rilis 0.1 atas permintaan pemilik; PRD §7 diperbarui. Pembatalan sebelum disimpan lewat langkah Tinjau | [x] |
-| F4-3 | Migrasi dari aplikasi lama lewat Excel, dengan layar pencocokan | 14 | Uji dengan data sintetis | [ ] |
+| F4-3 | Migrasi dari aplikasi lama lewat Excel, dengan layar pencocokan | 14 | Uji lulus dengan data sintetis (impor.test.ts, impor.spec.ts): pemetaan kolom otomatis dan manual, saldo awal sebagai transaksi saldo_awal lewat ledger, pencocokan jumlah siswa dan total saldo sebelum simpan, semua-atau-tidak-sama-sekali. Dimajukan ke 0.1 atas permintaan pemilik. **Belum diuji dengan berkas ekspor aplikasi lama sungguhan (S-04)** | [x] |
 | F4-4 | Tema (lima) dan PIN aplikasi | 15, 16 | Uji | [ ] |
 
 ## F5 — macOS Apple Silicon

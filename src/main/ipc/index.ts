@@ -173,6 +173,17 @@ export function registerIpcHandlers(opts: IpcOptions): void {
   );
 
   // --- IMPOR DATA (Tokenized) ---
+  handle('impor.contoh', null, async () => {
+    const pilihan = await dialog.showSaveDialog({
+      defaultPath: 'format_impor_siswa.xlsx',
+      filters: [{ name: 'Excel', extensions: ['xlsx'] }],
+    });
+    if (pilihan.canceled || !pilihan.filePath) return { ok: true, data: null };
+    const hasil = await impor.buatContoh(pilihan.filePath);
+    if (!hasil.ok) return hasil;
+    return { ok: true, data: { nama_berkas: path.basename(pilihan.filePath) } };
+  });
+
   const sesiBerkasKadaluarsa = {
     ok: false as const,
     kode: 'FILE_TIDAK_VALID' as const,

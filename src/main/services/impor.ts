@@ -154,6 +154,42 @@ async function bacaBaris(filePath: string): Promise<BarisMentah[]> {
 
 export class ImporService {
   /**
+   * CAP-04: berkas contoh berisi judul kolom yang dikenali dan dua baris fiktif, ditambah lembar petunjuk.
+   * Isinya ditulis sendiri; tidak meniru format aplikasi lain.
+   */
+  public async buatContoh(targetPath: string): Promise<Result<{ berkas: string }>> {
+    try {
+      const wb = new ExcelJS.Workbook();
+      const data = wb.addWorksheet('Siswa');
+      data.columns = [
+        { header: 'Nama Siswa', key: 'nama', width: 28 },
+        { header: 'NIS', key: 'nis', width: 14 },
+        { header: 'Kelas', key: 'kelas', width: 10 },
+        { header: 'Alamat', key: 'alamat', width: 30 },
+        { header: 'Saldo', key: 'saldo', width: 16, style: { numFmt: '#,##0' } },
+      ];
+      data.addRow({ nama: 'Contoh Siswa Satu', nis: '1001', kelas: '7A', alamat: 'Jl. Contoh No. 1', saldo: 50000 });
+      data.addRow({ nama: 'Contoh Siswa Dua', nis: '1002', kelas: '7B', alamat: '', saldo: 0 });
+
+      const petunjuk = wb.addWorksheet('Petunjuk');
+      petunjuk.getColumn(1).width = 100;
+      [
+        'Hapus dua baris contoh, lalu isi data siswa Anda mulai dari baris kedua lembar "Siswa".',
+        'Nama Siswa wajib diisi. NIS, Kelas, Alamat, dan Saldo boleh dikosongkan.',
+        'NIS dipakai agar siswa yang sama tidak diimpor dua kali.',
+        'Saldo berupa bilangan bulat rupiah tanpa sen, misalnya 50000 atau Rp 50.000. Saldo dicatat sebagai saldo awal.',
+        'Kelas yang belum ada dibuat otomatis pada tahun ajaran aktif.',
+        'Bila judul kolom berbeda, Anda dapat memilih kolomnya sendiri saat impor.',
+      ].forEach((t) => petunjuk.addRow([t]));
+
+      await wb.xlsx.writeFile(targetPath);
+      return { ok: true, data: { berkas: targetPath } };
+    } catch {
+      return { ok: false, kode: 'FILE_TIDAK_VALID', pesan: 'Gagal membuat berkas contoh.' };
+    }
+  }
+
+  /**
    * CAP-04 dan CAP-14: membaca berkas Excel/CSV, menebak (atau memakai) pemetaan kolom, lalu memvalidasi tiap baris
    * untuk pratinjau sebelum disimpan. Kolom saldo (opsional) dipakai untuk migrasi saldo awal.
    */

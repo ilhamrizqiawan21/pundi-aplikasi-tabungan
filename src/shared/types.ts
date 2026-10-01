@@ -264,6 +264,8 @@ export interface PundiApi {
   siswaHapus: (id: number) => Promise<Result<{ sukses: boolean }>>;
 
   // Impor
+  /** Membuka dialog simpan lalu menulis berkas contoh; null bila dibatalkan. */
+  imporContoh: () => Promise<Result<{ nama_berkas: string } | null>>;
   imporPratinjau: (tokenBerkas: string, opsi?: OpsiImpor) => Promise<Result<HasilPratinjauImpor>>;
   imporTerapkan: (
     tokenBerkas: string,
