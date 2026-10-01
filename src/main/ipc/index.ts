@@ -93,12 +93,14 @@ export function registerIpcHandlers(opts: IpcOptions): void {
   handle('akademik.tahunAjaranSimpan', TahunAjaranSimpanSchema, (data) =>
     akademik.tahunAjaranSimpan(data)
   );
+  handle('akademik.tahunAjaranHapus', IdSchema, (data) => akademik.tahunAjaranHapus(data.id));
   handle('akademik.kelasDaftar', null, (data: { tahunAjaranId?: number }) =>
     akademik.kelasDaftar(data?.tahunAjaranId)
   );
   handle('akademik.kelasSimpan', KelasSimpanSchema, (data) =>
     akademik.kelasSimpan(data)
   );
+  handle('akademik.kelasHapus', IdSchema, (data) => akademik.kelasHapus(data.id));
 
   // --- TRANSAKSI & BUKU BESAR ---
   handle('transaksi.setor', TransaksiSetorSchema, (data) => ledger.setor(data));

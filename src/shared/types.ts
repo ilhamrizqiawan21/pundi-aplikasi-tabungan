@@ -33,6 +33,7 @@ export interface Kelas {
   tingkat: number; // e.g. 7
   urutan: number;
   tahun_ajaran_nama?: string;
+  jumlah_siswa?: number;
 }
 
 export interface Siswa {
@@ -197,7 +198,9 @@ export interface PundiApi {
     selesai: string;
     aktif: boolean;
   }) => Promise<Result<TahunAjaran>>;
+  tahunAjaranHapus: (id: number) => Promise<Result<{ id: number }>>;
   kelasDaftar: (tahunAjaranId?: number) => Promise<Result<Kelas[]>>;
+  kelasHapus: (id: number) => Promise<Result<{ id: number }>>;
   kelasSimpan: (data: {
     id?: number;
     tahun_ajaran_id: number;

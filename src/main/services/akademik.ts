@@ -1,15 +1,23 @@
 import { getDb } from '../db/index.js';
 import type { TahunAjaran, Kelas, Result } from '../../shared/types.js';
-import { ERROR_MESSAGES } from '../../shared/errors.js';
+import { ERROR_MESSAGES, type ErrorCode } from '../../shared/errors.js';
+
+function gagal(kode: ErrorCode, pesan?: string): { ok: false; kode: ErrorCode; pesan: string } {
+  return { ok: false, kode, pesan: pesan ?? ERROR_MESSAGES[kode] };
+}
+
+function pelanggaranUnik(err: unknown): boolean {
+  return typeof err === 'object' && err !== null && (err as { code?: string }).code === 'SQLITE_CONSTRAINT_UNIQUE';
+}
 
 export class AkademikService {
   public tahunAjaranDaftar(): Result<TahunAjaran[]> {
     const db = getDb();
     try {
-      const rows = db.prepare(`SELECT * FROM tahun_ajaran ORDER BY id DESC`).all() as TahunAjaran[];
+      const rows = db.prepare(`SELECT * FROM tahun_ajaran ORDER BY mulai DESC, id DESC`).all() as TahunAjaran[];
       return { ok: true, data: rows };
     } catch {
-      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+      return gagal('DATABASE_ERROR');
     }
   }
 
@@ -21,11 +29,26 @@ export class AkademikService {
     aktif: boolean;
   }): Result<TahunAjaran> {
     const db = getDb();
+    if (data.selesai < data.mulai) {
+      return gagal('VALIDASI_GAGAL', 'Tanggal selesai tidak boleh sebelum tanggal mulai.');
+    }
+
     try {
       let resultRow: TahunAjaran | null = null;
-      const tx = db.transaction(() => {
+      const tx = db.transaction((): Result<TahunAjaran> | null => {
+        if (data.id) {
+          const lama = db.prepare(`SELECT * FROM tahun_ajaran WHERE id = ?`).get(data.id) as TahunAjaran | undefined;
+          if (!lama) return gagal('TAHUN_AJARAN_TIDAK_DITEMUKAN');
+          if (lama.aktif === 1 && !data.aktif) {
+            return gagal(
+              'VALIDASI_GAGAL',
+              'Tahun ajaran yang sedang aktif tidak bisa dinonaktifkan. Jadikan tahun ajaran lain sebagai aktif.'
+            );
+          }
+        }
+
         if (data.aktif) {
-          // Nonaktifkan tahun ajaran lain
+          // Hanya satu tahun ajaran aktif (CAP-02)
           db.prepare(`UPDATE tahun_ajaran SET aktif = 0 WHERE aktif = 1`).run();
         }
 
@@ -43,12 +66,37 @@ export class AkademikService {
           `).run(data.nama, data.mulai, data.selesai, data.aktif ? 1 : 0);
           resultRow = db.prepare(`SELECT * FROM tahun_ajaran WHERE id = ?`).get(insert.lastInsertRowid) as TahunAjaran;
         }
+        return null;
       });
-      tx();
+      const penolakan = tx();
+      if (penolakan) return penolakan;
 
       return { ok: true, data: resultRow! };
+    } catch (err) {
+      if (pelanggaranUnik(err)) {
+        return gagal('DATA_DUPLIKAT', `Tahun ajaran "${data.nama}" sudah ada. Gunakan nama lain.`);
+      }
+      return gagal('DATABASE_ERROR');
+    }
+  }
+
+  /** Hanya tahun ajaran yang tidak aktif dan belum punya kelas yang boleh dihapus. */
+  public tahunAjaranHapus(id: number): Result<{ id: number }> {
+    const db = getDb();
+    try {
+      const ta = db.prepare(`SELECT * FROM tahun_ajaran WHERE id = ?`).get(id) as TahunAjaran | undefined;
+      if (!ta) return gagal('TAHUN_AJARAN_TIDAK_DITEMUKAN');
+      if (ta.aktif === 1) {
+        return gagal('MASIH_DIPAKAI', 'Tahun ajaran yang sedang aktif tidak bisa dihapus.');
+      }
+      const kelas = db.prepare(`SELECT COUNT(*) AS n FROM kelas WHERE tahun_ajaran_id = ?`).get(id) as { n: number };
+      if (kelas.n > 0) {
+        return gagal('MASIH_DIPAKAI', 'Tahun ajaran ini sudah punya kelas, sehingga tidak bisa dihapus.');
+      }
+      db.prepare(`DELETE FROM tahun_ajaran WHERE id = ?`).run(id);
+      return { ok: true, data: { id } };
     } catch {
-      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+      return gagal('DATABASE_ERROR');
     }
   }
 
@@ -56,7 +104,8 @@ export class AkademikService {
     const db = getDb();
     try {
       let query = `
-        SELECT k.*, ta.nama AS tahun_ajaran_nama
+        SELECT k.*, ta.nama AS tahun_ajaran_nama,
+          (SELECT COUNT(*) FROM penempatan p WHERE p.kelas_id = k.id) AS jumlah_siswa
         FROM kelas k
         JOIN tahun_ajaran ta ON ta.id = k.tahun_ajaran_id
       `;
@@ -70,7 +119,7 @@ export class AkademikService {
       const rows = db.prepare(query).all(...params) as Kelas[];
       return { ok: true, data: rows };
     } catch {
-      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+      return gagal('DATABASE_ERROR');
     }
   }
 
@@ -85,13 +134,21 @@ export class AkademikService {
     try {
       let resultRow: Kelas | null = null;
       if (data.id) {
+        const lama = db.prepare(`SELECT * FROM kelas WHERE id = ?`).get(data.id) as Kelas | undefined;
+        if (!lama) return gagal('KELAS_TIDAK_DITEMUKAN');
+        // Penempatan dan transaksi menempel pada kelas; memindah tahun ajaran akan merusak riwayatnya
+        if (lama.tahun_ajaran_id !== data.tahun_ajaran_id) {
+          return gagal('VALIDASI_GAGAL', 'Kelas tidak dapat dipindahkan ke tahun ajaran lain.');
+        }
         db.prepare(`
           UPDATE kelas
-          SET tahun_ajaran_id = ?, nama = ?, tingkat = ?, urutan = ?
+          SET nama = ?, tingkat = ?, urutan = ?
           WHERE id = ?
-        `).run(data.tahun_ajaran_id, data.nama, data.tingkat, data.urutan, data.id);
+        `).run(data.nama, data.tingkat, data.urutan, data.id);
         resultRow = db.prepare(`SELECT * FROM kelas WHERE id = ?`).get(data.id) as Kelas;
       } else {
+        const ta = db.prepare(`SELECT id FROM tahun_ajaran WHERE id = ?`).get(data.tahun_ajaran_id);
+        if (!ta) return gagal('TAHUN_AJARAN_TIDAK_DITEMUKAN');
         const insert = db.prepare(`
           INSERT INTO kelas (tahun_ajaran_id, nama, tingkat, urutan)
           VALUES (?, ?, ?, ?)
@@ -100,8 +157,36 @@ export class AkademikService {
       }
 
       return { ok: true, data: resultRow! };
+    } catch (err) {
+      if (pelanggaranUnik(err)) {
+        return gagal('DATA_DUPLIKAT', `Kelas "${data.nama}" sudah ada pada tahun ajaran ini.`);
+      }
+      return gagal('DATABASE_ERROR');
+    }
+  }
+
+  /** Kelas yang sudah pernah berisi siswa atau transaksi tidak dihapus agar riwayatnya utuh. */
+  public kelasHapus(id: number): Result<{ id: number }> {
+    const db = getDb();
+    try {
+      const k = db.prepare(`SELECT id FROM kelas WHERE id = ?`).get(id);
+      if (!k) return gagal('KELAS_TIDAK_DITEMUKAN');
+      const pakai = db
+        .prepare(
+          `SELECT (SELECT COUNT(*) FROM penempatan WHERE kelas_id = ?) AS siswa,
+                  (SELECT COUNT(*) FROM transaksi WHERE kelas_id = ?) AS transaksi`
+        )
+        .get(id, id) as { siswa: number; transaksi: number };
+      if (pakai.siswa > 0 || pakai.transaksi > 0) {
+        return gagal(
+          'MASIH_DIPAKAI',
+          'Kelas ini masih berisi siswa atau sudah punya riwayat transaksi, sehingga tidak bisa dihapus.'
+        );
+      }
+      db.prepare(`DELETE FROM kelas WHERE id = ?`).run(id);
+      return { ok: true, data: { id } };
     } catch {
-      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+      return gagal('DATABASE_ERROR');
     }
   }
 }

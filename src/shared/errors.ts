@@ -10,6 +10,8 @@ export type ErrorCode =
   | 'ALASAN_KOREKSI_WAJIB'
   | 'SISWA_SUDAH_PUNYA_TRANSAKSI'
   | 'NOMOR_REKENING_DUPLIKAT'
+  | 'DATA_DUPLIKAT'
+  | 'MASIH_DIPAKAI'
   | 'VALIDASI_GAGAL'
   | 'DATABASE_ERROR'
   | 'BACKUP_GAGAL'
@@ -35,6 +37,8 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   ALASAN_KOREKSI_WAJIB: 'Alasan koreksi wajib diisi.',
   SISWA_SUDAH_PUNYA_TRANSAKSI: 'Siswa yang memiliki riwayat transaksi tidak dapat dihapus.',
   NOMOR_REKENING_DUPLIKAT: 'Nomor rekening sudah terdaftar.',
+  DATA_DUPLIKAT: 'Data dengan nama yang sama sudah ada.',
+  MASIH_DIPAKAI: 'Data ini masih dipakai sehingga tidak bisa dihapus.',
   VALIDASI_GAGAL: 'Data yang dimasukkan tidak valid.',
   DATABASE_ERROR: 'Terjadi kesalahan pada basis data.',
   BACKUP_GAGAL: 'Pembuatan berkas cadangan gagal.',

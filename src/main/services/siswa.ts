@@ -113,6 +113,23 @@ export class SiswaService {
       return { ok: false, kode: 'VALIDASI_GAGAL', pesan: 'Nama siswa wajib diisi.' };
     }
 
+    // Penempatan selalu pada tahun ajaran aktif, jadi kelasnya harus milik tahun ajaran itu (CAP-02)
+    if (input.kelas_id) {
+      const sah = db
+        .prepare(
+          `SELECT 1 FROM kelas k JOIN tahun_ajaran ta ON ta.id = k.tahun_ajaran_id
+           WHERE k.id = ? AND ta.aktif = 1`
+        )
+        .get(input.kelas_id);
+      if (!sah) {
+        return {
+          ok: false,
+          kode: 'VALIDASI_GAGAL',
+          pesan: 'Kelas yang dipilih bukan kelas pada tahun ajaran aktif. Buat atau pilih tahun ajaran aktif di menu Tahun Ajaran & Kelas.',
+        };
+      }
+    }
+
     try {
       let savedId = input.id;
 
