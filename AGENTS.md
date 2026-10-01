@@ -106,9 +106,11 @@ Memenuhi acceptance criteria CAP/NFR terkait; lint, typecheck, dan uji lulus den
 ## Perintah
 
 - **Pengembangan (Renderer)**: `npm run dev`
-- **Typecheck**: `npm run typecheck` (`tsc --noEmit && tsc -p tsconfig.node.json --noEmit`)
+- **Typecheck**: `npm run typecheck` (renderer, main/preload, dan `tests/e2e`)
+- **Lint**: `npm run lint` (ESLint flat config, `eslint.config.js`)
 - **Runtime**: Node **22** (`.nvmrc`). `better-sqlite3` punya dua binary (ABI Node untuk uji, ABI Electron untuk paket); `npm test` dan `npm run pack:win` menukarnya otomatis lewat `scripts/native.mjs`. Jangan menukar manual.
 - **Uji Unit**: `npm test` (`vitest run`)
+- **Uji Alur (Playwright + Electron)**: `npm run test:e2e` (build lalu jalankan aplikasi dengan folder data sementara; data sintetis)
 - **Build Aplikasi**: `npm run build` (`npm run build:renderer && npm run build:main`)
 - **Bangun Installer Windows**: `npm run pack:win` (`electron-builder --win`)
 

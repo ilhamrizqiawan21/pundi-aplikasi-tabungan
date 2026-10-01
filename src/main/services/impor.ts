@@ -49,7 +49,7 @@ export class ImporService {
       const existingNis = new Set(existingNisRows.map((r) => r.nis.trim().toLowerCase()));
 
       let headerFound = false;
-      let colMap = { nama: -1, nis: -1, kelas: -1, alamat: -1 };
+      const colMap = { nama: -1, nis: -1, kelas: -1, alamat: -1 };
 
       worksheet.eachRow((row, rowNumber) => {
         const values = Array.isArray(row.values) ? row.values.slice(1) : [];

@@ -32,7 +32,7 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | --- | --- | --- | --- | --- |
 | F2-1 | Inisialisasi repositori, `.gitignore` (sqlite, backups, logs, `.env*`, catatan akun), `package.json` versi `0.1.0` | S-01 | package.json v0.1.0 dibuat, npm install berhasil | [x] |
 | F2-2 | Struktur `main/preload/renderer/shared`, Electron aman (NFR-07), protokol aplikasi tanpa server HTTP | F2-1 | Struktur src/, protokol pundi-app://, contextIsolation, sandbox | [x] |
-| F2-3 | Lint, typecheck, Vitest, Playwright terpasang; catat perintah di AGENTS | F2-1 | Typecheck 0 error dan `npm test` 22/22 lulus (Node 22, diverifikasi ulang). **Lint (ESLint) dan Playwright belum terpasang** | [ ] |
+| F2-3 | Lint, typecheck, Vitest, Playwright terpasang; catat perintah di AGENTS | F2-1 | `npm run typecheck`, `npm run lint` (ESLint), `npm test` (33 uji) dan `npm run test:e2e` (Playwright, 8 lulus + 3 fixme) dijalankan dan lulus; perintah dicatat di AGENTS | [x] |
 | F2-4 | Migrasi `0001_awal.sql` sesuai ERD, termasuk pemicu anti-ubah | F2-2, S-05 | Uji migrasi lulus: UPDATE/DELETE ditolak trigger | [x] |
 | F2-5 | CI Windows (`windows-latest`) membangun installer | F2-1 | Run hijau | [ ] |
 
@@ -42,11 +42,11 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | --- | --- | --- | --- | --- | --- |
 | F3-1 | `shared/rupiah.ts` dan skema `zod` | NFR-03 | F2-2 | Uji lulus (rupiah.test.ts) | [x] |
 | F3-2 | Layanan `ledger` + uji berbasis properti | 05–07, 17 | F2-4, F3-1 | Uji lulus: 500 transaksi acak & CAP-17 nol selisih | [x] |
-| F3-3 | `akademik` (tahun ajaran, kelas) | 02 | F2-4 | Uji lulus lewat siswa.test.ts; `akademik.ts` belum punya uji sendiri | [ ] |
+| F3-3 | `akademik` (tahun ajaran, kelas) | 02 | F2-4 | Uji lulus lewat siswa.test.ts. **Tidak ada layar untuk membuat tahun ajaran/kelas** (`tahunAjaranSimpan`/`kelasSimpan` tak dipakai UI, tanpa data awal): Rekap per Kelas selalu kosong | [ ] |
 | F3-4 | `siswa` (CRUD, penempatan, status, nomor unik) | 03 | F3-3 | Uji lulus (siswa.test.ts & SiswaScreen.tsx) | [x] |
 | F3-5 | Profil sekolah dan pengaturan | 01 | F2-4 | `pengaturan.ts` dan PengaturanScreen ada, **belum ada uji** | [ ] |
-| F3-6 | Layar Catat Transaksi (keyboard penuh) | 05, 06 | F3-2, F3-4 | CatatTransaksiScreen ada; **belum ada uji alur/keyboard** (tanpa Playwright) | [ ] |
-| F3-7 | Koreksi (dialog + pembalik) | 07 | F3-2 | Ledger: uji koreksi lulus (ledger.test.ts). Uji alur dialog belum ada | [ ] |
+| F3-6 | Layar Catat Transaksi (keyboard penuh) | 05, 06 | F3-2, F3-4 | Uji alur Playwright lulus: cari, setor, tarik, tolak saldo kurang, semua dengan keyboard. **Pintasan global Ctrl+K, Alt+1, dan Esc yang tertulis di layar belum ada** (3 `test.fixme`) | [ ] |
+| F3-7 | Koreksi (dialog + pembalik) | 07 | F3-2 | Ledger teruji; alur "Batalkan (Koreksi)" teruji di Playwright. **Tombol itu memakai alasan tetap, padahal CAP-07 mewajibkan alasan dari pengguna**; dialog KoreksiModal belum diuji alur | [ ] |
 | F3-8 | Buku besar per siswa | 10 | F3-2 | Layanan ledger teruji; layar buku besar belum ada uji alur | [ ] |
 | F3-9 | Impor siswa Excel/CSV (pratinjau, atomik) | 04 | F3-4, S-04 | impor.test.ts lulus dengan berkas sintetis buatan sendiri; **S-04 belum selesai** | [ ] |
 | F3-10 | Struk dan cetak | 09 | S-02, S-03 | Template HTML ter-escape (receipt.ts). **Belum diukur pada cetak nyata (S-02/S-03)** | [ ] |
