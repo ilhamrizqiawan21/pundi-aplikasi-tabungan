@@ -21,12 +21,14 @@ import {
   PengaturanSimpanSchema,
 } from '../../shared/schemas.js';
 import type { Result } from '../../shared/types.js';
+import { isTrustedSender } from '../security.js';
+import { trustedConfig } from '../window.js';
 
 // Token store untuk jalur file yang dipilih via dialog aman (NFR-07: renderer tidak menerima file path langsung)
 const fileTokenStore = new Map<string, string>();
 
 function verifySender(event: IpcMainInvokeEvent): boolean {
-  return Boolean(event.senderFrame);
+  return isTrustedSender(event.senderFrame, trustedConfig());
 }
 
 export function registerIpcHandlers(): void {

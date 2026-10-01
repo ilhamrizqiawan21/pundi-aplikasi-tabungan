@@ -1,6 +1,7 @@
-import { BrowserWindow, session } from 'electron';
+import { app, BrowserWindow, session } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isTrustedUrl, type TrustedConfig } from './security.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -9,6 +10,16 @@ let mainWindow: BrowserWindow | null = null;
 
 export function getMainWindow(): BrowserWindow | null {
   return mainWindow;
+}
+
+const indexFile = path.join(__dirname, '../../dist/index.html');
+
+/** Konfigurasi URL sah; server dev hanya dipercaya pada aplikasi yang belum dipaketkan. */
+export function trustedConfig(): TrustedConfig {
+  return {
+    indexFile,
+    devServerUrl: app.isPackaged ? undefined : process.env.VITE_DEV_SERVER_URL,
+  };
 }
 
 export function createMainWindow(): BrowserWindow {
@@ -38,18 +49,9 @@ export function createMainWindow(): BrowserWindow {
     return { action: 'deny' };
   });
 
-  // Cegah navigasi di luar origin yang sah
+  // Cegah navigasi ke luar halaman aplikasi
   win.webContents.on('will-navigate', (event, navigationUrl) => {
-    try {
-      const parsed = new URL(navigationUrl);
-      const isDevServer =
-        process.env.VITE_DEV_SERVER_URL &&
-        parsed.origin === new URL(process.env.VITE_DEV_SERVER_URL).origin;
-      const isAppProtocol = parsed.protocol === 'file:' || parsed.protocol === 'pundi-app:';
-      if (!isDevServer && !isAppProtocol) {
-        event.preventDefault();
-      }
-    } catch {
+    if (!isTrustedUrl(navigationUrl, trustedConfig())) {
       event.preventDefault();
     }
   });
@@ -58,11 +60,11 @@ export function createMainWindow(): BrowserWindow {
     win.show();
   });
 
-  const devServerUrl = process.env.VITE_DEV_SERVER_URL;
+  const { devServerUrl } = trustedConfig();
   if (devServerUrl) {
     win.loadURL(devServerUrl);
   } else {
-    win.loadFile(path.join(__dirname, '../../dist/index.html'));
+    win.loadFile(indexFile);
   }
 
   mainWindow = win;
