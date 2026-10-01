@@ -53,7 +53,7 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | F3-11 | Laporan harian, kelas, siswa, rekap + ekspor PDF/Excel | 11 | F3-2, S-03 | Uji lulus: laporan.test.ts (6 uji) + Playwright (tab Transaksi, ekspor Excel dibaca kembali). Tersedia: rekap per kelas, rekap per siswa, transaksi per rentang tanggal; ekspor Excel untuk rekap siswa dan transaksi. **Belum: ekspor PDF dan pratinjau cetak (S-03), ekspor Excel rekap per kelas** | [ ] |
 | F3-12 | Backup manual/otomatis + restore | 13 | F2-4, S-05 | Uji lulus (backup.test.ts, 8 uji): backup, retensi 7 otomatis (manual tidak dihapus), restore + cadangan pengaman + penolakan berkas rusak/tanpa pemicu/saldo tak cocok. Terbukti di aplikasi terpaket (folder data terisolasi). **Belum: backup otomatis harian, cadangan sebelum migrasi, salin ke folder pilihan, uji alur UI** | [ ] |
 | F3-13 | Periksa saldo (integritas) | 17 | F3-2 | Uji nol selisih (integritas.ts & ledger.test.ts) | [x] |
-| F3-14 | Installer Windows `0.1.0`, diuji di komputer bersih | semua M | F3-1..13 | Pundi-Setup-0.1.0.exe 90,4 MB (NFR-10 < 200 MB) dibuat; **belum diuji di komputer bersih** | [ ] |
+| F3-14 | Installer Windows `0.1.0`, diuji di komputer bersih | semua M | F3-1..13 | Pundi-Setup-0.1.0.exe 90,5 MB (NFR-10 < 200 MB) diperbarui dengan antarmuka mockup; **belum diuji di komputer bersih** | [ ] |
 
 ## F4 — Rilis 0.2
 

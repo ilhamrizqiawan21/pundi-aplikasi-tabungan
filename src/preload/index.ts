@@ -68,6 +68,14 @@ const api: PundiApi = {
 
   // Dialog
   dialogPilihFile: (opsi) => ipcRenderer.invoke('dialog.pilihFile', opsi),
+
+  // Cetak & PDF
+  cetakStruk: (transaksiId) => ipcRenderer.invoke('cetak.struk', { id: transaksiId }),
+  cetakStrukHtml: (transaksiId) => ipcRenderer.invoke('cetak.strukHtml', { id: transaksiId }),
+  cetakLaporanHtml: (input) => ipcRenderer.invoke('cetak.laporanHtml', input),
+  cetakLaporanPdf: (input) => ipcRenderer.invoke('cetak.laporanPdf', input),
+  cetakHtml: (html) => ipcRenderer.invoke('cetak.html', { html }),
 };
 
 contextBridge.exposeInMainWorld('pundi', api);
+

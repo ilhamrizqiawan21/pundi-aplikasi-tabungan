@@ -1,63 +1,103 @@
-/* Design Tokens - Pundi (DESIGN §2) */
+/* Design Tokens - Pundi (DESIGN §2 & Mockup Pundi.pdf) */
 :root,
 [data-theme="putih"] {
-  --bg: #FFFFFF;
-  --surface: #F7F7F8;
-  --text: #1C1D21;
-  --muted: #6B6F76;
-  --accent: #2F6FED;
+  --bg: #F1F5F9;
+  --surface: #FFFFFF;
+  --text: #0F172A;
+  --muted: #64748B;
+  --accent: #2563EB;
+  --accent-hover: #1D4ED8;
   --accent-text: #FFFFFF;
-  --border: #E3E4E7;
+  --border: #E2E8F0;
+  --card-bg: #FFFFFF;
+  --card-border: #E2E8F0;
+  --card-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.02);
 }
 
 [data-theme="hijau"] {
-  --bg: #F6FAF7;
-  --surface: #EAF3EC;
-  --text: #17261C;
-  --muted: #52645A;
-  --accent: #1F7A4D;
+  --bg: #F0FDF4;
+  --surface: #FFFFFF;
+  --text: #064E3B;
+  --muted: #047857;
+  --accent: #16A34A;
+  --accent-hover: #15803D;
   --accent-text: #FFFFFF;
-  --border: #D5E4DA;
+  --border: #DCFCE7;
+  --card-bg: #FFFFFF;
+  --card-border: #BBF7D0;
+  --card-shadow: 0 1px 3px rgba(6, 78, 59, 0.05);
 }
 
 [data-theme="biru"] {
-  --bg: #F5F8FC;
-  --surface: #E8F0FA;
-  --text: #14202F;
-  --muted: #4F6076;
-  --accent: #1F63C8;
+  --bg: #EFF6FF;
+  --surface: #FFFFFF;
+  --text: #1E3A8A;
+  --muted: #3B82F6;
+  --accent: #2563EB;
+  --accent-hover: #1D4ED8;
   --accent-text: #FFFFFF;
-  --border: #D2DEEE;
+  --border: #DBEAFE;
+  --card-bg: #FFFFFF;
+  --card-border: #BFDBFE;
+  --card-shadow: 0 1px 3px rgba(30, 58, 138, 0.05);
 }
 
 [data-theme="ungu"] {
-  --bg: #F8F6FC;
-  --surface: #EFEAF8;
-  --text: #221A33;
-  --muted: #625877;
-  --accent: #6B4FC8;
+  --bg: #FAF5FF;
+  --surface: #FFFFFF;
+  --text: #581C87;
+  --muted: #7E22CE;
+  --accent: #9333EA;
+  --accent-hover: #7E22CE;
   --accent-text: #FFFFFF;
-  --border: #DDD5EE;
+  --border: #F3E8FF;
+  --card-bg: #FFFFFF;
+  --card-border: #E9D5FF;
+  --card-shadow: 0 1px 3px rgba(88, 28, 135, 0.05);
 }
 
 [data-theme="grafit"] {
-  --bg: #1B1D21;
-  --surface: #24272C;
-  --text: #ECEDEF;
-  --muted: #9AA0A8;
-  --accent: #6EA0FF;
-  --accent-text: #0B1220;
-  --border: #363A41;
+  --bg: #0F172A;
+  --surface: #1E293B;
+  --text: #F8FAFC;
+  --muted: #94A3B8;
+  --accent: #38BDF8;
+  --accent-hover: #0EA5E9;
+  --accent-text: #0F172A;
+  --border: #334155;
+  --card-bg: #1E293B;
+  --card-border: #334155;
+  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Status colors (universal across all themes) */
 :root {
-  --ok: #1E8E5A;
-  --warn: #B7791F;
-  --danger: #C0392B;
+  --ok: #16A34A;
+  --ok-bg: #DCFCE7;
+  --ok-text: #15803D;
 
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --warn: #D97706;
+  --warn-bg: #FEF3C7;
+  --warn-text: #B45309;
+
+  --danger: #DC2626;
+  --danger-bg: #FEE2E2;
+  --danger-text: #B91C1C;
+
+  /* Sidebar Mockup Tokens */
+  --sidebar-bg: #0C1E38;
+  --sidebar-text: #F1F5F9;
+  --sidebar-muted: #8498AE;
+  --sidebar-active: #2563EB;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
 }
 
 * {
@@ -90,4 +130,30 @@ input, button, select, textarea {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+/* Utility Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

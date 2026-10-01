@@ -3,6 +3,7 @@ import type { HasilLaporanTransaksi, JenisTransaksi, Kelas } from '../../shared/
 import { formatRupiah } from '../../shared/rupiah.js';
 import { hariIniLokal } from '../../shared/tanggal.js';
 import { tombol, kolom, labelStyle, kartu, sel } from '../styles/ui.js';
+import { PratinjauCetakModal } from './PratinjauCetakModal.js';
 
 const LABEL_JENIS: Record<JenisTransaksi, string> = {
   setoran: 'Setoran',
@@ -24,6 +25,13 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
   const [hasil, setHasil] = useState<HasilLaporanTransaksi | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [pesan, setPesan] = useState<string | null>(null);
+
+  const [pratinjauData, setPratinjauData] = useState<{
+    html: string;
+    judul: string;
+    onSimpanPdf?: () => Promise<void>;
+  } | null>(null);
+  const [cetakLoading, setCetakLoading] = useState(false);
 
   const muat = useCallback(async () => {
     setPesan(null);
@@ -50,6 +58,42 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
   useEffect(() => {
     muat();
   }, [muat]);
+
+  const handleCetakTransaksi = async () => {
+    setCetakLoading(true);
+    setPesan(null);
+    try {
+      const res = await window.pundi.cetakLaporanHtml({
+        jenis: 'transaksi',
+        dari,
+        sampai,
+        kelasId: kelasId === '' ? undefined : kelasId,
+        jenisTransaksi: jenis === '' ? undefined : jenis,
+      });
+      if (res.ok) {
+        setPratinjauData({
+          html: res.data.html,
+          judul: `Laporan Transaksi ${dari} s/d ${sampai}`,
+          onSimpanPdf: async () => {
+            const saveRes = await window.pundi.cetakLaporanPdf({
+              jenis: 'transaksi',
+              dari,
+              sampai,
+              kelasId: kelasId === '' ? undefined : kelasId,
+              jenisTransaksi: jenis === '' ? undefined : jenis,
+            });
+            if (saveRes.ok && saveRes.data) {
+              setPesan(`PDF berhasil disimpan: ${saveRes.data.nama_berkas}`);
+            }
+          },
+        });
+      } else {
+        setGalat(res.pesan || 'Gagal menyiapkan laporan transaksi.');
+      }
+    } finally {
+      setCetakLoading(false);
+    }
+  };
 
   const ekspor = async () => {
     setPesan(null);
@@ -135,9 +179,24 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
                   ? `Menampilkan ${hasil.baris.length.toLocaleString('id-ID')} dari ${hasil.jumlah.toLocaleString('id-ID')} transaksi. Ekspor ke Excel untuk semuanya.`
                   : 'Urut dari tanggal terlama.'}
               </span>
-              <button type="button" style={{ ...tombol, padding: '7px 14px', fontSize: '13px' }} onClick={ekspor} disabled={hasil.jumlah === 0}>
-                Ekspor Excel
-              </button>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  type="button"
+                  style={{ ...tombol, padding: '7px 14px', fontSize: '13px', fontWeight: 600 }}
+                  onClick={handleCetakTransaksi}
+                  disabled={hasil.jumlah === 0 || cetakLoading}
+                >
+                  {cetakLoading ? 'Menyiapkan...' : '🖨️ Cetak / PDF'}
+                </button>
+                <button
+                  type="button"
+                  style={{ ...tombol, padding: '7px 14px', fontSize: '13px' }}
+                  onClick={ekspor}
+                  disabled={hasil.jumlah === 0}
+                >
+                  Ekspor Excel
+                </button>
+              </div>
             </div>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
               <thead>
@@ -184,6 +243,17 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
             </table>
           </section>
         </>
+      )}
+
+      {/* Pratinjau Cetak / PDF Modal */}
+      {pratinjauData && (
+        <PratinjauCetakModal
+          terbuka={Boolean(pratinjauData)}
+          judul={pratinjauData.judul}
+          html={pratinjauData.html}
+          onTutup={() => setPratinjauData(null)}
+          onSimpanPdf={pratinjauData.onSimpanPdf}
+        />
       )}
     </div>
   );

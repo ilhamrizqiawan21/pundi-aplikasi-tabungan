@@ -2,14 +2,11 @@ import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import type { TahunAjaran, Kelas } from '../../shared/types.js';
 import { Modal } from '../components/Modal.js';
 import { tombol, tombolUtama, kolom, labelStyle, kartu, kartuKepala, sel } from '../styles/ui.js';
+import { formatTanggalIndonesia, hariIniLokal } from '../../shared/tanggal.js';
 
 interface AkademikScreenProps {
   /** Dipanggil setelah data berubah agar bilah atas ikut diperbarui. */
   onChanged: () => void;
-}
-
-function tanggalIndonesia(s: string): string {
-  return new Date(`${s}T12:00:00`).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 /** Saran tahun ajaran berikutnya (Juli sampai Juni), melanjutkan tahun terakhir bila ada. */
@@ -18,8 +15,10 @@ function sarankanTahun(daftar: TahunAjaran[]): { nama: string; mulai: string; se
   if (daftar.length > 0) {
     tahun = Math.max(...daftar.map((t) => Number(t.mulai.slice(0, 4)))) + 1;
   } else {
-    const now = new Date();
-    tahun = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+    const today = hariIniLokal();
+    const bln = Number(today.slice(5, 7));
+    const thn = Number(today.slice(0, 4));
+    tahun = bln >= 7 ? thn : thn - 1;
   }
   return { nama: `${tahun}/${tahun + 1}`, mulai: `${tahun}-07-01`, selesai: `${tahun + 1}-06-30` };
 }
@@ -167,7 +166,7 @@ export function AkademikScreen({ onChanged }: AkademikScreenProps) {
                     </button>
                   </td>
                   <td style={{ ...sel, color: 'var(--muted)' }}>
-                    {tanggalIndonesia(t.mulai)} – {tanggalIndonesia(t.selesai)}
+                    {formatTanggalIndonesia(t.mulai)} – {formatTanggalIndonesia(t.selesai)}
                   </td>
                   <td style={sel}>
                     {t.aktif === 1 ? (

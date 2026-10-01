@@ -4,6 +4,7 @@ import Database from 'better-sqlite3';
 import { getDb, getDbPath, closeDb, reopenDb } from '../db/index.js';
 import type { Result } from '../../shared/types.js';
 import { ERROR_MESSAGES } from '../../shared/errors.js';
+import { timestampWib } from '../../shared/tanggal.js';
 
 export type JenisCadangan = 'manual' | 'otomatis' | 'pre-restore';
 
@@ -46,9 +47,7 @@ export class BackupService {
   ): Result<{ berkas: string; ukuran_bytes: number }> {
     const db = getDb();
     try {
-      const now = new Date();
-      const pad = (n: number) => n.toString().padStart(2, '0');
-      const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+      const timestamp = timestampWib();
       const suffix = keterangan ? `_${keterangan.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
       const filename = `pundi_${jenis}_${timestamp}${suffix}.sqlite`;
       const targetPath = path.join(this.baseDir, filename);

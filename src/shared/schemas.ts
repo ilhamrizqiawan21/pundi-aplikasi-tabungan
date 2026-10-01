@@ -173,3 +173,19 @@ export const PengaturanSimpanSchema = z.object({
   ukuran_struk: UkuranStrukSchema.optional(),
   pin_hash: z.string().nullable().optional(),
 });
+
+// Cetak & PDF
+export const CetakLaporanSchema = z.object({
+  jenis: z.enum(['rekapKelas', 'rekapSiswa', 'transaksi', 'bukuBesar']),
+  tahunAjaranId: z.number().int().positive().optional(),
+  kelasId: z.number().int().positive().optional(),
+  siswaId: z.number().int().positive().optional(),
+  dari: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  sampai: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  jenisTransaksi: z.enum(['setoran', 'penarikan', 'pembalik']).optional(),
+});
+
+export const CetakHtmlSchema = z.object({
+  html: z.string().min(1, 'Konten HTML tidak boleh kosong'),
+});
+

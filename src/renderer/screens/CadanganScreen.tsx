@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../components/Modal.js';
+import { formatWaktuWib } from '../../shared/tanggal.js';
 
 interface ItemBackup {
   nama: string;
@@ -233,7 +234,7 @@ export function CadanganScreen() {
                   <td style={{ padding: '10px 16px', fontWeight: 600 }}>{b.nama}</td>
                   <td style={{ padding: '10px 16px' }}>{LABEL_JENIS[b.jenis]}</td>
                   <td style={{ padding: '10px 16px', color: 'var(--muted)' }}>
-                    {new Date(b.tanggal).toLocaleString('id-ID')}
+                    {formatWaktuWib(b.tanggal)}
                   </td>
                   <td className="tabular-nums" style={{ padding: '10px 16px', textAlign: 'right' }}>
                     {formatUkuran(b.ukuran)}

@@ -355,6 +355,23 @@ export interface PundiApi {
 
   // Utilitas Jendela & Dialog Main
   dialogPilihFile: (opsi: { ekstensi: string[] }) => Promise<Result<{ token: string; nama_berkas: string } | null>>;
+
+  // Cetak & PDF (CAP-09, CAP-10, CAP-11)
+  cetakStruk: (transaksiId: number) => Promise<Result<{ sukses: boolean }>>;
+  cetakStrukHtml: (transaksiId: number) => Promise<Result<{ html: string; nomor_bukti: string }>>;
+  cetakLaporanHtml: (input: CetakLaporanInput) => Promise<Result<{ html: string; judul: string }>>;
+  cetakLaporanPdf: (input: CetakLaporanInput) => Promise<Result<{ nama_berkas: string } | null>>;
+  cetakHtml: (html: string) => Promise<Result<{ sukses: boolean }>>;
+}
+
+export interface CetakLaporanInput {
+  jenis: 'rekapKelas' | 'rekapSiswa' | 'transaksi' | 'bukuBesar';
+  tahunAjaranId?: number;
+  kelasId?: number;
+  siswaId?: number;
+  dari?: string;
+  sampai?: string;
+  jenisTransaksi?: JenisTransaksi;
 }
 
 declare global {

@@ -1,9 +1,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Siswa, Kelas, StatusSiswa, Transaksi } from '../../shared/types.js';
 import { formatRupiah } from '../../shared/rupiah.js';
+import { formatTanggalIndonesia } from '../../shared/tanggal.js';
 import { SiswaFormModal } from '../components/SiswaFormModal.js';
 import { KoreksiModal } from '../components/KoreksiModal.js';
-import { Modal } from '../components/Modal.js';
+import { PratinjauCetakModal } from '../components/PratinjauCetakModal.js';
+import {
+  StudentAvatar,
+  IconSearch,
+  IconPrint,
+  IconPdf,
+  IconUndo,
+} from '../components/Icons.js';
 
 export function SiswaScreen() {
   const [siswaList, setSiswaList] = useState<Siswa[]>([]);
@@ -11,17 +19,50 @@ export function SiswaScreen() {
   const [query, setQuery] = useState('');
   const [filterKelasId, setFilterKelasId] = useState<number | ''>('');
   const [filterStatus, setFilterStatus] = useState<StatusSiswa | ''>('');
+  const [selectedTingkat, setSelectedTingkat] = useState<string>('semua');
   const [loading, setLoading] = useState(false);
 
   // Modal State
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [siswaToEdit, setSiswaToEdit] = useState<Siswa | null>(null);
 
-  // Detail & Riwayat Drawer/Modal
+  // Detail Siswa Terpilih & Riwayat Buku Besar
   const [detailSiswa, setDetailSiswa] = useState<Siswa | null>(null);
   const [riwayatList, setRiwayatList] = useState<Transaksi[]>([]);
   const [loadingRiwayat, setLoadingRiwayat] = useState(false);
   const [koreksiTarget, setKoreksiTarget] = useState<Transaksi | null>(null);
+
+  // Pratinjau Cetak / PDF State
+  const [pratinjauData, setPratinjauData] = useState<{
+    html: string;
+    judul: string;
+    onSimpanPdf?: () => Promise<void>;
+  } | null>(null);
+  const [cetakLoading, setCetakLoading] = useState(false);
+
+  const handleCetakBukuBesar = async (siswa: Siswa) => {
+    setCetakLoading(true);
+    try {
+      const res = await window.pundi.cetakLaporanHtml({
+        jenis: 'bukuBesar',
+        siswaId: siswa.id,
+      });
+      if (res.ok) {
+        setPratinjauData({
+          html: res.data.html,
+          judul: `Buku Besar - ${siswa.nama}`,
+          onSimpanPdf: async () => {
+            await window.pundi.cetakLaporanPdf({
+              jenis: 'bukuBesar',
+              siswaId: siswa.id,
+            });
+          },
+        });
+      }
+    } finally {
+      setCetakLoading(false);
+    }
+  };
 
   const fetchSiswa = useCallback(async () => {
     setLoading(true);
@@ -39,7 +80,6 @@ export function SiswaScreen() {
     }
   }, [query, filterKelasId, filterStatus]);
 
-  // Penempatan siswa selalu pada tahun ajaran aktif, jadi hanya kelasnya yang ditawarkan
   const fetchKelas = async () => {
     const ta = await window.pundi.tahunAjaranDaftar();
     const aktif = ta.ok ? ta.data.find((t) => t.aktif === 1) : undefined;
@@ -60,11 +100,11 @@ export function SiswaScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchSiswa();
-    }, 200);
+    }, 150);
     return () => clearTimeout(timer);
   }, [fetchSiswa]);
 
-  const handleOpenDetail = async (siswa: Siswa) => {
+  const handleOpenDetail = useCallback(async (siswa: Siswa) => {
     setDetailSiswa(siswa);
     setLoadingRiwayat(true);
     try {
@@ -75,7 +115,19 @@ export function SiswaScreen() {
     } finally {
       setLoadingRiwayat(false);
     }
-  };
+  }, []);
+
+  // Pilih otomatis siswa pertama jika belum ada yang terpilih (seperti mockup)
+  useEffect(() => {
+    if (!detailSiswa && siswaList.length > 0) {
+      handleOpenDetail(siswaList[0]);
+    } else if (detailSiswa) {
+      const updated = siswaList.find((s) => s.id === detailSiswa.id);
+      if (updated && updated.saldo !== detailSiswa.saldo) {
+        setDetailSiswa(updated);
+      }
+    }
+  }, [siswaList, detailSiswa, handleOpenDetail]);
 
   const handleDelete = async (siswa: Siswa) => {
     if (confirm(`Apakah Anda yakin ingin menghapus data siswa "${siswa.nama}" (${siswa.nomor})?`)) {
@@ -91,43 +143,113 @@ export function SiswaScreen() {
     }
   };
 
+  // Filter siswa berdasarkan filter tingkat (7, 8, 9 atau semua)
+  const filteredSiswa = siswaList.filter((s) => {
+    if (selectedTingkat === 'semua') return true;
+    if (selectedTingkat === 'aktif') return s.status === 'aktif';
+    return s.kelas_nama?.startsWith(selectedTingkat);
+  });
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      {/* Header & Filter Bar */}
-      <div
+    <div style={{ display: 'grid', gridTemplateColumns: '400px minmax(500px, 1fr)', gap: '22px', alignItems: 'start' }}>
+      {/* ======================================================== */}
+      {/* PANEL KIRI: DAFTAR SISWA (Mockup Page 3)                 */}
+      {/* ======================================================== */}
+      <section
         style={{
+          backgroundColor: 'var(--card-bg)',
+          borderRadius: '16px',
+          border: '1px solid var(--border)',
+          boxShadow: 'var(--card-shadow)',
+          padding: '20px 18px',
           display: 'flex',
-          flexWrap: 'wrap',
-          gap: '12px',
-          alignItems: 'center',
-          justifyContent: 'space-between',
+          flexDirection: 'column',
+          gap: '14px',
+          maxHeight: 'calc(100vh - 120px)',
+          overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', gap: '10px', flex: 1, minWidth: '300px' }}>
+        {/* Header Daftar Siswa & Tombol Tambah */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+              Daftar siswa
+            </h3>
+            <span
+              style={{
+                fontSize: '11px',
+                fontWeight: 600,
+                color: 'var(--muted)',
+                backgroundColor: 'var(--bg)',
+                padding: '2px 8px',
+                borderRadius: '9999px',
+                border: '1px solid var(--border)',
+              }}
+            >
+              {siswaList.length} siswa
+            </span>
+          </div>
+
+          <button
+            onClick={() => {
+              setSiswaToEdit(null);
+              setIsFormOpen(true);
+            }}
+            style={{
+              padding: '7px 14px',
+              backgroundColor: 'var(--accent)',
+              color: 'var(--accent-text)',
+              border: 'none',
+              borderRadius: '8px',
+              fontWeight: 600,
+              fontSize: '12px',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: '0 2px 4px rgba(37, 99, 235, 0.25)',
+            }}
+          >
+            <span>+</span> Tambah Siswa
+          </button>
+        </div>
+
+        {/* Input Pencarian */}
+        <div style={{ position: 'relative' }}>
+          <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)' }}>
+            <IconSearch width={15} height={15} />
+          </div>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari nama, nomor rekening (T-...), atau NIS..."
+            placeholder="Cari nama atau nomor"
             style={{
-              flex: 1,
-              padding: '8px 14px',
-              borderRadius: '6px',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
+              width: '100%',
+              padding: '9px 12px 9px 34px',
               fontSize: '13px',
+              borderRadius: '10px',
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--bg)',
+              outline: 'none',
             }}
           />
+        </div>
 
+        {/* Filter Bar: Kelas & Status Dropdowns */}
+        <div style={{ display: 'flex', gap: '8px' }}>
           <select
             value={filterKelasId}
             onChange={(e) => setFilterKelasId(e.target.value === '' ? '' : Number(e.target.value))}
             style={{
-              padding: '8px 12px',
-              borderRadius: '6px',
+              flex: 1,
+              padding: '6px 10px',
+              borderRadius: '8px',
               border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-              fontSize: '13px',
+              backgroundColor: 'var(--bg)',
+              fontSize: '11px',
+              color: 'var(--text)',
+              outline: 'none',
             }}
           >
             <option value="">Semua Kelas</option>
@@ -142,11 +264,14 @@ export function SiswaScreen() {
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as StatusSiswa | '')}
             style={{
-              padding: '8px 12px',
-              borderRadius: '6px',
+              flex: 1,
+              padding: '6px 10px',
+              borderRadius: '8px',
               border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-              fontSize: '13px',
+              backgroundColor: 'var(--bg)',
+              fontSize: '11px',
+              color: 'var(--text)',
+              outline: 'none',
             }}
           >
             <option value="">Semua Status</option>
@@ -156,333 +281,423 @@ export function SiswaScreen() {
           </select>
         </div>
 
-        <button
-          onClick={() => {
-            setSiswaToEdit(null);
-            setIsFormOpen(true);
-          }}
+        {/* Filter Pills: Semua kelas, 7, 8, 9, Aktif */}
+        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+          {[
+            { id: 'semua', label: 'Semua kelas' },
+            { id: '7', label: '7' },
+            { id: '8', label: '8' },
+            { id: '9', label: '9' },
+            { id: 'aktif', label: 'Aktif' },
+          ].map((pill) => {
+            const isActive = selectedTingkat === pill.id;
+            return (
+              <button
+                key={pill.id}
+                type="button"
+                onClick={() => setSelectedTingkat(pill.id)}
+                style={{
+                  padding: '4px 10px',
+                  borderRadius: '9999px',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
+                  backgroundColor: isActive ? 'var(--accent)' : 'var(--bg)',
+                  color: isActive ? '#FFFFFF' : 'var(--text)',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.12s ease',
+                }}
+              >
+                {pill.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Tabel / Daftar Siswa (Menyediakan role="row" agar Playwright alur.spec.ts & akademik.spec.ts lulus) */}
+        <div
           style={{
-            padding: '8px 16px',
-            backgroundColor: 'var(--accent)',
-            color: 'var(--accent-text)',
-            border: 'none',
-            borderRadius: '6px',
-            fontWeight: 600,
-            fontSize: '13px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
+            flex: 1,
+            overflowY: 'auto',
+            paddingRight: '2px',
           }}
         >
-          <span>+</span> Tambah Siswa
-        </button>
-      </div>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <tbody>
+              {filteredSiswa.map((s) => {
+                const isSelected = detailSiswa?.id === s.id;
+                return (
+                  <tr
+                    key={s.id}
+                    role="row"
+                    onClick={() => handleOpenDetail(s)}
+                    style={{
+                      cursor: 'pointer',
+                      borderBottom: '1px solid var(--border)',
+                      backgroundColor: isSelected ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
+                      transition: 'background-color 0.12s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--surface)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    <td style={{ padding: '10px 8px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
+                          <StudentAvatar name={s.nama} size={34} fontSize={12} />
+                          <div style={{ minWidth: 0 }}>
+                            <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {s.nama}
+                            </div>
+                            <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '1px' }}>
+                              {s.nomor} {s.kelas_nama ? `· ${s.kelas_nama}` : ''}
+                            </div>
+                          </div>
+                        </div>
 
-      {/* Tabel Siswa */}
-      <div
-        style={{
-          backgroundColor: 'var(--bg)',
-          border: '1px solid var(--border)',
-          borderRadius: '8px',
-          overflow: 'hidden',
-        }}
-      >
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
-          <thead>
-            <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-              <th style={{ padding: '10px 16px', fontWeight: 600 }}>No. Rekening</th>
-              <th style={{ padding: '10px 16px', fontWeight: 600 }}>NIS</th>
-              <th style={{ padding: '10px 16px', fontWeight: 600 }}>Nama Siswa</th>
-              <th style={{ padding: '10px 16px', fontWeight: 600 }}>Kelas</th>
-              <th style={{ padding: '10px 16px', fontWeight: 600 }}>Status</th>
-              <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'right' }}>Saldo</th>
-              <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'center' }}>Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={7} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
-                  Memuat data siswa...
-                </td>
-              </tr>
-            ) : siswaList.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
-                  {query
-                    ? `Tidak ada siswa yang cocok dengan "${query}".`
-                    : 'Belum ada siswa. Tambah satu atau impor dari Excel.'}
-                </td>
-              </tr>
-            ) : (
-              siswaList.map((s) => (
-                <tr
-                  key={s.id}
-                  style={{
-                    borderBottom: '1px solid var(--border)',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleOpenDetail(s)}
-                >
-                  <td style={{ padding: '10px 16px', fontWeight: 600, color: 'var(--accent)' }}>
-                    {s.nomor}
-                  </td>
-                  <td style={{ padding: '10px 16px', color: 'var(--muted)' }}>{s.nis || '-'}</td>
-                  <td style={{ padding: '10px 16px', fontWeight: 500 }}>{s.nama}</td>
-                  <td style={{ padding: '10px 16px' }}>{s.kelas_nama || '-'}</td>
-                  <td style={{ padding: '10px 16px' }}>
-                    <span
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontSize: '11px',
-                        fontWeight: 600,
-                        backgroundColor:
-                          s.status === 'aktif'
-                            ? '#EAF7ED'
-                            : s.status === 'lulus'
-                            ? '#E8F0FA'
-                            : '#FDEDEC',
-                        color:
-                          s.status === 'aktif'
-                            ? 'var(--ok)'
-                            : s.status === 'lulus'
-                            ? 'var(--accent)'
-                            : 'var(--danger)',
-                      }}
-                    >
-                      {s.status.toUpperCase()}
-                    </span>
-                  </td>
-                  <td
-                    className="tabular-nums"
-                    style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 600 }}
-                  >
-                    {formatRupiah(s.saldo || 0)}
-                  </td>
-                  <td
-                    style={{ padding: '10px 16px', textAlign: 'center' }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <div style={{ display: 'flex', gap: '6px', justifyContent: 'center' }}>
-                      <button
-                        onClick={() => {
-                          setSiswaToEdit(s);
-                          setIsFormOpen(true);
-                        }}
-                        style={{
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          border: '1px solid var(--border)',
-                          backgroundColor: 'var(--surface)',
-                          fontSize: '12px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Ubah
-                      </button>
-                      <button
-                        onClick={() => handleDelete(s)}
-                        style={{
-                          padding: '4px 8px',
-                          borderRadius: '4px',
-                          border: '1px solid var(--border)',
-                          backgroundColor: 'var(--surface)',
-                          color: 'var(--danger)',
-                          fontSize: '12px',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        Hapus
-                      </button>
-                    </div>
+                        <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: '8px' }}>
+                          <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)' }} className="tabular-nums">
+                            {formatRupiah(s.saldo ?? 0)}
+                          </div>
+                          {s.kelas_nama && (
+                            <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--muted)' }}>
+                              {s.kelas_nama}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+
+              {filteredSiswa.length === 0 && (
+                <tr>
+                  <td style={{ padding: '30px 12px', textAlign: 'center', color: 'var(--muted)', fontSize: '12px' }}>
+                    {loading ? 'Memuat data siswa...' : 'Belum ada siswa yang cocok.'}
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-      {/* Form Tambah/Ubah Modal */}
-      <SiswaFormModal
-        isOpen={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSaved={() => {
-          fetchSiswa();
-        }}
-        siswaToEdit={siswaToEdit}
-        kelasList={kelasList}
-      />
-
-      {/* Detail Siswa & Buku Besar Modal */}
-      <Modal
-        isOpen={Boolean(detailSiswa)}
-        onClose={() => setDetailSiswa(null)}
-        title={`Buku Besar — ${detailSiswa?.nama || ''} (${detailSiswa?.nomor || ''})`}
-        width="700px"
-      >
-        {detailSiswa && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {/* Info Siswa Ringkas */}
+      {/* ======================================================== */}
+      {/* PANEL KANAN: BUKU BESAR SISWA TERPILIH (Mockup Page 3)   */}
+      {/* ======================================================== */}
+      <section style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+        {detailSiswa ? (
+          <>
+            {/* Hero Card Siswa Terpilih (Sesuai Mockup Biru Royal) */}
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: '10px',
-                padding: '12px',
-                backgroundColor: 'var(--surface)',
-                borderRadius: '6px',
-                fontSize: '12px',
+                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+                borderRadius: '18px',
+                padding: '24px 28px',
+                color: '#FFFFFF',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: '0 6px 16px rgba(37, 99, 235, 0.25)',
               }}
             >
-              <div>
-                <span style={{ color: 'var(--muted)', display: 'block' }}>NIS</span>
-                <span style={{ fontWeight: 600 }}>{detailSiswa.nis || '-'}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <StudentAvatar name={detailSiswa.nama} size={54} fontSize={18} border="2px solid rgba(255, 255, 255, 0.3)" />
+                <div>
+                  <h2 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.3px', margin: 0 }}>
+                    {detailSiswa.nama}
+                  </h2>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                    {detailSiswa.kelas_nama && (
+                      <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: '6px' }}>
+                        Kelas {detailSiswa.kelas_nama}
+                      </span>
+                    )}
+                    <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: '6px' }}>
+                      {detailSiswa.nomor} · {detailSiswa.status === 'aktif' ? 'Aktif' : detailSiswa.status}
+                    </span>
+                    <button
+                      onClick={() => {
+                        setSiswaToEdit(detailSiswa);
+                        setIsFormOpen(true);
+                      }}
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        backgroundColor: 'rgba(255, 255, 255, 0.22)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '2px 8px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Ubah
+                    </button>
+                    <button
+                      onClick={() => handleDelete(detailSiswa)}
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        backgroundColor: 'rgba(239, 68, 68, 0.35)',
+                        color: '#FFFFFF',
+                        border: 'none',
+                        borderRadius: '6px',
+                        padding: '2px 8px',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div>
-                <span style={{ color: 'var(--muted)', display: 'block' }}>Kelas</span>
-                <span style={{ fontWeight: 600 }}>{detailSiswa.kelas_nama || '-'}</span>
-              </div>
-              <div>
-                <span style={{ color: 'var(--muted)', display: 'block' }}>Status</span>
-                <span style={{ fontWeight: 600 }}>{detailSiswa.status}</span>
-              </div>
-              <div>
-                <span style={{ color: 'var(--muted)', display: 'block' }}>Saldo Saat Ini</span>
-                <span style={{ fontWeight: 700, color: 'var(--accent)', fontSize: '14px' }}>
-                  {formatRupiah(detailSiswa.saldo || 0)}
-                </span>
+
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', opacity: 0.85 }}>
+                  SALDO
+                </div>
+                <div style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.5px', marginTop: '2px' }} className="tabular-nums">
+                  {formatRupiah(detailSiswa.saldo ?? 0)}
+                </div>
               </div>
             </div>
 
-            {/* Riwayat Mutasi / Buku Besar */}
-            <h4 style={{ fontSize: '14px', fontWeight: 600, marginTop: '4px' }}>
-              Riwayat Transaksi
-            </h4>
+            {/* Card Buku Besar */}
             <div
               style={{
+                backgroundColor: 'var(--card-bg)',
                 border: '1px solid var(--border)',
-                borderRadius: '6px',
-                maxHeight: '300px',
-                overflowY: 'auto',
+                borderRadius: '18px',
+                boxShadow: 'var(--card-shadow)',
+                overflow: 'hidden',
               }}
             >
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+              {/* Header Buku Besar & Aksi Cetak / PDF */}
+              <div
+                style={{
+                  padding: '18px 24px',
+                  borderBottom: '1px solid var(--border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                }}
+              >
+                <div>
+                  <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+                    Buku besar
+                  </h3>
+                  <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px', margin: 0 }}>
+                    Transaksi tidak dapat diubah. Koreksi dibuat sebagai transaksi pembalik.
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    onClick={() => handleCetakBukuBesar(detailSiswa)}
+                    disabled={cetakLoading}
+                    style={{
+                      padding: '7px 14px',
+                      backgroundColor: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      color: 'var(--text)',
+                    }}
+                  >
+                    <IconPrint width={14} height={14} />
+                    <span>Cetak</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleCetakBukuBesar(detailSiswa)}
+                    disabled={cetakLoading}
+                    style={{
+                      padding: '7px 14px',
+                      backgroundColor: 'var(--surface)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '8px',
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      color: 'var(--text)',
+                    }}
+                  >
+                    <IconPdf width={14} height={14} />
+                    <span>PDF</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Tabel Buku Besar */}
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
                 <thead>
-                  <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-                    <th style={{ padding: '8px 12px' }}>No. Bukti</th>
-                    <th style={{ padding: '8px 12px' }}>Tanggal</th>
-                    <th style={{ padding: '8px 12px' }}>Jenis</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'right' }}>Nominal</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'right' }}>Saldo</th>
-                    <th style={{ padding: '8px 12px' }}>Keterangan</th>
-                    <th style={{ padding: '8px 12px', textAlign: 'center' }}>Aksi</th>
+                  <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)', color: 'var(--muted)' }}>
+                    <th style={{ padding: '12px 22px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>Tanggal</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>No. Bukti</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>Jenis</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase', textAlign: 'right' }}>Nominal</th>
+                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase', textAlign: 'right' }}>Saldo</th>
+                    <th style={{ padding: '12px 20px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase', textAlign: 'center' }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loadingRiwayat ? (
                     <tr>
-                      <td colSpan={7} style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)' }}>
-                        Memuat riwayat...
+                      <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
+                        Memuat riwayat transaksi...
                       </td>
                     </tr>
                   ) : riwayatList.length === 0 ? (
                     <tr>
-                      <td colSpan={7} style={{ padding: '20px', textAlign: 'center', color: 'var(--muted)' }}>
-                        Belum ada riwayat transaksi untuk siswa ini.
+                      <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
+                        Belum ada transaksi pada buku besar siswa ini.
                       </td>
                     </tr>
                   ) : (
-                    riwayatList.map((t) => (
-                      <tr key={t.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={{ padding: '8px 12px', fontWeight: 600 }}>{t.nomor_bukti}</td>
-                        <td style={{ padding: '8px 12px' }}>{t.tanggal}</td>
-                        <td style={{ padding: '8px 12px' }}>
-                          <span
-                            style={{
-                              fontWeight: 600,
-                              color: t.nilai > 0 ? 'var(--ok)' : 'var(--danger)',
-                            }}
-                          >
-                            {t.jenis.toUpperCase()}
-                          </span>
-                        </td>
-                        <td
-                          className="tabular-nums"
+                    riwayatList.map((t) => {
+                      const isSetor = t.jenis === 'setoran' || (t.jenis === 'pembalik' && t.nilai > 0);
+                      const isTarik = t.jenis === 'penarikan' || (t.jenis === 'pembalik' && t.nilai < 0);
+                      return (
+                        <tr
+                          key={t.id}
                           style={{
-                            padding: '8px 12px',
-                            textAlign: 'right',
-                            fontWeight: 600,
-                            color: t.nilai > 0 ? 'var(--ok)' : 'var(--danger)',
+                            borderBottom: '1px solid var(--border)',
+                            transition: 'background-color 0.12s ease',
                           }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface)')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                         >
-                          {t.nilai > 0 ? `+${formatRupiah(t.nilai)}` : formatRupiah(t.nilai)}
-                        </td>
-                        <td className="tabular-nums" style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600 }}>
-                          {formatRupiah(t.saldo_setelah)}
-                        </td>
-                        <td style={{ padding: '8px 12px', color: 'var(--muted)' }}>
-                          {t.keterangan || '-'}
-                        </td>
-                        <td style={{ padding: '8px 12px', textAlign: 'center' }}>
-                          {t.jenis !== 'pembalik' && !t.membalik_id && (
-                            <button
-                              onClick={() => setKoreksiTarget(t)}
+                          <td style={{ padding: '12px 22px', color: 'var(--text)', whiteSpace: 'nowrap' }}>
+                            {formatTanggalIndonesia(t.tanggal, { day: 'numeric', month: 'short' })}
+                          </td>
+                          <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--muted)' }}>
+                            {t.nomor_bukti}
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <span
                               style={{
-                                padding: '3px 8px',
                                 fontSize: '11px',
-                                borderRadius: '4px',
-                                border: '1px solid var(--border)',
-                                backgroundColor: 'var(--surface)',
-                                color: 'var(--danger)',
-                                cursor: 'pointer',
-                                fontWeight: 500,
+                                fontWeight: 700,
+                                padding: '3px 8px',
+                                borderRadius: '6px',
+                                backgroundColor: isSetor ? 'var(--ok-bg)' : isTarik ? 'var(--danger-bg)' : 'var(--bg)',
+                                color: isSetor ? 'var(--ok-text)' : isTarik ? 'var(--danger-text)' : 'var(--muted)',
                               }}
                             >
-                              Koreksi
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))
+                              {t.jenis === 'setoran' ? 'Setoran' : t.jenis === 'penarikan' ? 'Penarikan' : 'Koreksi'}
+                            </span>
+                          </td>
+                          <td
+                            style={{
+                              padding: '12px 16px',
+                              textAlign: 'right',
+                              fontWeight: 700,
+                              color: isSetor ? 'var(--ok)' : isTarik ? 'var(--danger)' : 'var(--text)',
+                            }}
+                            className="tabular-nums"
+                          >
+                            {isSetor ? `+ ${formatRupiah(Math.abs(t.nilai))}` : `− ${formatRupiah(Math.abs(t.nilai))}`}
+                          </td>
+                          <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 700, color: 'var(--text)' }} className="tabular-nums">
+                            {formatRupiah(t.saldo_setelah)}
+                          </td>
+                          <td style={{ padding: '12px 20px', textAlign: 'center' }}>
+                            {t.jenis !== 'pembalik' ? (
+                              <button
+                                onClick={() => setKoreksiTarget(t)}
+                                title="Koreksi transaksi (buat transaksi pembalik)"
+                                style={{
+                                  padding: '5px 8px',
+                                  backgroundColor: 'transparent',
+                                  border: '1px solid var(--border)',
+                                  borderRadius: '6px',
+                                  cursor: 'pointer',
+                                  color: 'var(--muted)',
+                                }}
+                              >
+                                <IconUndo width={13} height={13} />
+                              </button>
+                            ) : (
+                              <span style={{ fontSize: '11px', color: 'var(--muted)' }}>-</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
             </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
-              <button
-                onClick={() => setDetailSiswa(null)}
-                style={{
-                  padding: '6px 16px',
-                  borderRadius: '6px',
-                  border: '1px solid var(--border)',
-                  backgroundColor: 'var(--surface)',
-                  cursor: 'pointer',
-                  fontWeight: 500,
-                }}
-              >
-                Tutup
-              </button>
-            </div>
+          </>
+        ) : (
+          <div
+            style={{
+              padding: '40px',
+              textAlign: 'center',
+              backgroundColor: 'var(--card-bg)',
+              border: '1px solid var(--border)',
+              borderRadius: '18px',
+              color: 'var(--muted)',
+            }}
+          >
+            Pilih siswa di sebelah kiri untuk melihat buku besar
           </div>
         )}
-      </Modal>
+      </section>
 
-      {/* Koreksi Modal */}
-      <KoreksiModal
-        isOpen={Boolean(koreksiTarget)}
-        onClose={() => setKoreksiTarget(null)}
-        transaksi={koreksiTarget}
-        onSuccess={() => {
-          if (detailSiswa) {
-            handleOpenDetail(detailSiswa);
-          }
-          fetchSiswa();
-        }}
-      />
+      {/* Modal Form Tambah/Ubah Siswa */}
+      {isFormOpen && (
+        <SiswaFormModal
+          isOpen={isFormOpen}
+          siswaToEdit={siswaToEdit}
+          kelasList={kelasList}
+          onClose={() => setIsFormOpen(false)}
+          onSaved={() => {
+            setIsFormOpen(false);
+            fetchSiswa();
+          }}
+        />
+      )}
+
+      {/* Modal Koreksi Transaksi */}
+      {koreksiTarget && (
+        <KoreksiModal
+          isOpen={Boolean(koreksiTarget)}
+          transaksi={koreksiTarget}
+          onClose={() => setKoreksiTarget(null)}
+          onSuccess={() => {
+            setKoreksiTarget(null);
+            fetchSiswa();
+            if (detailSiswa) handleOpenDetail(detailSiswa);
+          }}
+        />
+      )}
+
+      {/* Modal Pratinjau Cetak / PDF */}
+      {pratinjauData && (
+        <PratinjauCetakModal
+          terbuka={Boolean(pratinjauData)}
+          html={pratinjauData.html}
+          judul={pratinjauData.judul}
+          onTutup={() => setPratinjauData(null)}
+          onSimpanPdf={pratinjauData.onSimpanPdf}
+        />
+      )}
     </div>
   );
 }

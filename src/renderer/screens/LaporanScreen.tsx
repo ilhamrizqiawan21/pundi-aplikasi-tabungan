@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { ItemRekapKelas, ItemLaporanSiswa, Kelas, TahunAjaran } from '../../shared/types.js';
 import { formatRupiah } from '../../shared/rupiah.js';
 import { LaporanTransaksi } from '../components/LaporanTransaksi.js';
+import { PratinjauCetakModal } from '../components/PratinjauCetakModal.js';
 
 type TabLaporan = 'kelas' | 'siswa' | 'transaksi';
 
@@ -16,6 +17,13 @@ export function LaporanScreen() {
   const [rekapSiswa, setRekapSiswa] = useState<ItemLaporanSiswa[]>([]);
   const [loading, setLoading] = useState(false);
   const [pesanEkspor, setPesanEkspor] = useState<{ teks: string; jenis: 'ok' | 'err' } | null>(null);
+
+  const [pratinjauData, setPratinjauData] = useState<{
+    html: string;
+    judul: string;
+    onSimpanPdf?: () => Promise<void>;
+  } | null>(null);
+  const [cetakLoading, setCetakLoading] = useState(false);
 
   useEffect(() => {
     window.pundi.tahunAjaranDaftar().then((res) => {
@@ -55,6 +63,62 @@ export function LaporanScreen() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const handlePratinjauLaporan = async () => {
+    setCetakLoading(true);
+    setPesanEkspor(null);
+    try {
+      if (tab === 'kelas') {
+        const res = await window.pundi.cetakLaporanHtml({
+          jenis: 'rekapKelas',
+          tahunAjaranId: selectedTaId === '' ? undefined : Number(selectedTaId),
+        });
+        if (res.ok) {
+          setPratinjauData({
+            html: res.data.html,
+            judul: 'Rekap Saldo per Kelas',
+            onSimpanPdf: async () => {
+              const saveRes = await window.pundi.cetakLaporanPdf({
+                jenis: 'rekapKelas',
+                tahunAjaranId: selectedTaId === '' ? undefined : Number(selectedTaId),
+              });
+              if (saveRes.ok && saveRes.data) {
+                setPesanEkspor({ teks: `PDF berhasil disimpan: ${saveRes.data.nama_berkas}`, jenis: 'ok' });
+              }
+            },
+          });
+        } else {
+          setPesanEkspor({ teks: res.pesan || 'Gagal menyiapkan laporan.', jenis: 'err' });
+        }
+      } else if (tab === 'siswa') {
+        const res = await window.pundi.cetakLaporanHtml({
+          jenis: 'rekapSiswa',
+          tahunAjaranId: selectedTaId === '' ? undefined : Number(selectedTaId),
+          kelasId: selectedKelasId === '' ? undefined : Number(selectedKelasId),
+        });
+        if (res.ok) {
+          setPratinjauData({
+            html: res.data.html,
+            judul: 'Rekap Saldo per Siswa',
+            onSimpanPdf: async () => {
+              const saveRes = await window.pundi.cetakLaporanPdf({
+                jenis: 'rekapSiswa',
+                tahunAjaranId: selectedTaId === '' ? undefined : Number(selectedTaId),
+                kelasId: selectedKelasId === '' ? undefined : Number(selectedKelasId),
+              });
+              if (saveRes.ok && saveRes.data) {
+                setPesanEkspor({ teks: `PDF berhasil disimpan: ${saveRes.data.nama_berkas}`, jenis: 'ok' });
+              }
+            },
+          });
+        } else {
+          setPesanEkspor({ teks: res.pesan || 'Gagal menyiapkan laporan.', jenis: 'err' });
+        }
+      }
+    } finally {
+      setCetakLoading(false);
+    }
+  };
 
   const eksporRekapSiswa = async () => {
     setPesanEkspor(null);
@@ -209,6 +273,22 @@ export function LaporanScreen() {
             Segarkan
           </button>
 
+          <button
+            onClick={handlePratinjauLaporan}
+            disabled={cetakLoading || loading}
+            style={{
+              padding: '6px 12px',
+              borderRadius: '6px',
+              border: '1px solid var(--border)',
+              backgroundColor: 'var(--surface)',
+              fontSize: '13px',
+              fontWeight: 600,
+              cursor: 'pointer',
+            }}
+          >
+            {cetakLoading ? 'Menyiapkan...' : '🖨️ Cetak / PDF'}
+          </button>
+
           {tab === 'siswa' && (
             <button
               onClick={eksporRekapSiswa}
@@ -361,6 +441,17 @@ export function LaporanScreen() {
           </tfoot>
         </table>
       </div>
+      )}
+
+      {/* Pratinjau Cetak / PDF Modal */}
+      {pratinjauData && (
+        <PratinjauCetakModal
+          terbuka={Boolean(pratinjauData)}
+          judul={pratinjauData.judul}
+          html={pratinjauData.html}
+          onTutup={() => setPratinjauData(null)}
+          onSimpanPdf={pratinjauData.onSimpanPdf}
+        />
       )}
     </div>
   );
