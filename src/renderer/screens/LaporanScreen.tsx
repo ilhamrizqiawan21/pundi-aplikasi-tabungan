@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { ItemRekapKelas, ItemLaporanSiswa, Kelas, TahunAjaran } from '../../shared/types.js';
 import { formatRupiah } from '../../shared/rupiah.js';
+import { LaporanTransaksi } from '../components/LaporanTransaksi.js';
 
-type TabLaporan = 'kelas' | 'siswa';
+type TabLaporan = 'kelas' | 'siswa' | 'transaksi';
 
 export function LaporanScreen() {
   const [tab, setTab] = useState<TabLaporan>('kelas');
@@ -14,6 +15,7 @@ export function LaporanScreen() {
   const [rekapKelas, setRekapKelas] = useState<ItemRekapKelas[]>([]);
   const [rekapSiswa, setRekapSiswa] = useState<ItemLaporanSiswa[]>([]);
   const [loading, setLoading] = useState(false);
+  const [pesanEkspor, setPesanEkspor] = useState<{ teks: string; jenis: 'ok' | 'err' } | null>(null);
 
   useEffect(() => {
     window.pundi.tahunAjaranDaftar().then((res) => {
@@ -30,6 +32,7 @@ export function LaporanScreen() {
   }, []);
 
   const fetchData = useCallback(async () => {
+    if (tab === 'transaksi') return; // dimuat sendiri oleh LaporanTransaksi
     setLoading(true);
     try {
       if (tab === 'kelas') {
@@ -52,6 +55,17 @@ export function LaporanScreen() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  const eksporRekapSiswa = async () => {
+    setPesanEkspor(null);
+    const res = await window.pundi.laporanEkspor({
+      jenis: 'rekapSiswa',
+      tahunAjaranId: selectedTaId === '' ? undefined : Number(selectedTaId),
+      kelasId: selectedKelasId === '' ? undefined : Number(selectedKelasId),
+    });
+    if (!res.ok) setPesanEkspor({ teks: res.pesan, jenis: 'err' });
+    else if (res.data) setPesanEkspor({ teks: `Laporan disimpan sebagai ${res.data.nama_berkas}.`, jenis: 'ok' });
+  };
 
   // Hitung total agregat untuk footer tabel
   const totalSetoran =
@@ -121,9 +135,25 @@ export function LaporanScreen() {
           >
             Rekap per Siswa
           </button>
+          <button
+            onClick={() => setTab('transaksi')}
+            style={{
+              padding: '6px 14px',
+              fontSize: '13px',
+              fontWeight: 600,
+              borderRadius: '4px',
+              border: 'none',
+              backgroundColor: tab === 'transaksi' ? 'var(--accent)' : 'transparent',
+              color: tab === 'transaksi' ? 'var(--accent-text)' : 'var(--text)',
+              cursor: 'pointer',
+            }}
+          >
+            Transaksi
+          </button>
         </div>
 
         {/* Filter */}
+        {tab !== 'transaksi' && (
         <div style={{ display: 'flex', gap: '10px' }}>
           <select
             value={selectedTaId}
@@ -178,10 +208,45 @@ export function LaporanScreen() {
           >
             Segarkan
           </button>
+
+          {tab === 'siswa' && (
+            <button
+              onClick={eksporRekapSiswa}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '6px',
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--surface)',
+                fontSize: '13px',
+                cursor: 'pointer',
+              }}
+            >
+              Ekspor Excel
+            </button>
+          )}
         </div>
+        )}
       </div>
 
+      {pesanEkspor && (
+        <div
+          role={pesanEkspor.jenis === 'err' ? 'alert' : 'status'}
+          style={{
+            padding: '10px 14px',
+            border: `1px solid ${pesanEkspor.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)'}`,
+            color: pesanEkspor.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)',
+            borderRadius: '6px',
+            fontSize: '13px',
+          }}
+        >
+          {pesanEkspor.teks}
+        </div>
+      )}
+
+      {tab === 'transaksi' && <LaporanTransaksi kelasList={kelasList} />}
+
       {/* Tabel Laporan */}
+      {tab !== 'transaksi' && (
       <div
         style={{
           backgroundColor: 'var(--bg)',
@@ -296,6 +361,7 @@ export function LaporanScreen() {
           </tfoot>
         </table>
       </div>
+      )}
     </div>
   );
 }

@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import path from 'node:path';
+import ExcelJS from 'exceljs';
 import { jalankanApp, type AppSesi } from './launch';
 
 // Alur utama pengguna (ARCHITECTURE §uji alur): siswa, setor, tarik, koreksi, laporan, backup, restore.
@@ -84,6 +86,30 @@ test.describe.serial('alur utama', () => {
     const baris = s.page.getByRole('row', { name: /Ahmad Dahlan/ });
     await expect(baris).toBeVisible();
     await expect(baris).toContainText('Rp 70.000');
+  });
+
+  test('laporan transaksi hari ini: total selaras dengan saldo, dan ekspor Excel terbaca', async () => {
+    await menu('Laporan');
+    await s.page.getByRole('main').getByRole('button', { name: 'Transaksi', exact: true }).click();
+    await expect(s.page.getByText('4 transaksi')).toBeVisible(); // setoran, penarikan, setoran, pembalik
+    const kartu = (judul: string) => s.page.getByText(judul, { exact: true }).locator('xpath=..');
+    await expect(kartu('Total masuk')).toContainText('Rp 105.000');
+    await expect(kartu('Total keluar')).toContainText('Rp 35.000');
+    await expect(kartu('Selisih bersih')).toContainText('Rp 70.000');
+    await expect(s.page.getByRole('row', { name: /Koreksi/ })).toContainText('-Rp 5.000');
+
+    // Dialog simpan milik proses utama ditimpa agar tidak perlu klik dialog sistem
+    const target = path.join(s.dataDir, 'laporan.xlsx');
+    await s.app.evaluate(({ dialog }, filePath) => {
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath });
+    }, target);
+    await s.page.getByRole('button', { name: 'Ekspor Excel' }).click();
+    await expect(s.page.getByRole('status')).toContainText('laporan.xlsx');
+
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(target);
+    const sheet = wb.getWorksheet('Transaksi')!;
+    expect([2, 3, 4, 5].map((i) => sheet.getRow(i).getCell(7).value)).toEqual([100000, -30000, 5000, -5000]);
   });
 
   test('cadangkan lalu pulihkan mengembalikan data ke saat cadangan', async () => {

@@ -56,7 +56,7 @@ Galat: penarikan melebihi saldo → "Saldo tidak cukup. Saldo saat ini Rp 40.000
 Tabel dengan pencarian, filter kelas dan status. Detail siswa: data diri, saldo, **buku besar** (tanggal, jenis, nominal, saldo), tombol Cetak/PDF, Koreksi pada baris (membuka dialog dengan alasan wajib).
 
 ### 4.4 Laporan
-Pilih jenis (harian, per kelas, per siswa, rekap saldo), rentang tanggal, kelas. Pratinjau di layar, tombol **PDF** dan **Excel**.
+Tiga tab: **Rekap per Kelas**, **Rekap per Siswa** (dengan **Ekspor Excel**), dan **Transaksi** (rentang tanggal, jenis, kelas; tombol Hari ini/Bulan ini; total masuk, total keluar, selisih; **Ekspor Excel**). Ekspor memakai dialog simpan milik aplikasi. Pratinjau di layar, tombol **PDF** dan **Excel**.
 
 ### 4.4a Tahun Ajaran & Kelas
 Menu tersendiri (sebelumnya direncanakan di Pengaturan, dipindah atas arahan pemilik agar mudah ditemukan). Daftar tahun ajaran dengan lencana **Aktif**, tombol **Jadikan Aktif**, **Ubah**, **Hapus** (hanya bila tidak aktif dan belum punya kelas). Di bawahnya daftar kelas tahun yang dipilih (nama, tingkat, urutan, jumlah siswa) dengan **Tambah Kelas**, **Ubah**, **Hapus** (hanya bila tanpa siswa dan tanpa transaksi) dan **Salin Kelas dari Tahun Lain** (daftar kelas tanpa siswa). Keadaan kosong: "Belum ada tahun ajaran. Buat tahun ajaran pertama untuk mulai mengelompokkan siswa ke dalam kelas." Form tahun ajaran terisi saran (Juli–Juni). Mengaktifkan tahun ajaran baru menampilkan peringatan bahwa siswa belum punya kelas di tahun itu sampai dipindahkan.
