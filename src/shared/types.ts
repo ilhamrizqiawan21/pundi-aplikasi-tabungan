@@ -36,6 +36,21 @@ export interface Kelas {
   jumlah_siswa?: number;
 }
 
+export interface ItemKenaikan {
+  siswa_id: number;
+  nomor: string;
+  nama: string;
+  status: StatusSiswa;
+  saldo: number;
+  /** Kelas pada tahun ajaran tujuan bila siswa sudah dipindahkan. */
+  kelas_tujuan_nama: string | null;
+}
+
+export type PerubahanKenaikan =
+  | { siswa_id: number; tindakan: 'pindah'; kelas_tujuan_id: number }
+  | { siswa_id: number; tindakan: 'lulus' }
+  | { siswa_id: number; tindakan: 'keluar' };
+
 export interface Siswa {
   id: number;
   nomor: string; // "T-000123"
@@ -209,6 +224,14 @@ export interface PundiApi {
     tingkat: number;
     urutan: number;
   }) => Promise<Result<Kelas>>;
+
+  // Kenaikan Kelas
+  kenaikanDaftar: (kelasAsalId: number, tahunTujuanId: number) => Promise<Result<ItemKenaikan[]>>;
+  kenaikanTerapkan: (data: {
+    kelas_asal_id: number;
+    tahun_ajaran_tujuan_id: number;
+    perubahan: PerubahanKenaikan[];
+  }) => Promise<Result<{ dipindah: number; lulus: number; keluar: number }>>;
 
   // Transaksi & Buku Besar
   transaksiSetor: (data: {

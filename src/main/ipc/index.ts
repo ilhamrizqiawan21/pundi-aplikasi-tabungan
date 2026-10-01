@@ -8,6 +8,7 @@ import { IntegritasService } from '../services/integritas.js';
 import { BackupService } from '../services/backup.js';
 import { LaporanService } from '../services/laporan.js';
 import { ImporService } from '../services/impor.js';
+import { KenaikanService } from '../services/kenaikan.js';
 import {
   SiswaCariSchema,
   SiswaSimpanSchema,
@@ -16,6 +17,8 @@ import {
   TahunAjaranSimpanSchema,
   KelasSimpanSchema,
   KelasSalinSchema,
+  KenaikanDaftarSchema,
+  KenaikanTerapkanSchema,
   TransaksiSetorSchema,
   TransaksiTarikSchema,
   TransaksiBalikSchema,
@@ -56,6 +59,7 @@ export function registerIpcHandlers(opts: IpcOptions): void {
   const backup = new BackupService(opts.backupDir);
   const laporan = new LaporanService();
   const impor = new ImporService();
+  const kenaikan = new KenaikanService();
 
   // Helper pembungkus handler aman
   function handle<TInput, TOutput>(
@@ -103,6 +107,12 @@ export function registerIpcHandlers(opts: IpcOptions): void {
   );
   handle('akademik.kelasSalin', KelasSalinSchema, (data) => akademik.kelasSalin(data.dari_id, data.ke_id));
   handle('akademik.kelasHapus', IdSchema, (data) => akademik.kelasHapus(data.id));
+
+  // --- KENAIKAN KELAS ---
+  handle('kenaikan.daftar', KenaikanDaftarSchema, (data) =>
+    kenaikan.daftar(data.kelas_asal_id, data.tahun_ajaran_tujuan_id)
+  );
+  handle('kenaikan.terapkan', KenaikanTerapkanSchema, (data) => kenaikan.terapkan(data));
 
   // --- TRANSAKSI & BUKU BESAR ---
   handle('transaksi.setor', TransaksiSetorSchema, (data) => ledger.setor(data));

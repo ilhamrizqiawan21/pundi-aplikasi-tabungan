@@ -63,6 +63,26 @@ export const KelasSalinSchema = z.object({
   ke_id: z.number().int().positive(),
 });
 
+export const KenaikanDaftarSchema = z.object({
+  kelas_asal_id: z.number().int().positive(),
+  tahun_ajaran_tujuan_id: z.number().int().positive(),
+});
+
+export const KenaikanTerapkanSchema = z.object({
+  kelas_asal_id: z.number().int().positive(),
+  tahun_ajaran_tujuan_id: z.number().int().positive(),
+  perubahan: z
+    .array(
+      z.discriminatedUnion('tindakan', [
+        z.object({ siswa_id: z.number().int().positive(), tindakan: z.literal('pindah'), kelas_tujuan_id: z.number().int().positive() }),
+        z.object({ siswa_id: z.number().int().positive(), tindakan: z.literal('lulus') }),
+        z.object({ siswa_id: z.number().int().positive(), tindakan: z.literal('keluar') }),
+      ])
+    )
+    .min(1, 'Pilih minimal satu siswa')
+    .max(5000),
+});
+
 // Transaksi (NFR-03: nominal bilangan bulat positif)
 export const TransaksiSetorSchema = z.object({
   siswa_id: z.number().int().positive('ID Siswa tidak valid'),
