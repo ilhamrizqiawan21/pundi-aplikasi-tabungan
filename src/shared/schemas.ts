@@ -33,6 +33,10 @@ export const SiswaSimpanSchema = z.object({
   kelas_id: z.number().int().positive().nullable().optional(),
 });
 
+export const TokenBerkasSchema = z.object({
+  tokenBerkas: z.string().min(1).max(100),
+});
+
 export const IdSchema = z.object({
   id: z.number().int().positive(),
 });

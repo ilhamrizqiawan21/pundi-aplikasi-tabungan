@@ -56,7 +56,6 @@ const api: PundiApi = {
 
   // Dialog
   dialogPilihFile: (opsi) => ipcRenderer.invoke('dialog.pilihFile', opsi),
-  dialogPilihFolder: () => ipcRenderer.invoke('dialog.pilihFolder'),
 };
 
 contextBridge.exposeInMainWorld('pundi', api);

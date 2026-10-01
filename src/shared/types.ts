@@ -249,12 +249,13 @@ export interface PundiApi {
   // Integritas & Backup
   integritasPeriksa: () => Promise<Result<HasilPeriksaIntegritas>>;
   backupBuat: (keterangan?: string) => Promise<Result<{ berkas: string; ukuran_bytes: number }>>;
-  backupDaftar: () => Promise<Result<Array<{ nama: string; jalur: string; ukuran: number; tanggal: string }>>>;
+  backupDaftar: () => Promise<
+    Result<Array<{ nama: string; token: string; jenis: 'manual' | 'otomatis' | 'pre-restore'; ukuran: number; tanggal: string }>>
+  >;
   backupRestore: (tokenBerkas: string) => Promise<Result<{ sukses: boolean }>>;
 
   // Utilitas Jendela & Dialog Main
   dialogPilihFile: (opsi: { ekstensi: string[] }) => Promise<Result<{ token: string; nama_berkas: string } | null>>;
-  dialogPilihFolder: () => Promise<Result<{ token: string; jalur_tampilan: string } | null>>;
 }
 
 declare global {

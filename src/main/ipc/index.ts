@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { ipcMain, dialog, type IpcMainInvokeEvent } from 'electron';
 import { LedgerService } from '../services/ledger.js';
 import { SiswaService } from '../services/siswa.js';
@@ -11,6 +12,7 @@ import {
   SiswaCariSchema,
   SiswaSimpanSchema,
   IdSchema,
+  TokenBerkasSchema,
   TahunAjaranSimpanSchema,
   KelasSimpanSchema,
   TransaksiSetorSchema,
@@ -26,18 +28,31 @@ import { trustedConfig } from '../window.js';
 
 // Token store untuk jalur file yang dipilih via dialog aman (NFR-07: renderer tidak menerima file path langsung)
 const fileTokenStore = new Map<string, string>();
+// Token milik daftar cadangan; dibuang setiap daftar diminta ulang agar tidak menumpuk
+const daftarCadanganTokens = new Set<string>();
+
+function mintToken(realPath: string): string {
+  const token = `token_${randomUUID()}`;
+  fileTokenStore.set(token, realPath);
+  return token;
+}
+
+export interface IpcOptions {
+  /** Folder cadangan, di dalam folder data pengguna. */
+  backupDir: string;
+}
 
 function verifySender(event: IpcMainInvokeEvent): boolean {
   return isTrustedSender(event.senderFrame, trustedConfig());
 }
 
-export function registerIpcHandlers(): void {
+export function registerIpcHandlers(opts: IpcOptions): void {
   const ledger = new LedgerService();
   const siswa = new SiswaService();
   const akademik = new AkademikService();
   const pengaturan = new PengaturanService();
   const integritas = new IntegritasService();
-  const backup = new BackupService();
+  const backup = new BackupService(opts.backupDir);
   const laporan = new LaporanService();
   const impor = new ImporService();
 
@@ -140,9 +155,30 @@ export function registerIpcHandlers(): void {
   handle('backup.buat', null, (data: { keterangan?: string }) =>
     backup.buat(data?.keterangan)
   );
-  handle('backup.daftar', null, () => backup.daftar());
+  handle('backup.daftar', null, () => {
+    for (const t of daftarCadanganTokens) fileTokenStore.delete(t);
+    daftarCadanganTokens.clear();
+    const res = backup.daftar();
+    if (!res.ok) return res;
+    return {
+      ok: true,
+      data: res.data.map(({ jalur, ...item }) => {
+        const token = mintToken(jalur);
+        daftarCadanganTokens.add(token);
+        return { ...item, token };
+      }),
+    };
+  });
+  handle('backup.restore', TokenBerkasSchema, (data) => {
+    const realPath = fileTokenStore.get(data.tokenBerkas);
+    if (!realPath) {
+      return { ok: false, kode: 'FILE_TIDAK_VALID', pesan: 'Sesi berkas kadaluarsa. Silakan pilih kembali berkas cadangan.' };
+    }
+    fileTokenStore.delete(data.tokenBerkas); // sekali pakai
+    return backup.restore(realPath);
+  });
 
-  // --- DIALOG FILE & FOLDER (Tokenized - NFR-07) ---
+  // --- DIALOG FILE (Tokenized - NFR-07) ---
   ipcMain.handle('dialog.pilihFile', async (event, opsi: { ekstensi: string[] }) => {
     if (!verifySender(event)) {
       return { ok: false, kode: 'AKSES_DITOLAK', pesan: 'Akses ditolak.' };
@@ -155,8 +191,7 @@ export function registerIpcHandlers(): void {
       return { ok: true, data: null };
     }
     const realPath = res.filePaths[0];
-    const token = `token_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    fileTokenStore.set(token, realPath);
+    const token = mintToken(realPath);
     return {
       ok: true,
       data: { token, nama_berkas: realPath.split(/[\\/]/).pop() || 'berkas' },

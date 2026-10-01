@@ -51,7 +51,7 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | F3-9 | Impor siswa Excel/CSV (pratinjau, atomik) | 04 | F3-4, S-04 | impor.test.ts lulus dengan berkas sintetis buatan sendiri; **S-04 belum selesai** | [ ] |
 | F3-10 | Struk dan cetak | 09 | S-02, S-03 | Template HTML ter-escape (receipt.ts). **Belum diukur pada cetak nyata (S-02/S-03)** | [ ] |
 | F3-11 | Laporan harian, kelas, siswa, rekap + ekspor PDF/Excel | 11 | F3-2, S-03 | Rekap + ekspor Excel ada (laporan.ts). **Ekspor PDF belum ada** (tidak ada printToPDF), S-03 belum | [ ] |
-| F3-12 | Backup manual/otomatis + restore | 13 | F2-4, S-05 | Backup + retensi teruji (backup.test.ts). **Handler restore belum ada di main, uji restore belum ada** | [ ] |
+| F3-12 | Backup manual/otomatis + restore | 13 | F2-4, S-05 | Uji lulus (backup.test.ts, 8 uji): backup, retensi 7 otomatis (manual tidak dihapus), restore + cadangan pengaman + penolakan berkas rusak/tanpa pemicu/saldo tak cocok. Terbukti di aplikasi terpaket (folder data terisolasi). **Belum: backup otomatis harian, cadangan sebelum migrasi, salin ke folder pilihan, uji alur UI** | [ ] |
 | F3-13 | Periksa saldo (integritas) | 17 | F3-2 | Uji nol selisih (integritas.ts & ledger.test.ts) | [x] |
 | F3-14 | Installer Windows `0.1.0`, diuji di komputer bersih | semua M | F3-1..13 | Pundi-Setup-0.1.0.exe 90,4 MB (NFR-10 < 200 MB) dibuat; **belum diuji di komputer bersih** | [ ] |
 

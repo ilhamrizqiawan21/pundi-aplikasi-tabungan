@@ -12,6 +12,7 @@ export interface DbConfig {
 }
 
 let dbInstance: Database.Database | null = null;
+let lastConfig: DbConfig | null = null;
 
 export function getDb(): Database.Database {
   if (!dbInstance) {
@@ -20,10 +21,27 @@ export function getDb(): Database.Database {
   return dbInstance;
 }
 
+/** Jalur berkas basis data yang sedang (atau terakhir) dipakai. */
+export function getDbPath(): string {
+  if (!lastConfig) {
+    throw new Error('Basis data belum diinisialisasi.');
+  }
+  return lastConfig.dbPath;
+}
+
+/** Membuka kembali basis data dengan konfigurasi terakhir (setelah berkasnya diganti, mis. restore). */
+export function reopenDb(): Database.Database {
+  if (!lastConfig) {
+    throw new Error('Basis data belum diinisialisasi.');
+  }
+  return initDb(lastConfig);
+}
+
 export function initDb(config: DbConfig): Database.Database {
   if (dbInstance) {
     return dbInstance;
   }
+  lastConfig = config;
 
   // Pastikan folder database ada
   const dir = path.dirname(config.dbPath);

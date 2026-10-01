@@ -38,7 +38,7 @@ async function bootstrap() {
   });
 
   // Daftarkan handler IPC
-  registerIpcHandlers();
+  registerIpcHandlers({ backupDir: path.join(userDataDir, 'backups') });
 
   // Buat jendela utama
   createMainWindow();

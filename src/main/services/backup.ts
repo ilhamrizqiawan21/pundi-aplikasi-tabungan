@@ -1,27 +1,56 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { getDb } from '../db/index.js';
+import Database from 'better-sqlite3';
+import { getDb, getDbPath, closeDb, reopenDb } from '../db/index.js';
 import type { Result } from '../../shared/types.js';
 import { ERROR_MESSAGES } from '../../shared/errors.js';
+
+export type JenisCadangan = 'manual' | 'otomatis' | 'pre-restore';
+
+export interface ItemCadangan {
+  nama: string;
+  jalur: string;
+  jenis: JenisCadangan;
+  ukuran: number;
+  tanggal: string;
+}
+
+const BATAS_OTOMATIS = 7;
+const TABEL_WAJIB = [
+  'tahun_ajaran',
+  'kelas',
+  'siswa',
+  'penempatan',
+  'transaksi',
+  'profil_sekolah',
+  'pengaturan',
+  'audit_log',
+  'schema_migrations',
+];
+// Pengaman tambah-saja (NFR-03): cadangan tanpa pemicu ini tidak boleh menggantikan data aktif.
+const PEMICU_WAJIB = ['trg_transaksi_no_update', 'trg_transaksi_no_delete'];
 
 export class BackupService {
   private baseDir: string;
 
-  constructor(baseDir?: string) {
-    this.baseDir = baseDir || path.join(process.cwd(), 'backups');
+  constructor(baseDir: string) {
+    this.baseDir = baseDir;
     if (!fs.existsSync(this.baseDir)) {
       fs.mkdirSync(this.baseDir, { recursive: true });
     }
   }
 
-  public buat(keterangan?: string): Result<{ berkas: string; ukuran_bytes: number }> {
+  public buat(
+    keterangan?: string,
+    jenis: JenisCadangan = 'manual'
+  ): Result<{ berkas: string; ukuran_bytes: number }> {
     const db = getDb();
     try {
       const now = new Date();
       const pad = (n: number) => n.toString().padStart(2, '0');
       const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
       const suffix = keterangan ? `_${keterangan.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
-      const filename = `pundi_backup_${timestamp}${suffix}.sqlite`;
+      const filename = `pundi_${jenis}_${timestamp}${suffix}.sqlite`;
       const targetPath = path.join(this.baseDir, filename);
 
       // Gunakan VACUUM INTO untuk backup SQLite yang konsisten (ERD §4.8)
@@ -37,7 +66,7 @@ export class BackupService {
         VALUES (datetime('now'), 'backup.buat', 'backup', NULL, ?)
       `).run(`Backup dibuat: ${filename}`);
 
-      // Bersihkan cadangan otomatis berlebih (simpan 7 terakhir)
+      // Hanya cadangan otomatis yang dibatasi; cadangan manual dan pengaman tidak pernah dihapus sendiri
       this.bersihkanCadanganOtomatis();
 
       return {
@@ -52,7 +81,7 @@ export class BackupService {
     }
   }
 
-  public daftar(): Result<Array<{ nama: string; jalur: string; ukuran: number; tanggal: string }>> {
+  public daftar(): Result<ItemCadangan[]> {
     try {
       if (!fs.existsSync(this.baseDir)) {
         return { ok: true, data: [] };
@@ -60,13 +89,14 @@ export class BackupService {
 
       const files = fs
         .readdirSync(this.baseDir)
-        .filter((f) => f.endsWith('.sqlite'))
+        .filter((f) => f.startsWith('pundi_') && f.endsWith('.sqlite'))
         .map((f) => {
           const fullPath = path.join(this.baseDir, f);
           const stat = fs.statSync(fullPath);
           return {
             nama: f,
             jalur: fullPath,
+            jenis: this.jenisDariNama(f),
             ukuran: stat.size,
             tanggal: stat.mtime.toISOString(),
           };
@@ -79,26 +109,150 @@ export class BackupService {
     }
   }
 
+  /**
+   * CAP-13: memulihkan data dari berkas cadangan.
+   * Berkas disalin dulu, divalidasi, cadangan pengaman dibuat, baru menggantikan data aktif.
+   * Bila langkah akhir gagal, data aktif dikembalikan dari cadangan pengaman.
+   */
+  public restore(sumber: string): Result<{ sukses: boolean }> {
+    const livePath = getDbPath();
+    const salinan = `${livePath}.restore`;
+    const hapusSalinan = () => this.hapusBerkasDb(salinan);
+
+    try {
+      fs.copyFileSync(sumber, salinan);
+    } catch {
+      return { ok: false, kode: 'FILE_TIDAK_VALID', pesan: 'Berkas cadangan tidak dapat dibaca.' };
+    }
+
+    const alasan = this.validasi(salinan);
+    if (alasan) {
+      hapusSalinan();
+      return { ok: false, kode: 'FILE_TIDAK_VALID', pesan: alasan };
+    }
+
+    const pengaman = this.buat('sebelum_pemulihan', 'pre-restore');
+    if (!pengaman.ok) {
+      hapusSalinan();
+      return {
+        ok: false,
+        kode: 'RESTORE_GAGAL',
+        pesan: 'Cadangan pengaman gagal dibuat, pemulihan dibatalkan. Data Anda tidak berubah.',
+      };
+    }
+    const jalurPengaman = path.join(this.baseDir, pengaman.data.berkas);
+
+    closeDb();
+    try {
+      // Sisa -wal/-shm milik basis data lama tidak boleh dipasangkan dengan berkas yang baru
+      this.hapusSisaWal(livePath);
+      fs.renameSync(salinan, livePath);
+      reopenDb();
+      getDb()
+        .prepare(
+          `INSERT INTO audit_log (waktu, aksi, entitas, entitas_id, ringkasan)
+           VALUES (datetime('now'), 'restore', 'backup', NULL, 'Data dipulihkan dari cadangan')`
+        )
+        .run();
+      return { ok: true, data: { sukses: true } };
+    } catch {
+      hapusSalinan();
+      try {
+        reopenDb();
+      } catch {
+        try {
+          closeDb();
+          this.hapusSisaWal(livePath);
+          fs.copyFileSync(jalurPengaman, livePath);
+          reopenDb();
+        } catch {
+          // Data aktif tetap aman di cadangan pengaman; galat dilaporkan di bawah
+        }
+      }
+      return { ok: false, kode: 'RESTORE_GAGAL', pesan: ERROR_MESSAGES.RESTORE_GAGAL };
+    }
+  }
+
+  /** Mengembalikan alasan penolakan (bahasa pengguna), atau null bila berkas layak dipulihkan. */
+  private validasi(jalur: string): string | null {
+    let cand: Database.Database | null = null;
+    try {
+      cand = new Database(jalur, { readonly: true, fileMustExist: true });
+
+      if (cand.pragma('integrity_check', { simple: true }) !== 'ok') {
+        return 'Berkas cadangan rusak dan tidak dapat dipulihkan.';
+      }
+
+      const nama = (jenis: 'table' | 'trigger') =>
+        new Set(
+          (cand!.prepare('SELECT name FROM sqlite_master WHERE type = ?').all(jenis) as Array<{ name: string }>).map(
+            (r) => r.name
+          )
+        );
+      const tabel = nama('table');
+      if (TABEL_WAJIB.some((t) => !tabel.has(t))) {
+        return 'Berkas ini bukan cadangan Pundi atau datanya tidak lengkap.';
+      }
+      const pemicu = nama('trigger');
+      if (PEMICU_WAJIB.some((t) => !pemicu.has(t))) {
+        return 'Cadangan ini tidak memiliki pengaman riwayat transaksi, sehingga tidak dipulihkan.';
+      }
+
+      const selisih = cand
+        .prepare(
+          `SELECT COUNT(*) AS n FROM siswa s
+           WHERE COALESCE((SELECT saldo_setelah FROM transaksi WHERE siswa_id = s.id ORDER BY id DESC LIMIT 1), 0)
+              <> COALESCE((SELECT SUM(nilai) FROM transaksi WHERE siswa_id = s.id), 0)`
+        )
+        .get() as { n: number };
+      if (selisih.n > 0) {
+        return 'Saldo di cadangan ini tidak cocok dengan riwayat transaksinya, sehingga tidak dipulihkan.';
+      }
+      return null;
+    } catch {
+      return 'Berkas ini bukan cadangan Pundi yang valid.';
+    } finally {
+      try {
+        cand?.close();
+      } catch {
+        // abaikan
+      }
+    }
+  }
+
+  private jenisDariNama(nama: string): JenisCadangan {
+    if (nama.startsWith('pundi_otomatis_')) return 'otomatis';
+    if (nama.startsWith('pundi_pre-restore_')) return 'pre-restore';
+    return 'manual';
+  }
+
+  private hapusSisaWal(dbPath: string): void {
+    for (const sfx of ['-wal', '-shm']) {
+      fs.rmSync(dbPath + sfx, { force: true });
+    }
+  }
+
+  private hapusBerkasDb(dbPath: string): void {
+    fs.rmSync(dbPath, { force: true });
+    this.hapusSisaWal(dbPath);
+  }
+
   private bersihkanCadanganOtomatis(): void {
     try {
       const files = fs
         .readdirSync(this.baseDir)
-        .filter((f) => f.startsWith('pundi_backup_') && f.endsWith('.sqlite'))
+        .filter((f) => f.startsWith('pundi_otomatis_') && f.endsWith('.sqlite'))
         .map((f) => {
           const fullPath = path.join(this.baseDir, f);
           return { name: f, path: fullPath, time: fs.statSync(fullPath).mtimeMs };
         })
         .sort((a, b) => b.time - a.time);
 
-      // Jika lebih dari 7, hapus yang tertua
-      if (files.length > 7) {
-        const toDelete = files.slice(7);
-        for (const f of toDelete) {
-          try {
-            fs.unlinkSync(f.path);
-          } catch {
-            // Abaikan kesalahan penghapusan file lama
-          }
+      for (const f of files.slice(BATAS_OTOMATIS)) {
+        try {
+          fs.unlinkSync(f.path);
+        } catch {
+          // Abaikan kesalahan penghapusan file lama
         }
       }
     } catch {
