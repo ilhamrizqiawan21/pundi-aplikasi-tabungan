@@ -66,6 +66,8 @@ export function CatatTransaksiScreen() {
 
   const handleSelectSiswa = (siswa: Siswa) => {
     setSelectedSiswa(siswa);
+    // Selalu mulai dari Setoran; penarikan harus dipilih sengaja (S/T), agar tidak terbawa dari transaksi sebelumnya
+    setJenis('setoran');
     setQuery('');
     setSearchResults([]);
     setErrorMsg(null);
