@@ -1,7 +1,37 @@
 import { BrowserWindow, dialog } from 'electron';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import type { Result } from '../../shared/types.js';
+
+/**
+ * Jendela tersembunyi untuk cetak/PDF: tanpa JavaScript, tanpa preload, sesi terpisah (sementara),
+ * dan semua permintaan selain `data:` dibatalkan, sehingga HTML tidak bisa memuat sumber luar (NFR-01, NFR-07).
+ */
+export function buatJendelaCetak(): BrowserWindow {
+  const win = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      javascript: false,
+      sandbox: true,
+      contextIsolation: true,
+      nodeIntegration: false,
+      partition: `cetak-${randomUUID()}`,
+    },
+  });
+  win.webContents.session.webRequest.onBeforeRequest((detail, callback) => {
+    let diizinkan: boolean;
+    try {
+      diizinkan = new URL(detail.url).protocol === 'data:';
+    } catch {
+      diizinkan = false;
+    }
+    callback({ cancel: !diizinkan });
+  });
+  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  win.webContents.on('will-navigate', (e) => e.preventDefault());
+  return win;
+}
 
 /**
  * Mencetak dokumen HTML langsung melalui printer sistem menggunakan jendela tersembunyi.
@@ -12,13 +42,7 @@ export async function printHtml(
 ): Promise<Result<{ sukses: boolean }>> {
   let win: BrowserWindow | null = null;
   try {
-    win = new BrowserWindow({
-      show: false,
-      webPreferences: {
-        javascript: false,
-        sandbox: true,
-      },
-    });
+    win = buatJendelaCetak();
 
     const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
     await win.loadURL(dataUrl);
@@ -50,7 +74,7 @@ export async function printHtml(
         }
       );
     });
-  } catch (err: unknown) {
+  } catch {
     try {
       win?.close();
     } catch {
@@ -59,7 +83,7 @@ export async function printHtml(
     return {
       ok: false,
       kode: 'CETAK_GAGAL',
-      pesan: err instanceof Error ? err.message : 'Terjadi kesalahan saat mencetak.',
+      pesan: 'Terjadi kesalahan saat mencetak.',
     };
   }
 }
@@ -83,13 +107,7 @@ export async function savePdf(
 
   let win: BrowserWindow | null = null;
   try {
-    win = new BrowserWindow({
-      show: false,
-      webPreferences: {
-        javascript: false,
-        sandbox: true,
-      },
-    });
+    win = buatJendelaCetak();
 
     const dataUrl = `data:text/html;charset=utf-8,${encodeURIComponent(html)}`;
     await win.loadURL(dataUrl);
@@ -111,11 +129,11 @@ export async function savePdf(
         nama_berkas: path.basename(pilihan.filePath),
       },
     };
-  } catch (err: unknown) {
+  } catch {
     return {
       ok: false,
       kode: 'CETAK_GAGAL',
-      pesan: err instanceof Error ? err.message : 'Gagal menyimpan berkas PDF.',
+      pesan: 'Gagal menyimpan berkas PDF.',
     };
   } finally {
     try {

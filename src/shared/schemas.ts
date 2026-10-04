@@ -1,4 +1,13 @@
 import { z } from 'zod';
+import { tanggalKalenderValid } from './tanggal.js';
+
+/** Tanggal YYYY-MM-DD yang benar-benar ada di kalender. */
+const TanggalKalender = z
+  .string()
+  .refine(tanggalKalenderValid, { message: 'Tanggal tidak valid (format YYYY-MM-DD).' });
+
+/** Nominal rupiah: bilangan bulat positif yang aman (NFR-03). */
+const NominalRupiah = (pesan: string) => z.number().int().safe().positive(pesan);
 
 export const StatusSiswaSchema = z.enum(['aktif', 'lulus', 'keluar']);
 export const JenisTransaksiSchema = z.enum([
@@ -45,8 +54,8 @@ export const IdSchema = z.object({
 export const TahunAjaranSimpanSchema = z.object({
   id: z.number().int().positive().optional(),
   nama: z.string().trim().min(1).max(50),
-  mulai: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD'),
-  selesai: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD'),
+  mulai: TanggalKalender,
+  selesai: TanggalKalender,
   aktif: z.boolean().default(false),
 });
 
@@ -83,7 +92,7 @@ export const KenaikanTerapkanSchema = z.object({
     .max(5000),
 });
 
-const Tanggal = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD');
+const Tanggal = TanggalKalender;
 const JenisTrx = z.enum(['setoran', 'penarikan', 'biaya_adm', 'pembalik', 'saldo_awal']);
 
 const IndeksKolom = z.number().int().min(-1).max(200);
@@ -130,15 +139,15 @@ export const LaporanEksporSchema = z.discriminatedUnion('jenis', [
 // Transaksi (NFR-03: nominal bilangan bulat positif)
 export const TransaksiSetorSchema = z.object({
   siswa_id: z.number().int().positive('ID Siswa tidak valid'),
-  nominal: z.number().int().positive('Nominal setoran harus lebih dari 0'),
-  tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD').optional(),
+  nominal: NominalRupiah('Nominal setoran harus lebih dari 0'),
+  tanggal: TanggalKalender.optional(),
   keterangan: z.string().trim().max(255).optional(),
 });
 
 export const TransaksiTarikSchema = z.object({
   siswa_id: z.number().int().positive('ID Siswa tidak valid'),
-  nominal: z.number().int().positive('Nominal penarikan harus lebih dari 0'),
-  tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format tanggal YYYY-MM-DD').optional(),
+  nominal: NominalRupiah('Nominal penarikan harus lebih dari 0'),
+  tanggal: TanggalKalender.optional(),
   keterangan: z.string().trim().max(255).optional(),
 });
 
@@ -149,9 +158,9 @@ export const TransaksiBalikSchema = z.object({
 
 export const TransaksiRiwayatSchema = z.object({
   siswa_id: z.number().int().positive().optional(),
-  tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  dari_tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  sampai_tanggal: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  tanggal: TanggalKalender.optional(),
+  dari_tanggal: TanggalKalender.optional(),
+  sampai_tanggal: TanggalKalender.optional(),
   kelas_id: z.number().int().positive().optional(),
   limit: z.number().int().positive().max(500).optional(),
 });
@@ -163,15 +172,12 @@ export const ProfilSekolahSimpanSchema = z.object({
   kota: z.string().trim().max(100).nullable().optional(),
   bendahara: z.string().trim().max(100).nullable().optional(),
   kepala: z.string().trim().max(100).nullable().optional(),
-  logo_rel_path: z.string().nullable().optional(),
 });
 
 export const PengaturanSimpanSchema = z.object({
   tema: TemaAplikasiSchema.optional(),
-  folder_backup: z.string().optional(),
   backup_otomatis: z.boolean().optional(),
   ukuran_struk: UkuranStrukSchema.optional(),
-  pin_hash: z.string().nullable().optional(),
 });
 
 // Cetak & PDF
@@ -180,8 +186,8 @@ export const CetakLaporanSchema = z.object({
   tahunAjaranId: z.number().int().positive().optional(),
   kelasId: z.number().int().positive().optional(),
   siswaId: z.number().int().positive().optional(),
-  dari: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  sampai: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  dari: TanggalKalender.optional(),
+  sampai: TanggalKalender.optional(),
   jenisTransaksi: z.enum(['setoran', 'penarikan', 'pembalik']).optional(),
 });
 
@@ -189,3 +195,14 @@ export const CetakHtmlSchema = z.object({
   html: z.string().min(1, 'Konten HTML tidak boleh kosong'),
 });
 
+
+// Handler yang sebelumnya menerima masukan tanpa skema
+export const KasHarianSchema = z.object({ tanggal: TanggalKalender.optional() }).default({});
+export const TahunAjaranOpsionalSchema = z.object({ tahunAjaranId: z.number().int().positive().nullish() }).default({});
+export const RekapSiswaSchema = z
+  .object({ tahunAjaranId: z.number().int().positive().optional(), kelasId: z.number().int().positive().optional() })
+  .default({});
+export const BackupBuatSchema = z.object({ keterangan: z.string().trim().max(40).optional() }).default({});
+export const PilihFileSchema = z.object({
+  ekstensi: z.array(z.enum(['xlsx', 'csv', 'sqlite'])).min(1).max(3),
+});

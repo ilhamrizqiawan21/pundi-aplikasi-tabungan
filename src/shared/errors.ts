@@ -2,6 +2,7 @@ export type ErrorCode =
   | 'SALDO_TIDAK_CUKUP'
   | 'NOMINAL_TIDAK_VALID'
   | 'SISWA_TIDAK_DITEMUKAN'
+  | 'SISWA_TIDAK_AKTIF'
   | 'KELAS_TIDAK_DITEMUKAN'
   | 'TAHUN_AJARAN_TIDAK_DITEMUKAN'
   | 'TRANSAKSI_TIDAK_DITEMUKAN'
@@ -29,6 +30,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   SALDO_TIDAK_CUKUP: 'Saldo tidak mencukupi untuk penarikan ini.',
   NOMINAL_TIDAK_VALID: 'Nominal harus berupa bilangan bulat positif.',
   SISWA_TIDAK_DITEMUKAN: 'Data siswa tidak ditemukan.',
+  SISWA_TIDAK_AKTIF: 'Siswa yang sudah lulus atau keluar tidak dapat menyetor; hanya penarikan sisa saldo.',
   KELAS_TIDAK_DITEMUKAN: 'Data kelas tidak ditemukan.',
   TAHUN_AJARAN_TIDAK_DITEMUKAN: 'Data tahun ajaran tidak ditemukan.',
   TRANSAKSI_TIDAK_DITEMUKAN: 'Data transaksi tidak ditemukan.',

@@ -43,11 +43,11 @@ flowchart LR
 
 ## 3. Model proses dan keamanan (NFR-01, NFR-07)
 
-- Jendela utama: `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`. Jendela cetak tersembunyi: `javascript: false`, tanpa preload.
+- Jendela utama: `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`. Jendela cetak tersembunyi (`buatJendelaCetak` di `print/printer.ts`): `javascript: false`, tanpa preload, sesi terpisah dan sementara.
 - **Tidak memakai `http://127.0.0.1`.** Halaman dimuat lewat protokol khusus aplikasi (`pundi-app://`) atau `file://` dari paket. Ini menghapus seluruh kelas masalah pencocokan origin yang ditemukan pada PIB (`startsWith(origin)`); bila suatu saat perlu membandingkan URL, pakai `new URL(url).origin === origin`, bukan awalan teks.
-- Sesi memblokir semua permintaan keluar; navigasi dan jendela baru ditolak; semua permintaan izin ditolak.
-- Renderer **tidak pernah** mengirim jalur berkas. Dialog buka/simpan dibuka oleh main, hasilnya berupa token sementara.
-- Setiap penangan IPC memverifikasi pengirim (`event.senderFrame`) dan memvalidasi argumen dengan `zod`.
+- Sesi memblokir semua permintaan keluar; navigasi dan jendela baru ditolak; semua permintaan izin ditolak. Pada jendela cetak, semua permintaan selain `data:` dibatalkan, sehingga HTML (termasuk yang dikirim renderer lewat `cetak.html`) tidak dapat memuat sumber luar. Terbukti oleh uji alur `jendela.spec.ts` yang memakai jendela biasa sebagai kontrol.
+- Renderer **tidak pernah** mengirim jalur berkas. Dialog buka/simpan dibuka oleh main, hasilnya berupa token sementara yang kedaluwarsa 1 jam sejak terakhir dipakai (diperpanjang tiap dipakai; token kedaluwarsa dibersihkan saat token baru dibuat). Filter ekstensi dialog dibatasi `xlsx`, `csv`, `sqlite`. Nilai `folder_backup`, `pin_hash`, dan `logo_rel_path` tidak diterima dari renderer; bila fitur terkait dibuat, jalurnya dipilih lewat dialog di main dan hash PIN dibuat di main.
+- Setiap penangan IPC memverifikasi pengirim (`event.senderFrame`) dan memvalidasi argumen dengan `zod`; tidak ada penangan tanpa skema. Tanggal divalidasi sebagai tanggal kalender (`tanggalKalenderValid`), nominal sebagai bilangan bulat aman. Galat zod hanya mengembalikan pesan isu pertama; galat tak terduga dikembalikan sebagai `DATABASE_ERROR` generik (pesan mentah SQL atau jalur tidak sampai ke renderer) dan hanya kodenya yang dicatat di log.
 - Nilai dari Excel/CSV adalah masukan tidak tepercaya: divalidasi, dan semua teks yang masuk HTML cetak wajib lewat `esc()`.
 - Log hanya berisi jumlah, kode galat, dan durasi. Tidak pernah nama, nomor, atau nominal.
 
@@ -101,6 +101,8 @@ Alur `transaksi.tarik(siswaId, jumlah, tanggal, keterangan?)` dalam **satu trans
 4. Sisipkan baris dengan `nilai = -jumlah`, `saldo_setelah = saldo - jumlah`, `kelas_id` = kelas siswa saat ini.
 5. Catat `audit_log` (tanpa nominal). Selesai.
 
+Layanan juga menolak: tanggal tidak ada di kalender atau di masa depan (setoran/penarikan), siswa berstatus `lulus`/`keluar` pada setoran (penarikan tetap boleh), dan saldo hasil setoran yang melampaui bilangan bulat aman. Koreksi (`balik`) mewajibkan alasan 3 sampai 255 karakter di layanan, bukan hanya di IPC.
+
 Nominal dipakai sebagai `number` bilangan bulat aman (< 2^53). Format tampilan `Rp 1.250.000` ada di `shared/rupiah.ts`; tidak ada aritmetika desimal.
 
 ## 7. Data di komputer pengguna
@@ -139,7 +141,7 @@ Kode aplikasi sama untuk keduanya; yang berbeda hanya build dan penandatanganan.
 
 - **Unit (Vitest)** pada `ledger` dengan uji berbasis properti: urutan acak setoran/penarikan/pembalik selalu menjaga `saldo >= 0`, `SUM(nilai) = saldo`, dan CAP-17 tanpa selisih.
 - Uji basis data memakai berkas sementara, **tidak pernah** basis data pengguna.
-- Uji alur (Playwright): tambah siswa, setor, tarik, koreksi, laporan, backup, restore.
+- Uji alur (Playwright): tambah siswa, setor, tarik, koreksi (dialog alasan wajib), laporan, backup, restore, dan jendela cetak tanpa jaringan.
 - Data uji hanya **sintetis**.
 
 ## 11. Keputusan arsitektur
@@ -152,6 +154,9 @@ Kode aplikasi sama untuk keduanya; yang berbeda hanya build dan penandatanganan.
 | A-04 | Migrasi dari aplikasi lama lewat **Excel**, bukan membaca `.mdb` | Tidak perlu driver Access; jalan di macOS; tidak menyentuh berkas aslinya |
 | A-05 | Satu operator tanpa akun | Sesuai PRD; D-08 bisa mengubah |
 | A-06 | Cetak lewat jendela tersembunyi | Satu jalur untuk preview dan PDF |
+| A-07 | Jendela cetak memblokir semua permintaan selain `data:` | HTML cetak dapat berasal dari renderer; tanpa jaringan (NFR-01) |
+| A-08 | Jalur berkas, folder cadangan, dan hash PIN dikelola proses utama | Renderer tidak dipercaya memegang jalur atau rahasia (NFR-07) |
+| A-09 | Setoran hanya untuk siswa aktif; penarikan sisa saldo tetap boleh | Siswa lulus/keluar mungkin masih punya saldo yang harus dapat dicairkan |
 
 ## 12. Risiko teknis
 

@@ -1,5 +1,5 @@
 import { getDb } from '../db/index.js';
-import { hariIniLokal } from '../../shared/tanggal.js';
+import { hariIniLokal, tanggalKalenderValid } from '../../shared/tanggal.js';
 import type { Transaksi, Result } from '../../shared/types.js';
 import { ERROR_MESSAGES } from '../../shared/errors.js';
 
@@ -37,6 +37,13 @@ export interface RiwayatFilter {
   sampai_tanggal?: string;
   kelas_id?: number;
   limit?: number;
+}
+
+/** Tanggal transaksi harus ada di kalender; setoran/penarikan tidak boleh bertanggal masa depan. */
+function galatTanggal(tanggal: string, bolehMasaDepan: boolean): string | null {
+  if (!tanggalKalenderValid(tanggal)) return 'Tanggal tidak valid (format YYYY-MM-DD).';
+  if (!bolehMasaDepan && tanggal > hariIniLokal()) return 'Tanggal transaksi tidak boleh di masa depan.';
+  return null;
 }
 
 export class LedgerService {
@@ -93,9 +100,11 @@ export class LedgerService {
     const db = getDb();
     const tanggal = input.tanggal || hariIniLokal();
 
-    if (!Number.isInteger(input.nominal) || input.nominal <= 0) {
+    if (!Number.isSafeInteger(input.nominal) || input.nominal <= 0) {
       return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
     }
+    const salahTanggal = galatTanggal(tanggal, false);
+    if (salahTanggal) return { ok: false, kode: 'VALIDASI_GAGAL', pesan: salahTanggal };
 
     try {
       let createdTrx: Transaksi | null = null;
@@ -110,9 +119,14 @@ export class LedgerService {
         if (!siswa) {
           throw new Error('SISWA_TIDAK_DITEMUKAN');
         }
+        // Siswa lulus/keluar tidak menyetor lagi; penarikan sisa saldo tetap boleh
+        if (siswa.status !== 'aktif') {
+          throw new Error('SISWA_TIDAK_AKTIF');
+        }
 
         const saldoLama = this.getSaldoSiswa(input.siswa_id);
         const saldoBaru = saldoLama + input.nominal;
+        if (!Number.isSafeInteger(saldoBaru)) throw new Error('NOMINAL_TIDAK_VALID');
         const nomorBukti = this.generateNomorBukti(db, tanggal);
         const kelasId = this.getKelasAktifSiswa(db, input.siswa_id);
         const dibuatPada = new Date().toISOString();
@@ -163,6 +177,13 @@ export class LedgerService {
       if (msg === 'SISWA_TIDAK_DITEMUKAN') {
         return { ok: false, kode: 'SISWA_TIDAK_DITEMUKAN', pesan: ERROR_MESSAGES.SISWA_TIDAK_DITEMUKAN };
       }
+      if (msg === 'SISWA_TIDAK_AKTIF') {
+        return { ok: false, kode: 'SISWA_TIDAK_AKTIF', pesan: ERROR_MESSAGES.SISWA_TIDAK_AKTIF };
+      }
+      if (msg === 'NOMINAL_TIDAK_VALID') {
+        return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
+      }
+      console.error('ledger.setor gagal:', (err as { code?: string }).code ?? 'TAK_DIKENAL');
       return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
     }
   }
@@ -178,6 +199,9 @@ export class LedgerService {
     if (!Number.isSafeInteger(input.nominal) || input.nominal <= 0) {
       return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
     }
+    // Saldo awal boleh bertanggal lampau; yang dicek hanya keberadaannya di kalender
+    const salahTanggal = galatTanggal(input.tanggal, true);
+    if (salahTanggal) return { ok: false, kode: 'VALIDASI_GAGAL', pesan: salahTanggal };
 
     try {
       let dibuat: Transaksi | null = null;
@@ -261,9 +285,11 @@ export class LedgerService {
     const db = getDb();
     const tanggal = input.tanggal || hariIniLokal();
 
-    if (!Number.isInteger(input.nominal) || input.nominal <= 0) {
+    if (!Number.isSafeInteger(input.nominal) || input.nominal <= 0) {
       return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
     }
+    const salahTanggal = galatTanggal(tanggal, false);
+    if (salahTanggal) return { ok: false, kode: 'VALIDASI_GAGAL', pesan: salahTanggal };
 
     try {
       let createdTrx: Transaksi | null = null;
@@ -336,6 +362,7 @@ export class LedgerService {
       if (msg === 'SALDO_TIDAK_CUKUP') {
         return { ok: false, kode: 'SALDO_TIDAK_CUKUP', pesan: ERROR_MESSAGES.SALDO_TIDAK_CUKUP };
       }
+      console.error('ledger.tarik gagal:', (err as { code?: string }).code ?? 'TAK_DIKENAL');
       return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
     }
   }
@@ -348,6 +375,10 @@ export class LedgerService {
     const alasan = input.alasan?.trim();
     if (!alasan || alasan.length < 3) {
       return { ok: false, kode: 'ALASAN_KOREKSI_WAJIB', pesan: ERROR_MESSAGES.ALASAN_KOREKSI_WAJIB };
+    }
+    // Sama dengan batas di IPC (TransaksiBalikSchema); service tidak boleh bergantung pada lapisan IPC saja
+    if (alasan.length > 255) {
+      return { ok: false, kode: 'VALIDASI_GAGAL', pesan: 'Alasan koreksi maksimal 255 karakter.' };
     }
 
     try {
@@ -436,6 +467,8 @@ export class LedgerService {
       if (msg === 'SALDO_TIDAK_CUKUP') {
         return { ok: false, kode: 'SALDO_TIDAK_CUKUP', pesan: 'Pembalikan ditolak karena menyebabkan saldo siswa menjadi negatif.' };
       }
+      // Hanya kode galat, tanpa pesan/nominal/nama (NFR-02)
+      console.error('ledger.balik gagal:', (err as { code?: string }).code ?? 'TAK_DIKENAL');
       return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
     }
   }

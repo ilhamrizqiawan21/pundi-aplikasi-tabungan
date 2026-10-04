@@ -105,7 +105,7 @@ erDiagram
 
 ## 3. Kamus tabel
 
-Waktu disimpan sebagai teks ISO 8601 UTC; `tanggal` transaksi sebagai `YYYY-MM-DD` (tanggal kejadian menurut pengguna, zona waktu lokal).
+Waktu disimpan sebagai teks ISO 8601 UTC; `tanggal` transaksi sebagai `YYYY-MM-DD` (tanggal kejadian menurut pengguna, zona waktu lokal). Layanan menolak tanggal yang tidak ada di kalender (mis. `2026-02-30`) atau sebelum tahun 2000; setoran dan penarikan juga tidak boleh bertanggal masa depan.
 
 ### 3.1 `tahun_ajaran` (CAP-02)
 `aktif` bernilai 0 atau 1; indeks unik parsial memastikan paling banyak satu baris `aktif = 1`.
@@ -138,7 +138,7 @@ Buku besar tambah-saja.
 | `nilai` | bilangan bulat **bertanda**: positif menambah saldo (`setoran`, `saldo_awal`), negatif mengurangi (`penarikan`, `biaya_adm`); `pembalik` mengambil tanda kebalikan dari transaksi yang dibalik. `CHECK (nilai <> 0)` |
 | `saldo_setelah` | saldo siswa sesudah transaksi ini; `CHECK (saldo_setelah >= 0)` |
 | `membalik_id` | wajib untuk `pembalik`, kosong untuk jenis lain; FK ke `transaksi(id)`; UNIQUE agar satu transaksi hanya dibalik sekali |
-| `keterangan` | wajib (alasan) untuk `pembalik` |
+| `keterangan` | wajib (alasan) untuk `pembalik`: berisi `Koreksi atas <nomor_bukti>: <alasan pengguna>`; alasan 3 sampai 255 karakter |
 | `impor_id` | terisi untuk `saldo_awal` hasil impor |
 
 Indeks: (`siswa_id`, `id`), (`tanggal`), (`kelas_id`, `tanggal`).
@@ -152,10 +152,12 @@ Catatan setiap impor (jenis `siswa` atau `saldo_awal`, nama berkas tanpa jalur, 
 | Kunci | Nilai | Bawaan |
 | --- | --- | --- |
 | `tema` | `"putih"` \| `"hijau"` \| `"biru"` \| `"ungu"` \| `"grafit"` | `"putih"` |
-| `folder_backup` | jalur | Dokumen/`Pundi` |
+| `folder_backup` | jalur; **dikelola proses utama, tidak ditulis atau dibaca renderer** | Dokumen/`Pundi` |
 | `backup_otomatis` | boolean | `true` |
 | `ukuran_struk` | `"58"` \| `"80"` \| `"a6"` | `"80"` (D-10) |
-| `pin_hash` | hash | kosong |
+| `pin_hash` | hash; **dikelola proses utama, tidak ditulis atau dikirim ke renderer** | kosong |
+
+Renderer hanya boleh menulis `tema`, `backup_otomatis`, dan `ukuran_struk` (daftar putih di layanan dan skema IPC). `profil_sekolah.logo_rel_path` juga tidak diterima dari renderer. Penyimpanan profil menimpa seluruh isian (kolom alamat, kota, bendahara, kepala yang dikosongkan menjadi kosong); logo tidak disentuh.
 
 ### 3.8 `audit_log`
 Aksi penting (`siswa.tambah`, `transaksi.tambah`, `transaksi.balik`, `backup.buat`, `restore`, `impor`). `ringkasan` **tidak memuat nama siswa atau nominal**, hanya kode dan ID (NFR-02).

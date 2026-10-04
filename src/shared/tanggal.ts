@@ -11,6 +11,16 @@ export function hariIniLokal(sekarang: Date = new Date()): string {
   return formatter.format(sekarang);
 }
 
+/** True bila `nilai` berformat YYYY-MM-DD dan benar-benar ada di kalender (menolak 2026-02-30, 2026-13-01). */
+export function tanggalKalenderValid(nilai: string): boolean {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(nilai);
+  if (!m) return false;
+  const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
+  if (y < 2000) return false;
+  const dt = new Date(Date.UTC(y, mo - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === mo - 1 && dt.getUTCDate() === d;
+}
+
 /** Format tanggal ke bahasa Indonesia dalam zona waktu Asia/Jakarta (WIB). */
 export function formatTanggalIndonesia(
   tanggal: string | Date,

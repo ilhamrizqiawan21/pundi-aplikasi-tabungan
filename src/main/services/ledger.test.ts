@@ -109,6 +109,81 @@ describe('LedgerService (Buku Besar & Properti Invarian)', () => {
     }
   });
 
+  it('koreksi: alasan wajib dan dibatasi 255 karakter, pembalik tidak bisa dibalik, saldo tidak boleh negatif', () => {
+    const s = siswaSvc.simpan({ nama: 'Siswa Koreksi', status: 'aktif' });
+    if (!s.ok) throw new Error(s.pesan);
+    const setor = ledger.setor({ siswa_id: s.data.id, nominal: 50000, tanggal: '2026-03-01' });
+    if (!setor.ok) throw new Error(setor.pesan);
+
+    for (const alasan of ['', '  ', 'ab']) {
+      const r = ledger.balik({ transaksi_id: setor.data.id, alasan });
+      expect(r.ok).toBe(false);
+      if (!r.ok) expect(r.kode).toBe('ALASAN_KOREKSI_WAJIB');
+    }
+    const panjang = ledger.balik({ transaksi_id: setor.data.id, alasan: 'x'.repeat(256) });
+    expect(panjang.ok).toBe(false);
+    if (!panjang.ok) expect(panjang.kode).toBe('VALIDASI_GAGAL');
+    expect(ledger.getSaldoSiswa(s.data.id)).toBe(50000);
+
+    // Penarikan setelah setoran: membalik setoran akan membuat saldo negatif -> ditolak
+    const tarik = ledger.tarik({ siswa_id: s.data.id, nominal: 30000, tanggal: '2026-03-02' });
+    if (!tarik.ok) throw new Error(tarik.pesan);
+    const tolak = ledger.balik({ transaksi_id: setor.data.id, alasan: 'Salah input' });
+    expect(tolak.ok).toBe(false);
+    if (!tolak.ok) expect(tolak.kode).toBe('SALDO_TIDAK_CUKUP');
+
+    // Pembalik tidak boleh dibalik lagi
+    const pembalik = ledger.balik({ transaksi_id: tarik.data.id, alasan: 'Salah input' });
+    if (!pembalik.ok) throw new Error(pembalik.pesan);
+    const lagi = ledger.balik({ transaksi_id: pembalik.data.id, alasan: 'Coba lagi' });
+    expect(lagi.ok).toBe(false);
+    if (!lagi.ok) expect(lagi.kode).toBe('TRANSAKSI_PEMBALIK_DITOLAK');
+    expect(ledger.getSaldoSiswa(s.data.id)).toBe(50000);
+  });
+
+  it('setoran/penarikan menolak tanggal tidak ada di kalender, tanggal masa depan, dan nominal tak aman', () => {
+    const s = siswaSvc.simpan({ nama: 'Siswa Tanggal', status: 'aktif' });
+    if (!s.ok) throw new Error(s.pesan);
+    const id = s.data.id;
+
+    for (const tanggal of ['2026-02-30', '2026-13-01', '26-01-01', '1999-01-01', '2999-01-01']) {
+      const r = ledger.setor({ siswa_id: id, nominal: 1000, tanggal });
+      expect(r.ok, `setor ${tanggal}`).toBe(false);
+      if (!r.ok) expect(r.kode).toBe('VALIDASI_GAGAL');
+    }
+    expect(ledger.tarik({ siswa_id: id, nominal: 1, tanggal: '2026-02-30' }).ok).toBe(false);
+    expect(ledger.saldoAwal({ siswa_id: id, nominal: 1000, tanggal: '2026-02-30' }).ok).toBe(false);
+
+    // Nominal di luar bilangan bulat aman ditolak, saldo tak berubah
+    const besar = ledger.setor({ siswa_id: id, nominal: Number.MAX_SAFE_INTEGER + 2, tanggal: '2026-03-01' });
+    expect(besar.ok).toBe(false);
+    expect(ledger.setor({ siswa_id: id, nominal: Number.MAX_SAFE_INTEGER, tanggal: '2026-03-01' }).ok).toBe(true);
+    // Saldo + setoran berikutnya melampaui batas aman -> ditolak, bukan dibulatkan diam-diam
+    const luber = ledger.setor({ siswa_id: id, nominal: 10, tanggal: '2026-03-01' });
+    expect(luber.ok).toBe(false);
+    if (!luber.ok) expect(luber.kode).toBe('NOMINAL_TIDAK_VALID');
+    expect(ledger.getSaldoSiswa(id)).toBe(Number.MAX_SAFE_INTEGER);
+  });
+
+  it('siswa lulus/keluar tidak dapat menyetor, tetapi masih dapat menarik sisa saldo', () => {
+    const s = siswaSvc.simpan({ nama: 'Siswa Lulus', status: 'aktif' });
+    if (!s.ok) throw new Error(s.pesan);
+    const id = s.data.id;
+    expect(ledger.setor({ siswa_id: id, nominal: 50000, tanggal: '2026-03-01' }).ok).toBe(true);
+
+    for (const status of ['lulus', 'keluar'] as const) {
+      const u = siswaSvc.simpan({ id, nama: 'Siswa Lulus', status });
+      if (!u.ok) throw new Error(u.pesan);
+      const r = ledger.setor({ siswa_id: id, nominal: 1000, tanggal: '2026-03-02' });
+      expect(r.ok, status).toBe(false);
+      if (!r.ok) expect(r.kode).toBe('SISWA_TIDAK_AKTIF');
+      expect(ledger.getSaldoSiswa(id)).toBe(50000 - (status === 'keluar' ? 20000 : 0));
+      if (status === 'lulus') {
+        expect(ledger.tarik({ siswa_id: id, nominal: 20000, tanggal: '2026-03-02' }).ok).toBe(true);
+      }
+    }
+  });
+
   it('saldo awal: dicatat sebagai jenis saldo_awal, hanya untuk siswa tanpa transaksi, dan tidak dihitung kas harian', () => {
     const s = siswaSvc.simpan({ nama: 'Siswa Saldo Awal', status: 'aktif' });
     if (!s.ok) throw new Error(s.pesan);

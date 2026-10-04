@@ -45,12 +45,12 @@ Ringkasan hari ini: total setoran, total penarikan, jumlah transaksi, saldo selu
 ### 4.2 Catat Transaksi (layar terpenting)
 Satu layar, satu alur:
 1. **Cari siswa**: kolom pencarian fokus otomatis; ketik nama atau nomor, hasil muncul saat mengetik, `↑↓` memilih, `Enter` memilih.
-2. Kartu siswa: nama, kelas, nomor, **saldo** (besar).
+2. Kartu siswa: nama, kelas, nomor, **saldo** (besar). Daftar awal hanya siswa aktif; mengetik di pencarian juga menemukan siswa lulus/keluar (diberi label "Lulus" atau "Keluar"). Untuk siswa itu tombol Setoran nonaktif dan jenis otomatis Penarikan.
 3. Pilih jenis: `S` Setoran, `T` Penarikan. Isi nominal (diformat otomatis `Rp 50.000`). Tanggal default hari ini.
-4. `Enter` menyimpan; muncul bilah konfirmasi ringkas "Setoran Rp 50.000 untuk <nama> tersimpan. Saldo Rp 250.000." dengan tombol **Cetak struk** dan **Batalkan (koreksi)**.
+4. `Enter` menyimpan; muncul bilah konfirmasi ringkas "Setoran Rp 50.000 untuk <nama> tersimpan. Saldo Rp 250.000." dengan tombol **Cetak struk** dan **Batalkan (koreksi)**. **Batalkan (koreksi)** membuka dialog Koreksi Transaksi (rincian transaksi, kolom **Alasan koreksi** wajib minimal 3 karakter, tombol Terapkan Koreksi); tidak ada alasan bawaan.
 5. Fokus kembali ke pencarian untuk siswa berikutnya.
 
-Galat: penarikan melebihi saldo → "Saldo tidak cukup. Saldo saat ini Rp 40.000."
+Galat: penarikan melebihi saldo → "Saldo tidak cukup. Saldo saat ini Rp 40.000." Setoran untuk siswa lulus/keluar → "Siswa yang sudah lulus atau keluar tidak dapat menyetor." Tanggal masa depan → "Tanggal transaksi tidak boleh di masa depan."
 
 ### 4.3 Siswa
 Tabel dengan pencarian, filter kelas dan status. Detail siswa: data diri, saldo, **buku besar** (tanggal, jenis, nominal, saldo), tombol Cetak/PDF, Koreksi pada baris (membuka dialog dengan alasan wajib).
@@ -71,7 +71,7 @@ Satu layar dengan empat langkah yang terbuka bertahap: 1 **Pilih berkas** (Excel
 Tombol **Cadangkan sekarang**, daftar cadangan (tanggal, ukuran), **Pulihkan** (dialog peringatan merah: data saat ini akan diganti; cadangan otomatis dibuat dulu). Teks pengingat: "Simpan salinan di flashdisk atau drive lain."
 
 ### 4.8 Pengaturan
-Profil sekolah (nama, alamat, kota, bendahara, kepala, logo), tampilan (tema), ukuran struk, PIN, periksa saldo.
+Profil sekolah (nama, alamat, kota, bendahara, kepala, logo), tampilan (tema), ukuran struk, PIN, periksa saldo. Kolom profil yang dikosongkan benar-benar dikosongkan saat disimpan. Logo dan PIN belum dapat diatur dari layar ini; keduanya kelak lewat dialog di proses utama (ARCHITECTURE A-08).
 
 ## 5. Komponen
 

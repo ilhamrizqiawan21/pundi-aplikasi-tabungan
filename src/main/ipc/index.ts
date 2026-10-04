@@ -31,7 +31,13 @@ import {
   LaporanEksporSchema,
   CetakLaporanSchema,
   CetakHtmlSchema,
+  KasHarianSchema,
+  TahunAjaranOpsionalSchema,
+  RekapSiswaSchema,
+  BackupBuatSchema,
+  PilihFileSchema,
 } from '../../shared/schemas.js';
+import { ZodError } from 'zod';
 import type { Result, CetakLaporanInput, Transaksi, ProfilSekolah } from '../../shared/types.js';
 import { isTrustedSender } from '../security.js';
 import { trustedConfig } from '../window.js';
@@ -47,14 +53,32 @@ import {
 import { printHtml, savePdf } from '../print/printer.js';
 
 // Token store untuk jalur file yang dipilih via dialog aman (NFR-07: renderer tidak menerima file path langsung)
-const fileTokenStore = new Map<string, string>();
+// Token kedaluwarsa bila tak dipakai TOKEN_TTL_MS (diperpanjang tiap dipakai) agar tidak menumpuk selama aplikasi berjalan
+const TOKEN_TTL_MS = 60 * 60 * 1000;
+const fileTokenStore = new Map<string, { jalur: string; kedaluwarsa: number }>();
 // Token milik daftar cadangan; dibuang setiap daftar diminta ulang agar tidak menumpuk
 const daftarCadanganTokens = new Set<string>();
 
 function mintToken(realPath: string): string {
+  const sekarang = Date.now();
+  for (const [t, v] of fileTokenStore) {
+    if (v.kedaluwarsa <= sekarang) fileTokenStore.delete(t);
+  }
   const token = `token_${randomUUID()}`;
-  fileTokenStore.set(token, realPath);
+  fileTokenStore.set(token, { jalur: realPath, kedaluwarsa: sekarang + TOKEN_TTL_MS });
   return token;
+}
+
+/** Jalur untuk token yang masih berlaku (masa berlaku diperpanjang), atau undefined bila tak dikenal/kedaluwarsa. */
+function ambilJalurToken(token: string): string | undefined {
+  const v = fileTokenStore.get(token);
+  if (!v) return undefined;
+  if (v.kedaluwarsa <= Date.now()) {
+    fileTokenStore.delete(token);
+    return undefined;
+  }
+  v.kedaluwarsa = Date.now() + TOKEN_TTL_MS;
+  return v.jalur;
 }
 
 export interface IpcOptions {
@@ -92,11 +116,12 @@ export function registerIpcHandlers(opts: IpcOptions): void {
         const validated = schema ? schema.parse(rawInput) : (rawInput as TInput);
         return await handler(validated, event);
       } catch (err: unknown) {
-        return {
-          ok: false,
-          kode: 'VALIDASI_GAGAL',
-          pesan: err instanceof Error ? err.message : 'Parameter tidak valid.',
-        };
+        if (err instanceof ZodError) {
+          return { ok: false, kode: 'VALIDASI_GAGAL', pesan: err.issues[0]?.message ?? 'Parameter tidak valid.' };
+        }
+        // Galat tak terduga: pesan mentah (bisa memuat SQL/jalur) tidak dikirim ke renderer; log hanya kode (NFR-02)
+        console.error(`ipc ${channel} gagal:`, (err as { code?: string }).code ?? 'TAK_DIKENAL');
+        return { ok: false, kode: 'DATABASE_ERROR', pesan: 'Terjadi kesalahan pada aplikasi.' };
       }
     });
   }
@@ -115,8 +140,8 @@ export function registerIpcHandlers(opts: IpcOptions): void {
     akademik.tahunAjaranSimpan(data)
   );
   handle('akademik.tahunAjaranHapus', IdSchema, (data) => akademik.tahunAjaranHapus(data.id));
-  handle('akademik.kelasDaftar', null, (data: { tahunAjaranId?: number }) =>
-    akademik.kelasDaftar(data?.tahunAjaranId)
+  handle('akademik.kelasDaftar', TahunAjaranOpsionalSchema, (data) =>
+    akademik.kelasDaftar(data.tahunAjaranId ?? undefined)
   );
   handle('akademik.kelasSimpan', KelasSimpanSchema, (data) =>
     akademik.kelasSimpan(data)
@@ -137,14 +162,14 @@ export function registerIpcHandlers(opts: IpcOptions): void {
   handle('transaksi.riwayat', TransaksiRiwayatSchema, (data) => ledger.riwayat(data));
 
   // --- LAPORAN ---
-  handle('laporan.kasHarian', null, (data: { tanggal?: string }) =>
-    laporan.kasHarian(data?.tanggal)
+  handle('laporan.kasHarian', KasHarianSchema, (data) =>
+    laporan.kasHarian(data.tanggal)
   );
-  handle('laporan.rekapKelas', null, (data: { tahunAjaranId?: number }) =>
-    laporan.rekapKelas(data?.tahunAjaranId)
+  handle('laporan.rekapKelas', TahunAjaranOpsionalSchema, (data) =>
+    laporan.rekapKelas(data.tahunAjaranId ?? undefined)
   );
-  handle('laporan.rekapSiswa', null, (data: { tahunAjaranId?: number; kelasId?: number }) =>
-    laporan.rekapSiswa(data || {})
+  handle('laporan.rekapSiswa', RekapSiswaSchema, (data) =>
+    laporan.rekapSiswa({ tahunAjaranId: data.tahunAjaranId ?? undefined, kelasId: data.kelasId ?? undefined })
   );
 
   handle('laporan.transaksi', LaporanTransaksiSchema, (data) => laporan.transaksi(data));
@@ -202,18 +227,18 @@ export function registerIpcHandlers(opts: IpcOptions): void {
     pesan: 'Sesi berkas kadaluarsa. Silakan pilih kembali berkas Anda.',
   };
   handle('impor.pratinjau', ImporOpsiSchema, async ({ tokenBerkas, ...opsi }) => {
-    const realPath = fileTokenStore.get(tokenBerkas);
+    const realPath = ambilJalurToken(tokenBerkas);
     return realPath ? impor.pratinjau(realPath, opsi) : sesiBerkasKadaluarsa;
   });
   handle('impor.terapkan', ImporOpsiSchema, async ({ tokenBerkas, ...opsi }) => {
-    const realPath = fileTokenStore.get(tokenBerkas);
+    const realPath = ambilJalurToken(tokenBerkas);
     return realPath ? impor.terapkan(realPath, opsi) : sesiBerkasKadaluarsa;
   });
 
   // --- INTEGRITAS & BACKUP ---
   handle('integritas.periksa', null, () => integritas.periksa());
-  handle('backup.buat', null, (data: { keterangan?: string }) =>
-    backup.buat(data?.keterangan)
+  handle('backup.buat', BackupBuatSchema, (data) =>
+    backup.buat(data.keterangan)
   );
   handle('backup.daftar', null, () => {
     for (const t of daftarCadanganTokens) fileTokenStore.delete(t);
@@ -230,7 +255,7 @@ export function registerIpcHandlers(opts: IpcOptions): void {
     };
   });
   handle('backup.restore', TokenBerkasSchema, (data) => {
-    const realPath = fileTokenStore.get(data.tokenBerkas);
+    const realPath = ambilJalurToken(data.tokenBerkas);
     if (!realPath) {
       return { ok: false, kode: 'FILE_TIDAK_VALID', pesan: 'Sesi berkas kadaluarsa. Silakan pilih kembali berkas cadangan.' };
     }
@@ -239,13 +264,10 @@ export function registerIpcHandlers(opts: IpcOptions): void {
   });
 
   // --- DIALOG FILE (Tokenized - NFR-07) ---
-  ipcMain.handle('dialog.pilihFile', async (event, opsi: { ekstensi: string[] }) => {
-    if (!verifySender(event)) {
-      return { ok: false, kode: 'AKSES_DITOLAK', pesan: 'Akses ditolak.' };
-    }
+  handle('dialog.pilihFile', PilihFileSchema, async (opsi) => {
     const res = await dialog.showOpenDialog({
       properties: ['openFile'],
-      filters: [{ name: 'Data', extensions: opsi.ekstensi || ['xlsx', 'csv'] }],
+      filters: [{ name: 'Data', extensions: opsi.ekstensi }],
     });
     if (res.canceled || res.filePaths.length === 0) {
       return { ok: true, data: null };

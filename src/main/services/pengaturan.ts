@@ -1,6 +1,8 @@
 import { getDb } from '../db/index.js';
-import type { ProfilSekolah, Pengaturan, Result } from '../../shared/types.js';
+import type { ProfilSekolah, ProfilSekolahInput, Pengaturan, Result } from '../../shared/types.js';
 import { ERROR_MESSAGES } from '../../shared/errors.js';
+
+const KUNCI_PENGATURAN_RENDERER: ReadonlySet<string> = new Set(['tema', 'backup_otomatis', 'ukuran_struk']);
 
 export class PengaturanService {
   public profilBaca(): Result<ProfilSekolah> {
@@ -28,28 +30,28 @@ export class PengaturanService {
     }
   }
 
-  public profilSimpan(data: Partial<ProfilSekolah>): Result<ProfilSekolah> {
+  public profilSimpan(data: ProfilSekolahInput): Result<ProfilSekolah> {
     const db = getDb();
     const diubahPada = new Date().toISOString();
     try {
+      // Isian dikirim utuh dari formulir, jadi kolom yang dikosongkan pengguna harus benar-benar kosong
+      // (bukan dipertahankan nilai lama). Logo tidak disentuh di sini.
       db.prepare(`
-        INSERT INTO profil_sekolah (id, nama, alamat, kota, bendahara, kepala, logo_rel_path, diubah_pada)
-        VALUES (1, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO profil_sekolah (id, nama, alamat, kota, bendahara, kepala, diubah_pada)
+        VALUES (1, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
-          nama = COALESCE(excluded.nama, profil_sekolah.nama),
-          alamat = COALESCE(excluded.alamat, profil_sekolah.alamat),
-          kota = COALESCE(excluded.kota, profil_sekolah.kota),
-          bendahara = COALESCE(excluded.bendahara, profil_sekolah.bendahara),
-          kepala = COALESCE(excluded.kepala, profil_sekolah.kepala),
-          logo_rel_path = COALESCE(excluded.logo_rel_path, profil_sekolah.logo_rel_path),
+          nama = excluded.nama,
+          alamat = excluded.alamat,
+          kota = excluded.kota,
+          bendahara = excluded.bendahara,
+          kepala = excluded.kepala,
           diubah_pada = excluded.diubah_pada
       `).run(
-        data.nama || 'Madrasah / Sekolah',
+        data.nama?.trim() || 'Madrasah / Sekolah',
         data.alamat || null,
         data.kota || null,
         data.bendahara || null,
         data.kepala || null,
-        data.logo_rel_path || null,
         diubahPada
       );
 
@@ -78,10 +80,8 @@ export class PengaturanService {
 
       const pengaturan: Pengaturan = {
         tema: (map['tema'] as Pengaturan['tema']) || 'putih',
-        folder_backup: (map['folder_backup'] as string) || '',
         backup_otomatis: map['backup_otomatis'] !== undefined ? Boolean(map['backup_otomatis']) : true,
         ukuran_struk: (map['ukuran_struk'] as Pengaturan['ukuran_struk']) || '80',
-        pin_hash: (map['pin_hash'] as string) || null,
       };
 
       return { ok: true, data: pengaturan };
@@ -96,6 +96,8 @@ export class PengaturanService {
     try {
       const tx = db.transaction(() => {
         for (const [kunci, nilai] of Object.entries(data)) {
+          // Daftar putih: kunci lain (mis. pin_hash, folder_backup) tidak dapat ditulis lewat jalur ini
+          if (!KUNCI_PENGATURAN_RENDERER.has(kunci)) continue;
           if (nilai !== undefined) {
             db.prepare(`
               INSERT INTO pengaturan (kunci, nilai_json, diubah_pada)

@@ -67,11 +67,24 @@ test.describe.serial('alur utama', () => {
     await catat('setoran', '5000');
     await expect(s.page.getByText(/Setoran Rp 5\.000/)).toBeVisible();
     await s.page.getByRole('button', { name: /Batalkan \(Koreksi\)/ }).click();
+    const dialog = s.page.getByRole('dialog', { name: /Koreksi Transaksi/ });
+    // Alasan wajib dari pengguna (CAP-07): terlalu pendek ditolak, transaksi tidak berubah
+    await dialog.getByLabel(/Alasan Koreksi/).fill('ab');
+    await dialog.getByRole('button', { name: 'Terapkan Koreksi' }).click();
+    await expect(dialog.getByRole('alert')).toContainText('minimal 3 karakter');
+    await dialog.getByLabel(/Alasan Koreksi/).fill('Salah input nominal');
+    await dialog.getByRole('button', { name: 'Terapkan Koreksi' }).click();
+    await expect(dialog).toBeHidden();
     await expect(s.page.getByText(/Setoran Rp 5\.000/)).toBeHidden();
 
     const baris = await riwayat();
     expect(baris?.map((b) => b.jenis)).toEqual(expect.arrayContaining(['setoran', 'penarikan', 'pembalik']));
     expect(baris).toHaveLength(4);
+    const ket = await s.page.evaluate(async () => {
+      const r = await window.pundi.transaksiRiwayat({ siswa_id: 1, limit: 100 });
+      return r.ok ? r.data.find((t) => t.jenis === 'pembalik')?.keterangan : null;
+    });
+    expect(ket).toContain('Salah input nominal');
     const saldo = await s.page.evaluate(async () => {
       const r = await window.pundi.integritasPeriksa();
       return r.ok ? r.data.apakah_seimbang : null;

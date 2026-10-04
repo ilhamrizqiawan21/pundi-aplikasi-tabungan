@@ -102,13 +102,18 @@ export interface ProfilSekolah {
   diubah_pada: string;
 }
 
+/**
+ * Pengaturan yang boleh dibaca/ditulis renderer. Jalur folder cadangan dan hash PIN sengaja tidak
+ * termasuk: keduanya dikelola proses utama (NFR-07) dan tidak pernah dikirim ke renderer.
+ */
 export interface Pengaturan {
   tema: TemaAplikasi;
-  folder_backup: string;
   backup_otomatis: boolean;
   ukuran_struk: UkuranStruk;
-  pin_hash: string | null;
 }
+
+/** Isian profil dari renderer. Logo dikelola proses utama (jalur berkas tidak diterima dari renderer). */
+export type ProfilSekolahInput = Partial<Omit<ProfilSekolah, 'id' | 'diubah_pada' | 'logo_rel_path'>>;
 
 export interface AuditLog {
   id: number;
@@ -341,7 +346,7 @@ export interface PundiApi {
 
   // Pengaturan & Profil
   profilSekolahBaca: () => Promise<Result<ProfilSekolah>>;
-  profilSekolahSimpan: (data: Partial<ProfilSekolah>) => Promise<Result<ProfilSekolah>>;
+  profilSekolahSimpan: (data: ProfilSekolahInput) => Promise<Result<ProfilSekolah>>;
   pengaturanBaca: () => Promise<Result<Pengaturan>>;
   pengaturanSimpan: (data: Partial<Pengaturan>) => Promise<Result<Pengaturan>>;
 

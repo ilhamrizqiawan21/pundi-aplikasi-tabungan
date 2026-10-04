@@ -1,6 +1,6 @@
 # TODO — Pundi
 
-Status: 30 September 2026. Rujukan: [PRD](docs/PRD.md), [ERD](docs/ERD.md), [ARCHITECTURE](docs/ARCHITECTURE.md), [DESIGN](docs/DESIGN.md), [AGENTS](AGENTS.md).
+Status: 4 Oktober 2026. Rujukan: [PRD](docs/PRD.md), [ERD](docs/ERD.md), [ARCHITECTURE](docs/ARCHITECTURE.md), [DESIGN](docs/DESIGN.md), [AGENTS](AGENTS.md).
 
 Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan hasilnya, atau tautan berkas) di kolom Bukti. Fase berikutnya tidak dimulai sebelum dependensinya selesai. `S` = spike, `F` = fase.
 
@@ -44,9 +44,9 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | F3-2 | Layanan `ledger` + uji berbasis properti | 05–07, 17 | F2-4, F3-1 | Uji lulus: 500 transaksi acak & CAP-17 nol selisih | [x] |
 | F3-3 | `akademik` (tahun ajaran, kelas) | 02 | F2-4 | Uji lulus: akademik.test.ts (9 uji: satu aktif, duplikat, kelas tak bisa pindah tahun, hapus bersyarat, salin kelas, penempatan hanya di tahun aktif) + Playwright akademik.spec.ts (5 alur dari instalasi kosong) | [x] |
 | F3-4 | `siswa` (CRUD, penempatan, status, nomor unik) | 03 | F3-3 | Uji lulus (siswa.test.ts & SiswaScreen.tsx) | [x] |
-| F3-5 | Profil sekolah dan pengaturan | 01 | F2-4 | `pengaturan.ts` dan PengaturanScreen ada, **belum ada uji** | [ ] |
+| F3-5 | Profil sekolah dan pengaturan | 01 | F2-4 | `pengaturan.ts` dan PengaturanScreen ada. `pengaturan.test.ts` (4 uji) lulus: kolom profil dapat dikosongkan, logo tidak berubah, hanya kunci `tema`/`backup_otomatis`/`ukuran_struk` yang tertulis, skema IPC membuang jalur berkas dan hash PIN. **Belum: uji alur UI Pengaturan** | [ ] |
 | F3-6 | Layar Catat Transaksi (keyboard penuh) | 05, 06 | F3-2, F3-4 | Playwright lulus (22 uji total): cari, setor, tarik, tolak saldo kurang tanpa mouse; Ctrl+K global, Alt+1..9, Esc bertingkat, pintasan nonaktif saat dialog, fokus terlihat. Sebelumnya 3 `test.fixme` kini hidup | [x] |
-| F3-7 | Koreksi (dialog + pembalik) | 07 | F3-2 | Ledger teruji; alur "Batalkan (Koreksi)" teruji di Playwright. **Tombol itu memakai alasan tetap, padahal CAP-07 mewajibkan alasan dari pengguna**; dialog KoreksiModal belum diuji alur | [ ] |
+| F3-7 | Koreksi (dialog + pembalik) | 07 | F3-2 | Ledger teruji (alasan wajib, maks 255, pembalik tak bisa dibalik, saldo tak negatif). "Batalkan (Koreksi)" di Catat Transaksi kini membuka KoreksiModal dengan alasan dari pengguna; teruji di Playwright (alasan pendek ditolak, alasan tersimpan di keterangan). **Belum: uji alur koreksi dari layar Siswa** | [ ] |
 | F3-8 | Buku besar per siswa | 10 | F3-2 | Layanan ledger teruji; layar buku besar belum ada uji alur | [ ] |
 | F3-9 | Impor siswa Excel/CSV (pratinjau, atomik) | 04 | F3-4, S-04 | Uji lulus: impor.test.ts (14 uji) + Playwright impor.spec.ts (5 alur). Memenuhi CAP-04: format contoh dapat diunduh, pratinjau, baris bermasalah dengan nomor baris dan alasan, atomik, tanpa menggandakan (NIS). Memperbaiki cacat lama (CSV mengubah "50.000" jadi 50 dan NIS "007" jadi 7). **S-04 tetap terbuka**: belum dicoba dengan hasil ekspor aplikasi lama yang sebenarnya | [x] |
 | F3-10 | Struk dan cetak | 09 | S-02, S-03 | Template HTML ter-escape (receipt.ts). **Belum diukur pada cetak nyata (S-02/S-03)** | [ ] |
@@ -54,6 +54,7 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | F3-12 | Backup manual/otomatis + restore | 13 | F2-4, S-05 | Uji lulus (backup.test.ts, 8 uji): backup, retensi 7 otomatis (manual tidak dihapus), restore + cadangan pengaman + penolakan berkas rusak/tanpa pemicu/saldo tak cocok. Terbukti di aplikasi terpaket (folder data terisolasi). **Belum: backup otomatis harian, cadangan sebelum migrasi, salin ke folder pilihan, uji alur UI** | [ ] |
 | F3-13 | Periksa saldo (integritas) | 17 | F3-2 | Uji nol selisih (integritas.ts & ledger.test.ts) | [x] |
 | F3-14 | Installer Windows `0.1.0`, diuji di komputer bersih | semua M | F3-1..13 | Pundi-Setup-0.1.0.exe 90,5 MB (NFR-10 < 200 MB) diperbarui dengan antarmuka mockup; **belum diuji di komputer bersih** | [ ] |
+| F3-15 | Audit dan pengerasan backend (setoran siswa non-aktif, tanggal, nominal, IPC, cetak, pengaturan) | 05, 06, 07; NFR-01, 02, 03, 07 | F3-2, F3-5, F3-7 | `npm run typecheck` dan `npm run lint` bersih; `npm test` 97 uji lulus (14 berkas, termasuk `schemas.test.ts` dan `pengaturan.test.ts` baru); `npm run test:e2e` 28 uji lulus. Isi: setoran siswa `lulus`/`keluar` ditolak (`SISWA_TIDAK_AKTIF`), penarikan tetap boleh dan siswa itu dapat dicari di Catat Transaksi; tanggal harus ada di kalender dan setoran/penarikan tidak boleh bertanggal masa depan; nominal dan saldo bilangan bulat aman; semua penangan IPC bersekema, galat tak terduga tidak membocorkan pesan mentah dan hanya kodenya yang dilog; jendela cetak memblokir semua permintaan selain `data:` (diuji dengan kontrol); `folder_backup`/`pin_hash`/`logo_rel_path` tidak lagi diterima atau dikirim ke renderer; token berkas kedaluwarsa 1 jam. **Belum: tampilan baru Catat Transaksi (label status, tombol Setoran nonaktif) belum dilihat visual dan belum ada uji alur UI-nya; PDF dan cetak printer nyata belum dijalankan** | [x] |
 
 ## F4 — Rilis 0.2
 

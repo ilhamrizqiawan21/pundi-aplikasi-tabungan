@@ -29,6 +29,7 @@ export function KoreksiModal({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     if (!alasan.trim() || alasan.trim().length < 3) {
       setErrorMsg('Alasan koreksi wajib diisi (minimal 3 karakter).');
       return;
@@ -93,26 +94,27 @@ export function KoreksiModal({
         <div
           style={{
             fontSize: '12px',
-            color: 'var(--muted)',
-            backgroundColor: '#FEF9E7',
-            border: '1px solid #FAD7A0',
+            color: 'var(--warn-text)',
+            backgroundColor: 'var(--warn-bg)',
+            border: '1px solid var(--warn)',
             padding: '8px 12px',
             borderRadius: '6px',
           }}
         >
-          💡 Transaksi lama tidak akan dihapus. Sistem akan mencatat transaksi pembalik sebesar{' '}
+          Transaksi lama tidak akan dihapus. Sistem akan mencatat transaksi pembalik sebesar{' '}
           <strong>{formatRupiah(-transaksi.nilai)}</strong> dengan keterangan alasan yang Anda berikan.
         </div>
 
         {errorMsg && (
           <div
+            role="alert"
             style={{
               padding: '10px 14px',
-              backgroundColor: '#FDEDEC',
-              color: 'var(--danger)',
+              backgroundColor: 'var(--danger-bg)',
+              color: 'var(--danger-text)',
               borderRadius: '6px',
               fontSize: '13px',
-              border: '1px solid #FADBD8',
+              border: '1px solid var(--danger)',
             }}
           >
             {errorMsg}
@@ -120,12 +122,14 @@ export function KoreksiModal({
         )}
 
         <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
+          <label htmlFor="koreksi-alasan" style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
             Alasan Koreksi <span style={{ color: 'var(--danger)' }}>*</span>
           </label>
           <input
+            id="koreksi-alasan"
             type="text"
             required
+            maxLength={255}
             autoFocus
             value={alasan}
             onChange={(e) => setAlasan(e.target.value)}

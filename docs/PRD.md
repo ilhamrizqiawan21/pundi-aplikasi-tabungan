@@ -35,9 +35,9 @@ Prioritas: **M** wajib rilis 0.1, **S** sebaiknya ada, **C** bila sempat.
 | CAP-02 | M | Tahun ajaran dan kelas | Satu tahun ajaran aktif; kelas dibuat per tahun ajaran; mengganti tahun ajaran tidak mengubah data lama |
 | CAP-03 | M | Data siswa | Tambah, ubah, cari (nama/nomor), status `aktif`/`lulus`/`keluar`; nomor rekening otomatis unik; siswa dengan transaksi tidak dapat dihapus permanen |
 | CAP-04 | M | Impor siswa dari Excel/CSV | Unduh format contoh; pratinjau; baris bermasalah dilaporkan dengan nomor baris dan alasan; impor bersifat atomik (semua atau tidak sama sekali); tidak menggandakan siswa yang sama |
-| CAP-05 | M | Setoran | Nominal bilangan bulat rupiah > 0; tanggal default hari ini, dapat diubah; saldo baru tampil segera; tersimpan atomik |
-| CAP-06 | M | Penarikan | Tidak boleh melebihi saldo; nominal > 0; batas persetujuan lihat D-07 |
-| CAP-07 | M | Koreksi transaksi | Transaksi lama **tidak diubah atau dihapus**; koreksi membuat transaksi pembalik dengan alasan wajib; keduanya tampil di riwayat |
+| CAP-05 | M | Setoran | Nominal bilangan bulat rupiah > 0 dan dalam batas bilangan bulat aman; tanggal default hari ini, dapat diubah ke tanggal lampau tetapi **tidak ke masa depan** dan harus tanggal yang ada di kalender; **hanya untuk siswa berstatus `aktif`** (siswa `lulus`/`keluar` ditolak dengan pesan yang menjelaskan, penarikan sisa saldo tetap boleh); saldo baru tampil segera; tersimpan atomik |
+| CAP-06 | M | Penarikan | Tidak boleh melebihi saldo; nominal > 0; tanggal mengikuti aturan CAP-05; siswa `lulus`/`keluar` tetap dapat menarik sisa saldo dan dapat ditemukan lewat pencarian di Catat Transaksi; batas persetujuan lihat D-07 |
+| CAP-07 | M | Koreksi transaksi | Transaksi lama **tidak diubah atau dihapus**; koreksi membuat transaksi pembalik dengan **alasan wajib dari pengguna** (3 sampai 255 karakter; tidak boleh alasan bawaan yang terisi otomatis); alasan ditolak di dialog, IPC, dan layanan; pembalik tidak dapat dibalik lagi; pembalikan yang membuat saldo negatif ditolak; keduanya tampil di riwayat |
 | CAP-08 | S | Biaya administrasi | Potongan dicatat sebagai transaksi tersendiri dengan keterangan; aturannya menunggu D-06 |
 | CAP-09 | M | Bukti transaksi (struk) | Cetak atau simpan PDF ukuran struk; memuat nomor bukti, nama, kelas, jenis, nominal, saldo sesudah, tanggal; nomor bukti berurutan tanpa celah |
 | CAP-10 | M | Buku besar per siswa | Riwayat berurut waktu dengan saldo berjalan; dapat difilter tanggal; dapat dicetak/PDF |

@@ -3,6 +3,7 @@ import type { Siswa, Transaksi, JenisTransaksi, RingkasanKasHarian } from '../..
 import { hariIniLokal, formatTanggalIndonesia } from '../../shared/tanggal.js';
 import { formatRupiah, parseRupiah } from '../../shared/rupiah.js';
 import { PratinjauCetakModal } from '../components/PratinjauCetakModal.js';
+import { KoreksiModal } from '../components/KoreksiModal.js';
 import {
   StudentAvatar,
   IconSearch,
@@ -34,7 +35,7 @@ export function CatatTransaksiScreen() {
     transaksi: Transaksi;
     siswa: Siswa;
   } | null>(null);
-  const [koreksiLoading, setKoreksiLoading] = useState(false);
+  const [koreksiTerbuka, setKoreksiTerbuka] = useState(false);
   const [previewStruk, setPreviewStruk] = useState<{ html: string; nomor_bukti: string } | null>(null);
   const [cetakLoading, setCetakLoading] = useState(false);
 
@@ -122,7 +123,7 @@ export function CatatTransaksiScreen() {
     }
 
     const timer = setTimeout(async () => {
-      const res = await window.pundi.siswaCari(query, undefined, 'aktif');
+      const res = await window.pundi.siswaCari(query, undefined);
       if (res.ok) {
         setSearchResults(res.data);
         setSelectedIndex(0);
@@ -134,7 +135,7 @@ export function CatatTransaksiScreen() {
 
   const handleSelectSiswa = (siswa: Siswa) => {
     setSelectedSiswa(siswa);
-    setJenis('setoran');
+    setJenis(siswa.status === 'aktif' ? 'setoran' : 'penarikan');
     setQuery('');
     setErrorMsg(null);
     setNominalRaw('');
@@ -165,7 +166,7 @@ export function CatatTransaksiScreen() {
   const handleNominalKeyDown = (e: ReactKeyboardEvent<HTMLInputElement>) => {
     if (e.key.toLowerCase() === 's' && !nominalRaw) {
       e.preventDefault();
-      setJenis('setoran');
+      if (bolehSetor) setJenis('setoran');
     } else if (e.key.toLowerCase() === 't' && !nominalRaw) {
       e.preventDefault();
       setJenis('penarikan');
@@ -190,6 +191,11 @@ export function CatatTransaksiScreen() {
     if (nominal <= 0) {
       setErrorMsg('Nominal harus lebih dari 0.');
       nominalInputRef.current?.focus();
+      return;
+    }
+
+    if (jenis === 'setoran' && selectedSiswa.status !== 'aktif') {
+      setErrorMsg('Siswa yang sudah lulus atau keluar tidak dapat menyetor.');
       return;
     }
 
@@ -245,29 +251,8 @@ export function CatatTransaksiScreen() {
     }
   };
 
-  const handleKoreksiTerakhir = async () => {
-    if (!lastTrx) return;
-    if (confirm(`Apakah Anda yakin ingin membatalkan transaksi ${lastTrx.transaksi.nomor_bukti}?`)) {
-      setKoreksiLoading(true);
-      try {
-        const res = await window.pundi.transaksiBalik({
-          transaksi_id: lastTrx.transaksi.id,
-          alasan: 'Koreksi langsung dari layar Catat Transaksi',
-        });
-        if (res.ok) {
-          alert('Transaksi berhasil dibatalkan (dibuat transaksi pembalik).');
-          setLastTrx(null);
-          muatDataKas();
-          muatSiswaAwal();
-        } else {
-          alert(`Gagal membatalkan transaksi: ${res.pesan}`);
-        }
-      } finally {
-        setKoreksiLoading(false);
-      }
-    }
-  };
-
+  // Setoran hanya untuk siswa aktif; siswa lulus/keluar hanya boleh menarik sisa saldo
+  const bolehSetor = !selectedSiswa || selectedSiswa.status === 'aktif';
   const nominalAngka = parseRupiah(nominalRaw);
   const saldoSesudah = selectedSiswa
     ? jenis === 'setoran'
@@ -380,7 +365,7 @@ export function CatatTransaksiScreen() {
                       {s.nama}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '1px' }}>
-                      {s.kelas_nama ? `${s.kelas_nama} · ` : ''}{s.nomor}
+                      {s.kelas_nama ? `${s.kelas_nama} · ` : ''}{s.nomor}{s.status !== 'aktif' ? ` · ${s.status === 'lulus' ? 'Lulus' : 'Keluar'}` : ''}
                     </div>
                   </div>
                 </div>
@@ -448,8 +433,7 @@ export function CatatTransaksiScreen() {
                 {cetakLoading ? 'Memuat...' : '🖨️ Cetak Struk (Ctrl+P)'}
               </button>
               <button
-                onClick={handleKoreksiTerakhir}
-                disabled={koreksiLoading}
+                onClick={() => setKoreksiTerbuka(true)}
                 style={{
                   padding: '6px 12px',
                   backgroundColor: '#FFFFFF',
@@ -461,7 +445,7 @@ export function CatatTransaksiScreen() {
                   cursor: 'pointer',
                 }}
               >
-                {koreksiLoading ? 'Membatalkan...' : 'Batalkan (Koreksi)'}
+                Batalkan (Koreksi)
               </button>
             </div>
           </div>
@@ -575,11 +559,14 @@ export function CatatTransaksiScreen() {
             <div style={{ display: 'flex', gap: '6px', backgroundColor: 'var(--bg)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border)' }}>
               <button
                 type="button"
+                disabled={!bolehSetor}
+                title={bolehSetor ? undefined : 'Siswa lulus/keluar tidak dapat menyetor; hanya penarikan sisa saldo.'}
                 onClick={() => {
                   setJenis('setoran');
                   nominalInputRef.current?.focus();
                 }}
                 style={{
+                  opacity: bolehSetor ? 1 : 0.4,
                   padding: '6px 14px',
                   borderRadius: '7px',
                   fontSize: '12px',
@@ -959,6 +946,18 @@ export function CatatTransaksiScreen() {
           )}
         </div>
       </section>
+
+      {/* Modal Koreksi: alasan wajib dari pengguna (CAP-07) */}
+      <KoreksiModal
+        isOpen={koreksiTerbuka && Boolean(lastTrx)}
+        transaksi={lastTrx?.transaksi ?? null}
+        onClose={() => setKoreksiTerbuka(false)}
+        onSuccess={() => {
+          setLastTrx(null);
+          muatDataKas();
+          muatSiswaAwal();
+        }}
+      />
 
       {/* Modal Pratinjau Cetak Struk */}
       {previewStruk && (
