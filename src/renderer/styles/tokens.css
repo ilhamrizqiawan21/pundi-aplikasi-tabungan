@@ -200,6 +200,9 @@ button:active:not(:disabled) { transform: scale(0.98); }
 .tabel tbody tr { transition: background-color var(--dur-cepat) ease; }
 .tabel tbody tr:hover { background-color: var(--surface); }
 .tabel .angka { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tabel .tengah { text-align: center; }
+.tabel td.kosong { padding: 30px; text-align: center; color: var(--muted); }
+.tabel tfoot td { padding: 12px 16px; background: var(--surface); border-top: 2px solid var(--border); font-weight: 700; }
 .tabel-gulir { overflow-x: auto; }
 
 /* Hormati pengaturan "kurangi gerakan" dari sistem operasi */

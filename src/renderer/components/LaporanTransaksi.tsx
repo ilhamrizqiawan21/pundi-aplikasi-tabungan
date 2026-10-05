@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { HasilLaporanTransaksi, JenisTransaksi, Kelas } from '../../shared/types.js';
 import { formatRupiah } from '../../shared/rupiah.js';
 import { hariIniLokal } from '../../shared/tanggal.js';
-import { tombol, kolom, labelStyle, kartu, sel } from '../styles/ui.js';
+import { tombol, kolom, labelStyle, kartu } from '../styles/ui.js';
 import { PratinjauCetakModal } from './PratinjauCetakModal.js';
 
 const LABEL_JENIS: Record<JenisTransaksi, string> = {
@@ -198,44 +198,44 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
                 </button>
               </div>
             </div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+            <table className="tabel">
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                  <th style={sel}>Tanggal</th>
-                  <th style={sel}>No. Bukti</th>
-                  <th style={sel}>Siswa</th>
-                  <th style={sel}>Kelas</th>
-                  <th style={sel}>Jenis</th>
-                  <th style={{ ...sel, textAlign: 'right' }}>Nilai</th>
-                  <th style={{ ...sel, textAlign: 'right' }}>Saldo Setelah</th>
+                <tr>
+                  <th>Tanggal</th>
+                  <th>No. Bukti</th>
+                  <th>Siswa</th>
+                  <th>Kelas</th>
+                  <th>Jenis</th>
+                  <th className="angka">Nilai</th>
+                  <th className="angka">Saldo Setelah</th>
                 </tr>
               </thead>
               <tbody>
                 {hasil.baris.length === 0 ? (
                   <tr>
-                    <td colSpan={7} style={{ ...sel, padding: '24px', textAlign: 'center', color: 'var(--muted)' }}>
+                    <td colSpan={7} className="kosong">
                       Tidak ada transaksi pada rentang tanggal ini.
                     </td>
                   </tr>
                 ) : (
                   hasil.baris.map((t) => (
-                    <tr key={t.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={sel}>{t.tanggal}</td>
-                      <td style={sel}>{t.nomor_bukti}</td>
-                      <td style={sel}>
+                    <tr key={t.id}>
+                      <td>{t.tanggal}</td>
+                      <td>{t.nomor_bukti}</td>
+                      <td>
                         <div style={{ fontWeight: 600 }}>{t.siswa_nama}</div>
                         <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
                           {t.siswa_nomor}
                           {t.keterangan ? ` • ${t.keterangan}` : ''}
                         </div>
                       </td>
-                      <td style={sel}>{t.kelas_nama ?? '-'}</td>
-                      <td style={sel}>{LABEL_JENIS[t.jenis]}</td>
-                      <td className="tabular-nums" style={{ ...sel, textAlign: 'right', color: t.nilai >= 0 ? 'var(--ok)' : 'var(--danger)', fontWeight: 600 }}>
+                      <td>{t.kelas_nama ?? '-'}</td>
+                      <td>{LABEL_JENIS[t.jenis]}</td>
+                      <td className="angka" style={{ color: t.nilai >= 0 ? 'var(--ok)' : 'var(--danger)', fontWeight: 600 }}>
                         {t.nilai > 0 ? '+' : ''}
                         {formatRupiah(t.nilai)}
                       </td>
-                      <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>{formatRupiah(t.saldo_setelah)}</td>
+                      <td className="angka">{formatRupiah(t.saldo_setelah)}</td>
                     </tr>
                   ))
                 )}

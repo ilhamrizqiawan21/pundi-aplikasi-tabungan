@@ -386,26 +386,26 @@ export function LaporanScreen() {
           overflow: 'hidden',
         }}
       >
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+        <table className="tabel">
           <thead>
-            <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
+            <tr>
               {tab === 'kelas' ? (
                 <>
-                  <th style={{ padding: '10px 16px', fontWeight: 600 }}>Kelas</th>
-                  <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'center' }}>Jumlah Siswa</th>
-                  <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'right' }}>Total Setoran</th>
-                  <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'right' }}>Total Penarikan</th>
-                  <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'right' }}>Total Saldo</th>
+                  <th>Kelas</th>
+                  <th className="tengah">Jumlah Siswa</th>
+                  <th className="angka">Total Setoran</th>
+                  <th className="angka">Total Penarikan</th>
+                  <th className="angka">Total Saldo</th>
                 </>
               ) : (
                 <>
-                  <th style={{ padding: '10px 16px', fontWeight: 600 }}>No. Rekening</th>
-                  <th style={{ padding: '10px 16px', fontWeight: 600 }}>NIS</th>
-                  <th style={{ padding: '10px 16px', fontWeight: 600 }}>Nama Siswa</th>
-                  <th style={{ padding: '10px 16px', fontWeight: 600 }}>Kelas</th>
-                  <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'right' }}>Setoran</th>
-                  <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'right' }}>Penarikan</th>
-                  <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'right' }}>Saldo Akhir</th>
+                  <th>No. Rekening</th>
+                  <th>NIS</th>
+                  <th>Nama Siswa</th>
+                  <th>Kelas</th>
+                  <th className="angka">Setoran</th>
+                  <th className="angka">Penarikan</th>
+                  <th className="angka">Saldo Akhir</th>
                 </>
               )}
             </tr>
@@ -413,29 +413,29 @@ export function LaporanScreen() {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={7} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
+                <td colSpan={7} className="kosong">
                   Memuat data laporan...
                 </td>
               </tr>
             ) : tab === 'kelas' ? (
               rekapKelas.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
+                  <td colSpan={5} className="kosong">
                     Belum ada data kelas pada tahun ajaran ini.
                   </td>
                 </tr>
               ) : (
                 rekapKelas.map((k) => (
-                  <tr key={k.kelas_id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ padding: '10px 16px', fontWeight: 600 }}>Kelas {k.kelas_nama}</td>
-                    <td style={{ padding: '10px 16px', textAlign: 'center' }}>{k.jumlah_siswa} siswa</td>
-                    <td className="tabular-nums" style={{ padding: '10px 16px', textAlign: 'right', color: 'var(--ok)' }}>
+                  <tr key={k.kelas_id}>
+                    <td style={{ fontWeight: 600 }}>Kelas {k.kelas_nama}</td>
+                    <td className="tengah">{k.jumlah_siswa} siswa</td>
+                    <td className="angka" style={{ color: 'var(--ok)' }}>
                       {formatRupiah(k.total_setoran)}
                     </td>
-                    <td className="tabular-nums" style={{ padding: '10px 16px', textAlign: 'right', color: 'var(--danger)' }}>
+                    <td className="angka" style={{ color: 'var(--danger)' }}>
                       {formatRupiah(k.total_penarikan)}
                     </td>
-                    <td className="tabular-nums" style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 700 }}>
+                    <td className="angka" style={{ fontWeight: 700 }}>
                       {formatRupiah(k.total_saldo)}
                     </td>
                   </tr>
@@ -443,24 +443,24 @@ export function LaporanScreen() {
               )
             ) : rekapSiswa.length === 0 ? (
               <tr>
-                <td colSpan={7} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
+                <td colSpan={7} className="kosong">
                   Belum ada data siswa.
                 </td>
               </tr>
             ) : (
               rekapSiswa.map((s) => (
-                <tr key={s.siswa_id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '10px 16px', fontWeight: 600, color: 'var(--accent)' }}>{s.nomor}</td>
-                  <td style={{ padding: '10px 16px', color: 'var(--muted)' }}>{s.nis || '-'}</td>
-                  <td style={{ padding: '10px 16px', fontWeight: 500 }}>{s.nama}</td>
-                  <td style={{ padding: '10px 16px' }}>{s.kelas_nama || '-'}</td>
-                  <td className="tabular-nums" style={{ padding: '10px 16px', textAlign: 'right', color: 'var(--ok)' }}>
+                <tr key={s.siswa_id}>
+                  <td style={{ fontWeight: 600, color: 'var(--accent)' }}>{s.nomor}</td>
+                  <td style={{ color: 'var(--muted)' }}>{s.nis || '-'}</td>
+                  <td style={{ fontWeight: 500 }}>{s.nama}</td>
+                  <td>{s.kelas_nama || '-'}</td>
+                  <td className="angka" style={{ color: 'var(--ok)' }}>
                     {formatRupiah(s.total_setoran)}
                   </td>
-                  <td className="tabular-nums" style={{ padding: '10px 16px', textAlign: 'right', color: 'var(--danger)' }}>
+                  <td className="angka" style={{ color: 'var(--danger)' }}>
                     {formatRupiah(s.total_penarikan)}
                   </td>
-                  <td className="tabular-nums" style={{ padding: '10px 16px', textAlign: 'right', fontWeight: 700 }}>
+                  <td className="angka" style={{ fontWeight: 700 }}>
                     {formatRupiah(s.saldo_akhir)}
                   </td>
                 </tr>
@@ -469,23 +469,17 @@ export function LaporanScreen() {
           </tbody>
           {/* Footer Total */}
           <tfoot>
-            <tr
-              style={{
-                backgroundColor: 'var(--surface)',
-                borderTop: '2px solid var(--border)',
-                fontWeight: 700,
-              }}
-            >
-              <td colSpan={tab === 'kelas' ? 2 : 4} style={{ padding: '12px 16px' }}>
+            <tr>
+              <td colSpan={tab === 'kelas' ? 2 : 4}>
                 TOTAL KESELURUHAN
               </td>
-              <td className="tabular-nums" style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--ok)' }}>
+              <td className="angka" style={{ color: 'var(--ok)' }}>
                 {formatRupiah(totalSetoran)}
               </td>
-              <td className="tabular-nums" style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--danger)' }}>
+              <td className="angka" style={{ color: 'var(--danger)' }}>
                 {formatRupiah(totalPenarikan)}
               </td>
-              <td className="tabular-nums" style={{ padding: '12px 16px', textAlign: 'right', color: 'var(--accent)', fontSize: '15px' }}>
+              <td className="angka" style={{ color: 'var(--accent)', fontSize: '15px' }}>
                 {formatRupiah(totalSaldo)}
               </td>
             </tr>

@@ -552,27 +552,27 @@ export function SiswaScreen() {
               </div>
 
               {/* Tabel Buku Besar */}
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+              <table className="tabel">
                 <thead>
-                  <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)', color: 'var(--muted)' }}>
-                    <th style={{ padding: '12px 22px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>Tanggal</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>No. Bukti</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>Jenis</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase', textAlign: 'right' }}>Nominal</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase', textAlign: 'right' }}>Saldo</th>
-                    <th style={{ padding: '12px 20px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase', textAlign: 'center' }}>Aksi</th>
+                  <tr>
+                    <th style={{ paddingLeft: '22px' }}>Tanggal</th>
+                    <th>No. Bukti</th>
+                    <th>Jenis</th>
+                    <th className="angka">Nominal</th>
+                    <th className="angka">Saldo</th>
+                    <th className="tengah">Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loadingRiwayat ? (
                     <tr>
-                      <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
+                      <td colSpan={6} className="kosong">
                         Memuat riwayat transaksi...
                       </td>
                     </tr>
                   ) : riwayatList.length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
+                      <td colSpan={6} className="kosong">
                         Belum ada transaksi pada buku besar siswa ini.
                       </td>
                     </tr>
@@ -581,22 +581,14 @@ export function SiswaScreen() {
                       const isSetor = t.jenis === 'setoran' || (t.jenis === 'pembalik' && t.nilai > 0);
                       const isTarik = t.jenis === 'penarikan' || (t.jenis === 'pembalik' && t.nilai < 0);
                       return (
-                        <tr
-                          key={t.id}
-                          style={{
-                            borderBottom: '1px solid var(--border)',
-                            transition: 'background-color 0.12s ease',
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface)')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                        >
-                          <td style={{ padding: '12px 22px', color: 'var(--text)', whiteSpace: 'nowrap' }}>
+                        <tr key={t.id}>
+                          <td style={{ paddingLeft: '22px', whiteSpace: 'nowrap' }}>
                             {formatTanggalIndonesia(t.tanggal, { day: 'numeric', month: 'short' })}
                           </td>
-                          <td style={{ padding: '12px 16px', fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--muted)' }}>
+                          <td style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: 'var(--muted)' }}>
                             {t.nomor_bukti}
                           </td>
-                          <td style={{ padding: '12px 16px' }}>
+                          <td>
                             <span
                               style={{
                                 fontSize: '11px',
@@ -611,20 +603,18 @@ export function SiswaScreen() {
                             </span>
                           </td>
                           <td
+                            className="angka"
                             style={{
-                              padding: '12px 16px',
-                              textAlign: 'right',
                               fontWeight: 700,
                               color: isSetor ? 'var(--ok)' : isTarik ? 'var(--danger)' : 'var(--text)',
                             }}
-                            className="tabular-nums"
                           >
                             {isSetor ? `+ ${formatRupiah(Math.abs(t.nilai))}` : `− ${formatRupiah(Math.abs(t.nilai))}`}
                           </td>
-                          <td style={{ padding: '12px 16px', textAlign: 'right', fontWeight: 700, color: 'var(--text)' }} className="tabular-nums">
+                          <td className="angka" style={{ fontWeight: 700 }}>
                             {formatRupiah(t.saldo_setelah)}
                           </td>
-                          <td style={{ padding: '12px 20px', textAlign: 'center' }}>
+                          <td className="tengah">
                             {t.jenis !== 'pembalik' ? (
                               <button
                                 onClick={() => setKoreksiTarget(t)}
