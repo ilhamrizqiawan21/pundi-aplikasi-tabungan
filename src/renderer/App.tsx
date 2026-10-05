@@ -512,19 +512,19 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
             )}
 
             <div key={screen} className="animate-fade-in">
-            {screen === 'beranda' && (
-              <BerandaScreen onGoToCatat={() => setScreen('catat')} />
-            )}
-            {screen === 'catat' && <CatatTransaksiScreen />}
-            {screen === 'siswa' && <SiswaScreen />}
-            {screen === 'laporan' && <LaporanScreen />}
-            {screen === 'akademik' && <AkademikScreen onChanged={muatTahunAjaranAktif} />}
-            {screen === 'impor' && <ImporScreen />}
-            {screen === 'cadangan' && <CadanganScreen />}
-            {screen === 'pengaturan' && (
-              <PengaturanScreen onThemeChange={(newTheme) => setTema(newTheme)} />
-            )}
-            {screen === 'kenaikan' && <KenaikanScreen />}
+              {screen === 'beranda' && (
+                <BerandaScreen onGoToCatat={() => setScreen('catat')} />
+              )}
+              {screen === 'catat' && <CatatTransaksiScreen />}
+              {screen === 'siswa' && <SiswaScreen />}
+              {screen === 'laporan' && <LaporanScreen />}
+              {screen === 'akademik' && <AkademikScreen onChanged={muatTahunAjaranAktif} />}
+              {screen === 'impor' && <ImporScreen />}
+              {screen === 'cadangan' && <CadanganScreen />}
+              {screen === 'pengaturan' && (
+                <PengaturanScreen onThemeChange={(newTheme) => setTema(newTheme)} />
+              )}
+              {screen === 'kenaikan' && <KenaikanScreen />}
             </div>
           </div>
         </main>
