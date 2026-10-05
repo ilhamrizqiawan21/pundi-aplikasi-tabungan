@@ -88,7 +88,7 @@ export function PratinjauCetakModal({
             style={{
               backgroundColor: '#fff',
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              width: potret ? '340px' : '100%',
+              width: potret ? '420px' : '100%',
               maxWidth: '100%',
               minHeight: '400px',
               borderRadius: '2px',

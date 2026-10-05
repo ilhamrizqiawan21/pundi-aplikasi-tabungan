@@ -23,6 +23,7 @@ export function Modal({ isOpen, onClose, title, children, width = '480px' }: Mod
 
   return (
     <div
+      className="modal-latar"
       style={{
         position: 'fixed',
         top: 0,
@@ -39,6 +40,7 @@ export function Modal({ isOpen, onClose, title, children, width = '480px' }: Mod
       onClick={onClose}
     >
       <div
+        className="modal-panel"
         role="dialog"
         aria-modal="true"
         aria-label={title}

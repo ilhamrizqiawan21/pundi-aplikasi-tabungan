@@ -511,6 +511,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
               </div>
             )}
 
+            <div key={screen} className="animate-fade-in">
             {screen === 'beranda' && (
               <BerandaScreen onGoToCatat={() => setScreen('catat')} />
             )}
@@ -524,6 +525,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
               <PengaturanScreen onThemeChange={(newTheme) => setTema(newTheme)} />
             )}
             {screen === 'kenaikan' && <KenaikanScreen />}
+            </div>
           </div>
         </main>
       </div>

@@ -98,6 +98,11 @@
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
+
+  /* Motion: pendek dan halus; hanya opacity/transform agar ringan */
+  --dur-cepat: 120ms;
+  --dur: 200ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
@@ -148,12 +153,61 @@ input, button, select, textarea {
   background: rgba(100, 116, 139, 0.6);
 }
 
-/* Utility Animations */
+/* Animasi */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
+@keyframes latarMasuk {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes panelMasuk {
+  from { opacity: 0; transform: scale(0.98) translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes barisBaru {
+  from { background-color: color-mix(in srgb, var(--accent) 14%, transparent); }
+  to { background-color: transparent; }
+}
 
-.animate-fade-in {
-  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Tanpa fill-mode: transform dilepas setelah selesai, agar elemen fixed (modal) di dalamnya tidak terjebak */
+.animate-fade-in { animation: fadeIn var(--dur) var(--ease); }
+.modal-latar { animation: latarMasuk var(--dur-cepat) ease-out; }
+.modal-panel { animation: panelMasuk var(--dur) var(--ease); }
+.baris-baru { animation: barisBaru 1.6s ease-out; }
+
+/* Umpan balik tekan untuk semua tombol */
+button { transition: transform var(--dur-cepat) var(--ease); }
+button:active:not(:disabled) { transform: scale(0.98); }
+
+/* Gaya tabel bersama (dipakai bertahap) */
+.tabel { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+.tabel thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.tabel tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.tabel tbody tr { transition: background-color var(--dur-cepat) ease; }
+.tabel tbody tr:hover { background-color: var(--surface); }
+.tabel .angka { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tabel-gulir { overflow-x: auto; }
+
+/* Hormati pengaturan "kurangi gerakan" dari sistem operasi */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  button:active:not(:disabled) { transform: none; }
 }

@@ -25,7 +25,10 @@ export function generateReceiptHtml(
   profil: ProfilSekolah,
   ukuran: UkuranStruk = '80'
 ): string {
-  const widthMm = ukuran === '58' ? '54mm' : ukuran === '80' ? '76mm' : '100mm';
+  // Lebar kotak struk (termasuk garis gunting dan isi). Dibuat <= lebar kertas dikurangi margin 3 mm di tiap sisi,
+  // sehingga muat di roll 58/80 mm maupun kertas biasa. `@page size: NNmm auto` tidak sah di Chromium dan
+  // diabaikan, jadi ukuran halaman dibiarkan mengikuti printer.
+  const widthMm = ukuran === '58' ? '50mm' : ukuran === '80' ? '72mm' : '100mm';
 
   return `
 <!DOCTYPE html>
@@ -35,25 +38,37 @@ export function generateReceiptHtml(
   <title>Struk Bukti Transaksi - ${esc(transaksi.nomor_bukti)}</title>
   <style>
     @page {
-      size: ${widthMm} auto;
-      margin: 2mm;
+      margin: 3mm;
     }
+    html, body { margin: 0; padding: 0; }
+    @media screen { body { padding: 3mm; } }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: ${ukuran === '58' ? '10px' : '12px'};
-      width: ${widthMm};
-      margin: 0 auto;
       color: #000;
       line-height: 1.3;
+    }
+    /* Garis putus-putus = batas gunting */
+    .struk {
+      box-sizing: border-box;
+      width: ${widthMm};
+      padding: 2.5mm;
+      border: 0.4mm dashed #000;
+      break-inside: avoid;
+      page-break-inside: avoid;
     }
     .text-center { text-align: center; }
     .text-right { text-align: right; }
     .bold { font-weight: bold; }
     .divider { border-top: 1px dashed #000; margin: 6px 0; }
-    .row { display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .row { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 3px; }
+    .row > span:first-child { white-space: nowrap; }
+    .row > span:last-child { text-align: right; min-width: 0; overflow-wrap: anywhere; }
+    .struk { overflow-wrap: anywhere; }
   </style>
 </head>
 <body>
+<div class="struk">
   <div class="text-center bold" style="font-size: 14px;">${esc(profil.nama)}</div>
   ${profil.alamat ? `<div class="text-center">${esc(profil.alamat)}${profil.kota ? `, ${esc(profil.kota)}` : ''}</div>` : ''}
   <div class="divider"></div>
@@ -81,6 +96,7 @@ export function generateReceiptHtml(
     Terima kasih telah menabung.<br>
     Simpan struk ini sebagai bukti sah.
   </div>
+</div>
 </body>
 </html>
   `.trim();
