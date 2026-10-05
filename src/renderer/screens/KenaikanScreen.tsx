@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import type { TahunAjaran, Kelas, ItemKenaikan, PerubahanKenaikan } from '../../shared/types.js';
 import { formatRupiah } from '../../shared/rupiah.js';
 import { Modal } from '../components/Modal.js';
+import { IconKenaikan, IconSiswa, IconCheck, IconAkademik } from '../components/Icons.js';
 import { tombol, tombolUtama, kolom, labelStyle, kartu, kartuKepala, sel } from '../styles/ui.js';
 
 type Tindakan = 'pindah' | 'lulus' | 'keluar';
@@ -9,6 +10,77 @@ type Tindakan = 'pindah' | 'lulus' | 'keluar';
 interface KenaikanScreenProps {
   /** Dipanggil setelah perubahan diterapkan (mis. agar daftar lain dimuat ulang). */
   onApplied?: () => void;
+}
+
+const LANGKAH = [
+  { judul: 'Pilih asal dan tujuan', ket: 'Tahun ajaran dan kelas' },
+  { judul: 'Atur tiap siswa', ket: 'Naik kelas, lulus, atau keluar' },
+  { judul: 'Tinjau dan terapkan', ket: 'Periksa ringkasan sebelum disimpan' },
+];
+
+function Langkah({ aktif }: { aktif: number }) {
+  return (
+    <ol
+      aria-label="Tahapan kenaikan kelas"
+      style={{ ...kartu, listStyle: 'none', margin: 0, padding: '14px 18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}
+    >
+      {LANGKAH.map((l, i) => {
+        const selesai = i < aktif;
+        const sekarang = i === aktif;
+        return (
+          <li key={l.judul} aria-current={sekarang ? 'step' : undefined} style={{ display: 'flex', alignItems: 'center', gap: '12px', opacity: selesai || sekarang ? 1 : 0.55 }}>
+            <span
+              aria-hidden="true"
+              style={{
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '13px',
+                fontWeight: 700,
+                backgroundColor: selesai || sekarang ? 'var(--accent)' : 'transparent',
+                color: selesai || sekarang ? 'var(--accent-text)' : 'var(--muted)',
+                border: selesai || sekarang ? 'none' : '1.5px solid var(--border)',
+              }}
+            >
+              {selesai ? <IconCheck width={15} height={15} /> : i + 1}
+            </span>
+            <span>
+              <span style={{ display: 'block', fontSize: '13px', fontWeight: 600 }}>{l.judul}</span>
+              <span style={{ display: 'block', fontSize: '12px', color: 'var(--muted)' }}>{l.ket}</span>
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function KeadaanKosong({ ikon, judul, children }: { ikon: ReactNode; judul: string; children?: ReactNode }) {
+  return (
+    <div style={{ padding: '44px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '10px' }}>
+      <div
+        aria-hidden="true"
+        style={{
+          width: '64px',
+          height: '64px',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--accent)',
+          backgroundColor: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+        }}
+      >
+        {ikon}
+      </div>
+      <h3 style={{ fontSize: '15px', fontWeight: 700 }}>{judul}</h3>
+      <div style={{ fontSize: '13px', color: 'var(--muted)', maxWidth: '460px', lineHeight: 1.6 }}>{children}</div>
+    </div>
+  );
 }
 
 export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
@@ -185,11 +257,26 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
 
   if (tahunList.length < 2) {
     return (
-      <p style={{ fontSize: '14px', color: 'var(--muted)', maxWidth: '620px' }}>
-        Kenaikan kelas memindahkan siswa dari tahun ajaran lama ke tahun ajaran baru. Buat tahun ajaran baru beserta
-        kelasnya di menu <strong>Tahun Ajaran &amp; Kelas</strong> lebih dulu (kelas dapat disalin dari tahun
-        sebelumnya).
-      </p>
+      <section style={kartu} aria-label="Belum bisa naik kelas">
+        <KeadaanKosong ikon={<IconKenaikan width={30} height={30} />} judul="Belum ada tahun ajaran baru">
+          <p>
+            Kenaikan kelas memindahkan siswa dari tahun ajaran lama ke tahun ajaran baru. Siapkan dulu tahun ajaran
+            tujuannya.
+          </p>
+          <ol style={{ margin: '14px auto 0', padding: 0, listStyle: 'none', textAlign: 'left', display: 'inline-flex', flexDirection: 'column', gap: '8px' }}>
+            {[
+              <>Buka menu <strong>Tahun Ajaran &amp; Kelas</strong>.</>,
+              <>Buat tahun ajaran baru beserta kelasnya (kelas dapat disalin dari tahun sebelumnya).</>,
+              <>Kembali ke sini untuk memindahkan siswa.</>,
+            ].map((t, i) => (
+              <li key={i} style={{ display: 'flex', gap: '10px', alignItems: 'baseline' }}>
+                <strong style={{ color: 'var(--accent)' }}>{i + 1}.</strong>
+                <span>{t}</span>
+              </li>
+            ))}
+          </ol>
+        </KeadaanKosong>
+      </section>
     );
   }
 
@@ -210,6 +297,8 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
           {galat}
         </div>
       )}
+
+      <Langkah aktif={kelasAsalId === '' || tahunTujuanId === '' ? 0 : items.length === 0 ? 1 : dipilih.size === 0 ? 1 : 2} />
 
       <section style={{ ...kartu, padding: '18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }} aria-label="Pilih asal dan tujuan">
         <div>
@@ -250,6 +339,15 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
         </div>
       </section>
 
+      {kelasAsalId === '' && (
+        <section style={kartu} aria-label="Daftar siswa">
+          <KeadaanKosong ikon={<IconSiswa width={30} height={30} />} judul="Pilih kelas asal">
+            Pilih tahun ajaran dan kelas asal di atas. Daftar siswa kelas itu akan muncul di sini, lengkap dengan
+            saldonya.
+          </KeadaanKosong>
+        </section>
+      )}
+
       {kelasAsalId !== '' && (
         <section style={kartu} aria-labelledby="kn-judul-daftar">
           <div style={kartuKepala}>
@@ -280,8 +378,10 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ ...sel, padding: '24px', textAlign: 'center', color: 'var(--muted)' }}>
-                    Tidak ada siswa pada kelas ini.
+                  <td colSpan={5} style={{ ...sel, padding: 0 }}>
+                    <KeadaanKosong ikon={<IconAkademik width={30} height={30} />} judul="Tidak ada siswa pada kelas ini">
+                      Pilih kelas lain, atau tambahkan siswa lewat menu <strong>Siswa</strong> atau <strong>Impor</strong>.
+                    </KeadaanKosong>
                   </td>
                 </tr>
               ) : (

@@ -261,11 +261,12 @@ export function CatatTransaksiScreen() {
     : 0;
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '300px minmax(420px, 1fr) 300px', gap: '22px', alignItems: 'start' }}>
+    <div className="grid-catat">
       {/* ======================================================== */}
       {/* KOLOM KIRI: PILIH SISWA (Mockup Page 1)                    */}
       {/* ======================================================== */}
       <section
+        className="catat-kiri"
         style={{
           backgroundColor: 'var(--card-bg)',
           borderRadius: '16px',
@@ -275,7 +276,6 @@ export function CatatTransaksiScreen() {
           display: 'flex',
           flexDirection: 'column',
           gap: '14px',
-          maxHeight: 'calc(100vh - 120px)',
           overflow: 'hidden',
         }}
       >
@@ -826,7 +826,7 @@ export function CatatTransaksiScreen() {
       {/* ======================================================== */}
       {/* KOLOM KANAN: RINGKASAN HARI INI & RIWAYAT SISWA (Page 1)  */}
       {/* ======================================================== */}
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <section className="catat-kanan" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {/* Card 1: Ringkasan hari ini */}
         <div
           style={{

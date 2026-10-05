@@ -80,6 +80,17 @@ export class BackupService {
     }
   }
 
+  /**
+   * Waktu cadangan terakhir yang dibuat pengguna/jadwal (manual atau otomatis). Cadangan pengaman
+   * sebelum pemulihan tidak dihitung. Tidak membuat token berkas, jadi aman dipanggil dari bilah samping.
+   */
+  public terakhir(): Result<{ tanggal: string; jenis: JenisCadangan } | null> {
+    const res = this.daftar();
+    if (!res.ok) return res;
+    const t = res.data.find((c) => c.jenis !== 'pre-restore');
+    return { ok: true, data: t ? { tanggal: t.tanggal, jenis: t.jenis } : null };
+  }
+
   public daftar(): Result<ItemCadangan[]> {
     try {
       if (!fs.existsSync(this.baseDir)) {

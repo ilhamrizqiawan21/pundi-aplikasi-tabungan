@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Siswa, Kelas, StatusSiswa, Transaksi } from '../../shared/types.js';
 import { formatRupiah } from '../../shared/rupiah.js';
 import { formatTanggalIndonesia } from '../../shared/tanggal.js';
@@ -104,6 +104,8 @@ export function SiswaScreen() {
     return () => clearTimeout(timer);
   }, [fetchSiswa]);
 
+  const detailRef = useRef<HTMLElement>(null);
+
   const handleOpenDetail = useCallback(async (siswa: Siswa) => {
     setDetailSiswa(siswa);
     setLoadingRiwayat(true);
@@ -151,11 +153,12 @@ export function SiswaScreen() {
   });
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '400px minmax(500px, 1fr)', gap: '22px', alignItems: 'start' }}>
+    <div className="grid-siswa">
       {/* ======================================================== */}
       {/* PANEL KIRI: DAFTAR SISWA (Mockup Page 3)                 */}
       {/* ======================================================== */}
       <section
+        className="siswa-daftar"
         style={{
           backgroundColor: 'var(--card-bg)',
           borderRadius: '16px',
@@ -165,7 +168,6 @@ export function SiswaScreen() {
           display: 'flex',
           flexDirection: 'column',
           gap: '14px',
-          maxHeight: 'calc(100vh - 120px)',
           overflow: 'hidden',
         }}
       >
@@ -282,7 +284,7 @@ export function SiswaScreen() {
         </div>
 
         {/* Filter Pills: Semua kelas, 7, 8, 9, Aktif */}
-        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px' }}>
+        <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px', flexShrink: 0 }}>
           {[
             { id: 'semua', label: 'Semua kelas' },
             { id: '7', label: '7' },
@@ -331,7 +333,13 @@ export function SiswaScreen() {
                   <tr
                     key={s.id}
                     role="row"
-                    onClick={() => handleOpenDetail(s)}
+                    onClick={() => {
+                      void handleOpenDetail(s);
+                      // Tata letak satu kolom: buku besar ada di bawah daftar, jadi bawa pengguna ke sana
+                      if (window.matchMedia('(max-width: 1219px)').matches) {
+                        requestAnimationFrame(() => detailRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
+                      }
+                    }}
                     style={{
                       cursor: 'pointer',
                       borderBottom: '1px solid var(--border)',
@@ -390,7 +398,7 @@ export function SiswaScreen() {
       {/* ======================================================== */}
       {/* PANEL KANAN: BUKU BESAR SISWA TERPILIH (Mockup Page 3)   */}
       {/* ======================================================== */}
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <section ref={detailRef} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {detailSiswa ? (
           <>
             {/* Hero Card Siswa Terpilih (Sesuai Mockup Biru Royal) */}

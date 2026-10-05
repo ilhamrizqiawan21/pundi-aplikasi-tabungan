@@ -240,6 +240,7 @@ export function registerIpcHandlers(opts: IpcOptions): void {
   handle('backup.buat', BackupBuatSchema, (data) =>
     backup.buat(data.keterangan)
   );
+  handle('backup.terakhir', null, () => backup.terakhir());
   handle('backup.daftar', null, () => {
     for (const t of daftarCadanganTokens) fileTokenStore.delete(t);
     daftarCadanganTokens.clear();

@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ProfilSekolah, TahunAjaran, TemaAplikasi } from '../shared/types.js';
 
+import logoUrl from './assets/logo.png';
+import { formatWaktuWib } from '../shared/tanggal.js';
 import { BerandaScreen } from './screens/BerandaScreen.js';
 import { CatatTransaksiScreen } from './screens/CatatTransaksiScreen.js';
 import { SiswaScreen } from './screens/SiswaScreen.js';
@@ -57,12 +59,28 @@ const NAV: ItemNav[] = [
   { id: 'pengaturan', label: 'Pengaturan', judul: 'Pengaturan Aplikasi', subjudul: 'Konfigurasi profil sekolah, cetak, dan tampilan.', icon: IconPengaturan },
 ];
 
+/** Cadangan lebih lama dari ini dianggap perlu diperbarui. */
+const BATAS_HARI_CADANGAN = 7;
+
+function ringkasCadangan(iso: string | null | undefined): { aman: boolean; judul: string; teks: string } {
+  if (iso === undefined) return { aman: false, judul: 'Memeriksa cadangan', teks: '' };
+  if (iso === null) return { aman: false, judul: 'Belum ada cadangan', teks: 'Cadangkan sekarang agar data aman.' };
+  const umurHari = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  const waktu = formatWaktuWib(iso, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+  return {
+    aman: umurHari <= BATAS_HARI_CADANGAN,
+    judul: umurHari <= BATAS_HARI_CADANGAN ? 'Data aman' : 'Perlu dicadangkan',
+    teks: `Cadangan terakhir: ${waktu}.`,
+  };
+}
+
 export default function App() {
   const [screen, setScreen] = useState<ScreenId>('beranda');
   const [profil, setProfil] = useState<ProfilSekolah | null>(null);
   const [tahunAjaranAktif, setTahunAjaranAktif] = useState<TahunAjaran | null>(null);
   const [tema, setTema] = useState<TemaAplikasi>('putih');
-  const [lastBackupMsg, setLastBackupMsg] = useState('07:30');
+  // undefined = belum diketahui; null = belum pernah ada cadangan; string = waktu ISO cadangan terakhir
+  const [cadanganTerakhir, setCadanganTerakhir] = useState<string | null | undefined>(undefined);
   const [backingUp, setBackingUp] = useState(false);
   const kontenRef = useRef<HTMLElement>(null);
 
@@ -120,15 +138,24 @@ export default function App() {
     }
   }, [muatTahunAjaranAktif]);
 
+  const muatCadanganTerakhir = useCallback(async () => {
+    if (!window.pundi) return;
+    const res = await window.pundi.backupTerakhir();
+    if (res.ok) setCadanganTerakhir(res.data?.tanggal ?? null);
+  }, []);
+
+  // Dimuat ulang tiap pindah layar agar cadangan dari menu Cadangan ikut tercermin
+  useEffect(() => {
+    void muatCadanganTerakhir();
+  }, [screen, muatCadanganTerakhir]);
+
   const handleQuickBackup = async () => {
     if (!window.pundi || backingUp) return;
     setBackingUp(true);
     try {
       const res = await window.pundi.backupBuat('Cadangan cepat bilah samping');
       if (res.ok) {
-        const now = new Date();
-        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        setLastBackupMsg(timeStr);
+        await muatCadanganTerakhir();
         alert('Cadangan berhasil dibuat.');
       } else {
         alert(`Gagal membuat cadangan: ${res.pesan}`);
@@ -138,6 +165,7 @@ export default function App() {
     }
   };
 
+  const cadangan = ringkasCadangan(cadanganTerakhir);
   const activeNav = NAV.find((n) => n.id === screen) || NAV[0];
 
   // Format Tanggal Hari Ini (Misal: "Kamis, 1 Oktober 2026")
@@ -152,8 +180,8 @@ export default function App() {
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: 'var(--bg)' }}>
       {/* Sidebar Navigasi (Sesuai Mockup Pundi) */}
       <aside
+        className="app-sidebar"
         style={{
-          width: '240px',
           backgroundColor: 'var(--sidebar-bg)',
           color: 'var(--sidebar-text)',
           display: 'flex',
@@ -164,27 +192,15 @@ export default function App() {
         }}
       >
         {/* Logo & Brand Header */}
-        <div style={{ padding: '24px 20px 18px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div
-            style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, #38BDF8 0%, #2563EB 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#FFFFFF',
-              boxShadow: '0 4px 12px rgba(37, 99, 235, 0.35)',
-              flexShrink: 0,
-            }}
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a8 8 0 0 1-16 0V6" />
-              <circle cx="18" cy="14" r="1" fill="currentColor" />
-            </svg>
-          </div>
-          <div>
+        <div className="brand-header" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <img
+            src={logoUrl}
+            alt=""
+            width={44}
+            height={44}
+            style={{ borderRadius: '10px', flexShrink: 0, background: '#FFFFFF', objectFit: 'contain' }}
+          />
+          <div className="rail-hide-visually">
             <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
               Pundi
             </h1>
@@ -204,12 +220,12 @@ export default function App() {
                 key={n.id}
                 onClick={() => setScreen(n.id)}
                 aria-current={isActive ? 'page' : undefined}
+                className="nav-item"
+                title={n.label}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between',
                   width: '100%',
-                  padding: '9px 12px',
                   borderRadius: '10px',
                   border: 'none',
                   backgroundColor: isActive ? 'var(--sidebar-active)' : 'transparent',
@@ -227,14 +243,15 @@ export default function App() {
                   if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="nav-item-inner" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ display: 'inline-flex', opacity: isActive ? 1 : 0.85 }}>
                     <Icon width={16} height={16} />
                   </span>
-                  <span>{n.label}</span>
+                  <span className="rail-hide-visually">{n.label}</span>
                 </div>
                 {n.pintasan ? (
                   <span
+                    className="rail-hide-visually"
                     style={{
                       fontSize: '9px',
                       fontWeight: 600,
@@ -249,6 +266,7 @@ export default function App() {
                   </span>
                 ) : (
                   <span
+                    className="rail-hide-visually"
                     style={{
                       fontSize: '9px',
                       opacity: 0.55,
@@ -263,9 +281,11 @@ export default function App() {
           })}
         </nav>
 
-        {/* Card Cadangan Bawah (Sesuai Mockup Pundi: Data aman, Cadangkan sekarang) */}
+        {/* Status cadangan nyata (bukan teks tetap) + tombol cadangan cepat */}
         <div style={{ padding: '14px', borderTop: '1px solid var(--sidebar-border)' }}>
           <div
+            className="sidebar-backup-card"
+            title={`${cadangan.judul}. ${cadangan.teks}`}
             style={{
               padding: '12px 14px',
               backgroundColor: 'rgba(255, 255, 255, 0.04)',
@@ -278,20 +298,25 @@ export default function App() {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span
+                aria-hidden="true"
                 style={{
                   width: '7px',
                   height: '7px',
                   borderRadius: '9999px',
-                  backgroundColor: '#22C55E',
+                  backgroundColor: cadangan.aman ? 'var(--ok)' : 'var(--warn)',
                   display: 'inline-block',
-                  boxShadow: '0 0 6px #22C55E',
+                  flexShrink: 0,
                 }}
               />
-              <span style={{ fontSize: '11px', fontWeight: 700, color: '#FFFFFF' }}>Data aman</span>
+              <span className="rail-hide-visually" style={{ fontSize: '11px', fontWeight: 700, color: '#FFFFFF' }}>
+                {cadangan.judul}
+              </span>
             </div>
-            <p style={{ fontSize: '11px', color: '#94A3B8', lineHeight: 1.35 }}>
-              Cadangan terakhir hari ini pukul {lastBackupMsg}.
-            </p>
+            {cadangan.teks && (
+              <p className="rail-hide-visually" style={{ fontSize: '11px', color: '#94A3B8', lineHeight: 1.35 }}>
+                {cadangan.teks}
+              </p>
+            )}
             <button
               aria-label="Cadangkan cepat"
               onClick={handleQuickBackup}
@@ -309,7 +334,10 @@ export default function App() {
                 transition: 'background-color 0.15s ease',
               }}
             >
-              {backingUp ? 'Mencadangkan...' : 'Cadangkan sekarang'}
+              <span className="rail-only" aria-hidden="true">
+                <IconCadangan width={16} height={16} />
+              </span>
+              <span className="full-label">{backingUp ? 'Mencadangkan...' : 'Cadangkan sekarang'}</span>
             </button>
           </div>
         </div>

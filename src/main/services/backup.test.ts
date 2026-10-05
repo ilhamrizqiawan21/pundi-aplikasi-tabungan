@@ -64,6 +64,24 @@ describe('BackupService (CAP-13)', () => {
     }
   });
 
+  it('terakhir: kosong bila belum ada cadangan, mengabaikan cadangan pengaman pemulihan, dan tidak membuat token', () => {
+    const kosong = backupSvc.terakhir();
+    expect(kosong.ok && kosong.data).toBe(null);
+
+    fs.writeFileSync(path.join(backupDir, 'pundi_pre-restore_20260101_000000.sqlite'), 'x');
+    const hanyaPengaman = backupSvc.terakhir();
+    expect(hanyaPengaman.ok && hanyaPengaman.data).toBe(null);
+
+    const dibuat = backupSvc.buat('harian', 'manual');
+    expect(dibuat.ok).toBe(true);
+    const t = backupSvc.terakhir();
+    expect(t.ok).toBe(true);
+    if (t.ok) {
+      expect(t.data?.jenis).toBe('manual');
+      expect(Object.keys(t.data ?? {}).sort()).toEqual(['jenis', 'tanggal']);
+    }
+  });
+
   it('membatasi cadangan otomatis menjadi 7 dan tidak pernah menghapus cadangan manual', () => {
     const manual = backupSvc.buat('penting', 'manual');
     expect(manual.ok).toBe(true);

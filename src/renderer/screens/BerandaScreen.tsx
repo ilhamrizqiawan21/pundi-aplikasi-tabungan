@@ -98,9 +98,10 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
       {/* ======================================================== */}
       {/* 4 STAT METRIC CARDS (Mockup Page 2)                      */}
       {/* ======================================================== */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '18px' }}>
+      <div className="grid-metrik">
         {/* Card 1: Setoran Hari Ini */}
         <div
+          className="kartu-metrik"
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
@@ -129,11 +130,11 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           >
             ↓
           </div>
-          <div style={{ minWidth: 0, flex: 1 }}>
+          <div className="kartu-metrik-isi" style={{ minWidth: 0 }}>
             <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
               Setoran hari ini
             </div>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums">
+            <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
               {formatRupiah(kas?.total_setoran || 0)}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
@@ -144,6 +145,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
 
         {/* Card 2: Penarikan Hari Ini */}
         <div
+          className="kartu-metrik"
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
@@ -172,11 +174,11 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           >
             ↑
           </div>
-          <div style={{ minWidth: 0, flex: 1 }}>
+          <div className="kartu-metrik-isi" style={{ minWidth: 0 }}>
             <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
               Penarikan hari ini
             </div>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums">
+            <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
               {formatRupiah(kas?.total_penarikan || 0)}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
@@ -187,6 +189,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
 
         {/* Card 3: Siswa Aktif */}
         <div
+          className="kartu-metrik"
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
@@ -218,11 +221,11 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </div>
-          <div style={{ minWidth: 0, flex: 1 }}>
+          <div className="kartu-metrik-isi" style={{ minWidth: 0 }}>
             <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
               Siswa aktif
             </div>
-            <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums">
+            <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
               {siswaCount}
             </div>
             <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
@@ -233,6 +236,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
 
         {/* Card 4: Total Saldo Siswa */}
         <div
+          className="kartu-metrik"
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
@@ -259,11 +263,11 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           >
             <IconWallet width={20} height={20} />
           </div>
-          <div style={{ minWidth: 0, flex: 1 }}>
+          <div className="kartu-metrik-isi" style={{ minWidth: 0 }}>
             <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
               Total saldo siswa
             </div>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums">
+            <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
               {formatRupiah(kas?.saldo_seluruh_siswa || 0)}
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: isSeimbang ? 'var(--ok)' : 'var(--danger)', marginTop: '4px', fontWeight: 600 }}>

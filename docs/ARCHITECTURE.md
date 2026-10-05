@@ -47,7 +47,7 @@ flowchart LR
 - **Tidak memakai `http://127.0.0.1`.** Halaman dimuat lewat protokol khusus aplikasi (`pundi-app://`) atau `file://` dari paket. Ini menghapus seluruh kelas masalah pencocokan origin yang ditemukan pada PIB (`startsWith(origin)`); bila suatu saat perlu membandingkan URL, pakai `new URL(url).origin === origin`, bukan awalan teks.
 - Sesi memblokir semua permintaan keluar; navigasi dan jendela baru ditolak; semua permintaan izin ditolak. Pada jendela cetak, semua permintaan selain `data:` dibatalkan, sehingga HTML (termasuk yang dikirim renderer lewat `cetak.html`) tidak dapat memuat sumber luar. Terbukti oleh uji alur `jendela.spec.ts` yang memakai jendela biasa sebagai kontrol.
 - Renderer **tidak pernah** mengirim jalur berkas. Dialog buka/simpan dibuka oleh main, hasilnya berupa token sementara yang kedaluwarsa 1 jam sejak terakhir dipakai (diperpanjang tiap dipakai; token kedaluwarsa dibersihkan saat token baru dibuat). Filter ekstensi dialog dibatasi `xlsx`, `csv`, `sqlite`. Nilai `folder_backup`, `pin_hash`, dan `logo_rel_path` tidak diterima dari renderer; bila fitur terkait dibuat, jalurnya dipilih lewat dialog di main dan hash PIN dibuat di main.
-- Setiap penangan IPC memverifikasi pengirim (`event.senderFrame`) dan memvalidasi argumen dengan `zod`; tidak ada penangan tanpa skema. Tanggal divalidasi sebagai tanggal kalender (`tanggalKalenderValid`), nominal sebagai bilangan bulat aman. Galat zod hanya mengembalikan pesan isu pertama; galat tak terduga dikembalikan sebagai `DATABASE_ERROR` generik (pesan mentah SQL atau jalur tidak sampai ke renderer) dan hanya kodenya yang dicatat di log.
+- Setiap penangan IPC memverifikasi pengirim (`event.senderFrame`) dan memvalidasi argumen dengan `zod`; setiap penangan yang menerima masukan punya skema (penangan tanpa argumen, mis. `integritas.periksa` dan `backup.terakhir`, tidak memerlukannya). Tanggal divalidasi sebagai tanggal kalender (`tanggalKalenderValid`), nominal sebagai bilangan bulat aman. Galat zod hanya mengembalikan pesan isu pertama; galat tak terduga dikembalikan sebagai `DATABASE_ERROR` generik (pesan mentah SQL atau jalur tidak sampai ke renderer) dan hanya kodenya yang dicatat di log.
 - Nilai dari Excel/CSV adalah masukan tidak tepercaya: divalidasi, dan semua teks yang masuk HTML cetak wajib lewat `esc()`.
 - Log hanya berisi jumlah, kode galat, dan durasi. Tidak pernah nama, nomor, atau nominal.
 
@@ -87,7 +87,7 @@ Semua nama diawali domain, argumen dan hasil didefinisikan sebagai skema `zod` d
 | `impor.pratinjau`, `impor.terapkan` | CAP-04, 14 |
 | `laporan.harian`, `laporan.kelas`, `laporan.siswa`, `laporan.rekap`, `laporan.ekspor` | CAP-11 |
 | `cetak.struk`, `cetak.pdf` | CAP-09 |
-| `backup.buat`, `backup.restore`, `backup.daftar` | CAP-13 |
+| `backup.buat`, `backup.restore`, `backup.daftar`, `backup.terakhir` (waktu cadangan terakhir tanpa token; dipakai bilah samping) | CAP-13 |
 | `integritas.periksa` | CAP-17 |
 | `pengaturan.baca`, `pengaturan.simpan` | CAP-01, 15, 16 |
 

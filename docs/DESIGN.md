@@ -29,18 +29,33 @@ Tipografi: font sistem yang dibundel (tanpa font eksternal); angka memakai `font
 
 ## 3. Tata letak
 
-Jendela minimum 1024 × 680. Sisi kiri navigasi 220 px; konten di kanan.
+Jendela minimum 1024 × 680. Sisi kiri navigasi 240 px (menciut menjadi rel ikon 76 px di bawah 1100 px); konten di kanan dengan lebar maksimum 1440 px, terpusat.
 
 | Bagian | Isi |
 | --- | --- |
-| Bilah samping | Beranda, **Catat Transaksi**, Siswa, Laporan, Kenaikan Kelas, Impor, Cadangan, Pengaturan |
+| Bilah samping | Beranda, **Catat Transaksi**, Siswa, Laporan, Tahun Ajaran & Kelas, Kenaikan Kelas, Impor, Cadangan, Pengaturan; di bawahnya status cadangan nyata dan tombol Cadangkan sekarang |
 | Bilah atas | Nama sekolah, tahun ajaran aktif, tombol Cadangkan cepat |
 | Konten | Layar aktif |
+
+### 3a. Responsivitas (lebar jendela)
+
+Titik henti memakai lebar jendela; aturannya ada di `src/renderer/styles/layout.css`. Konten = lebar jendela − bilah samping − 56 px padding.
+
+| Lebar jendela | Perilaku |
+| --- | --- |
+| < 1100 px | Bilah samping menjadi rel ikon (76 px). Nama menu tetap terbaca pembaca layar dan muncul sebagai tooltip; label pintasan disembunyikan. Kartu status cadangan menyisakan titik status dan tombol ikon |
+| < 1220 px | Data Siswa satu kolom: daftar di atas (maks 420 px, dapat digulir), buku besar di bawah. Memilih siswa menggulir ke buku besar |
+| < 1360 px | Catat Transaksi dua kolom: pilih siswa di kiri, form di tengah, **Ringkasan hari ini** dan **Riwayat siswa** pindah ke bawah form |
+| Kartu angka Beranda | `auto-fit` minimal 200 px; ikon turun ke atas angka bila kartu sempit. Angka rupiah tidak pernah terpecah dua baris |
+
+Aturan: tidak boleh ada elemen yang keluar dari jendela dan tidak boleh ada gulir horizontal pada lebar mana pun ≥ 1024 px (dijaga uji alur `responsif.spec.ts`).
 
 ## 4. Layar dan alur
 
 ### 4.1 Beranda (kas harian)
 Ringkasan hari ini: total setoran, total penarikan, jumlah transaksi, saldo seluruh siswa aktif. Tombol besar **Catat Transaksi**. Daftar 10 transaksi terakhir.
+
+Status cadangan di bilah samping bersumber dari cadangan sebenarnya (`backup.terakhir`), bukan teks tetap: "Data aman" bila cadangan terakhir ≤ 7 hari, "Perlu dicadangkan" bila lebih lama, "Belum ada cadangan" bila belum pernah. Titik status hijau atau kuning.
 
 ### 4.2 Catat Transaksi (layar terpenting)
 Satu layar, satu alur:

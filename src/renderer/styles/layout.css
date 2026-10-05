@@ -1,0 +1,71 @@
+/*
+ * Tata letak responsif. Titik henti memakai lebar jendela (viewport); jendela minimum 1024 px.
+ *  - < 1100 px : bilah samping menciut menjadi rel ikon (76 px)
+ *  - < 1360 px : Catat Transaksi dua kolom (ringkasan/riwayat pindah ke bawah form)
+ *  - < 1220 px : Data Siswa satu kolom (daftar di atas, buku besar di bawah)
+ * Hitungan: konten = lebar jendela - bilah samping (240 / 76) - padding 56.
+ */
+
+/* ---------- Bilah samping ---------- */
+.app-sidebar { width: 240px; }
+.brand-header { padding: 24px 20px 18px; }
+.nav-item { justify-content: space-between; padding: 9px 12px; }
+.rail-only { display: none; }
+
+/* Disembunyikan secara visual tetapi tetap terbaca pembaca layar */
+.rail-hide-visually { }
+
+@media (max-width: 1099px) {
+  .app-sidebar { width: 76px; }
+  .brand-header { padding: 20px 0 14px; justify-content: center; }
+  .nav-item { justify-content: center; padding: 11px 0; }
+  .nav-item > .nav-item-inner { gap: 0; }
+  .rail-hide-visually {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .sidebar-backup-card { padding: 10px 6px !important; align-items: center; }
+  .rail-only { display: inline-flex; }
+  .full-label { display: none; }
+  .sidebar-backup-card button { padding: 8px 0 !important; display: flex; justify-content: center; }
+}
+
+/* ---------- Beranda ---------- */
+.grid-metrik { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; }
+.kartu-metrik { flex-wrap: wrap; }
+.kartu-metrik > .kartu-metrik-isi { flex: 1 1 140px; }
+.kartu-metrik .nilai-uang { white-space: nowrap; }
+
+/* ---------- Catat Transaksi ---------- */
+.grid-catat {
+  display: grid;
+  grid-template-columns: 300px minmax(420px, 1fr) 300px;
+  gap: 22px;
+  align-items: start;
+}
+.catat-kiri { max-height: calc(100vh - 120px); }
+@media (max-width: 1359px) {
+  .grid-catat { grid-template-columns: 300px minmax(0, 1fr); }
+  .grid-catat > .catat-kiri { grid-row: 1 / span 2; }
+  .grid-catat > .catat-kanan { grid-column: 2; }
+}
+
+/* ---------- Data Siswa ---------- */
+.grid-siswa {
+  display: grid;
+  grid-template-columns: 400px minmax(500px, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+.siswa-daftar { max-height: calc(100vh - 120px); }
+@media (max-width: 1219px) {
+  .grid-siswa { grid-template-columns: minmax(0, 1fr); }
+  .siswa-daftar { max-height: 420px; }
+}

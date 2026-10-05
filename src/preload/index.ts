@@ -62,6 +62,7 @@ const api: PundiApi = {
   integritasPeriksa: () => ipcRenderer.invoke('integritas.periksa'),
   backupBuat: (keterangan) =>
     ipcRenderer.invoke('backup.buat', { keterangan }),
+  backupTerakhir: () => ipcRenderer.invoke('backup.terakhir'),
   backupDaftar: () => ipcRenderer.invoke('backup.daftar'),
   backupRestore: (tokenBerkas) =>
     ipcRenderer.invoke('backup.restore', { tokenBerkas }),

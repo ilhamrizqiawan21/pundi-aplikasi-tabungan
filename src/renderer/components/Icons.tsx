@@ -150,7 +150,11 @@ export function getAvatarColor(name: string) {
 }
 
 export function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
+  // Kata yang tidak diawali huruf/angka (mis. "(Contoh)", "-") tidak ikut menjadi inisial
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter((p) => /^[\p{L}\p{N}]/u.test(p));
   if (parts.length === 0) return 'S';
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();

@@ -353,6 +353,7 @@ export interface PundiApi {
   // Integritas & Backup
   integritasPeriksa: () => Promise<Result<HasilPeriksaIntegritas>>;
   backupBuat: (keterangan?: string) => Promise<Result<{ berkas: string; ukuran_bytes: number }>>;
+  backupTerakhir: () => Promise<Result<{ tanggal: string; jenis: 'manual' | 'otomatis' | 'pre-restore' } | null>>;
   backupDaftar: () => Promise<
     Result<Array<{ nama: string; token: string; jenis: 'manual' | 'otomatis' | 'pre-restore'; ukuran: number; tanggal: string }>>
   >;

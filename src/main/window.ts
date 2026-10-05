@@ -12,6 +12,7 @@ export function getMainWindow(): BrowserWindow | null {
   return mainWindow;
 }
 
+const iconFile = path.join(__dirname, '../../build/icon.png');
 const indexFile = path.join(__dirname, '../../dist/index.html');
 
 /** Konfigurasi URL sah; server dev hanya dipercaya pada aplikasi yang belum dipaketkan. */
@@ -36,6 +37,7 @@ export function createMainWindow(): BrowserWindow {
     minWidth: 1024,
     minHeight: 680,
     show: false,
+    icon: iconFile,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
