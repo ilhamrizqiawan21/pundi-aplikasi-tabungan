@@ -8,6 +8,8 @@ interface PratinjauCetakModalProps {
   html: string;
   onTutup: () => void;
   onSimpanPdf?: () => Promise<void> | void;
+  /** Lembar sempit berorientasi potret (mis. struk); tanpa ini lembar selebar pratinjau (laporan). */
+  potret?: boolean;
 }
 
 export function PratinjauCetakModal({
@@ -16,6 +18,7 @@ export function PratinjauCetakModal({
   html,
   onTutup,
   onSimpanPdf,
+  potret = false,
 }: PratinjauCetakModalProps) {
   const [mencetak, setMencetak] = useState(false);
   const [menyimpanPdf, setMenyimpanPdf] = useState(false);
@@ -85,7 +88,8 @@ export function PratinjauCetakModal({
             style={{
               backgroundColor: '#fff',
               boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              width: '100%',
+              width: potret ? '340px' : '100%',
+              maxWidth: '100%',
               minHeight: '400px',
               borderRadius: '2px',
               overflow: 'hidden',
@@ -96,7 +100,7 @@ export function PratinjauCetakModal({
               srcDoc={html}
               style={{
                 width: '100%',
-                height: '480px',
+                height: potret ? '520px' : '480px',
                 border: 'none',
                 display: 'block',
               }}

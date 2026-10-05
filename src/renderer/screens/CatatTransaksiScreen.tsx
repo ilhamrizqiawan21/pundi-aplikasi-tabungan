@@ -998,6 +998,7 @@ export function CatatTransaksiScreen() {
           terbuka={Boolean(previewStruk)}
           html={previewStruk.html}
           judul={`Struk ${previewStruk.nomor_bukti}`}
+          potret
           onTutup={() => setPreviewStruk(null)}
         />
       )}
