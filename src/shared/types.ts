@@ -135,8 +135,63 @@ export interface RingkasanKasHarian {
   tanggal: string;
   total_setoran: number;
   total_penarikan: number;
+  /** Potongan biaya administrasi (bersih setelah koreksi); bukan arus kas. */
+  total_biaya_adm: number;
   jumlah_transaksi: number;
   saldo_seluruh_siswa: number;
+}
+
+/** Satu lembar slip saldo siswa: saldo terkini dan beberapa transaksi terakhir (CAP-18). */
+export interface ItemSlipSaldo {
+  siswa_id: number;
+  nomor: string;
+  nama: string;
+  kelas_nama: string | null;
+  status: StatusSiswa;
+  saldo: number;
+  transaksi: { tanggal: string; jenis: JenisTransaksi; nilai: number; saldo_setelah: number }[];
+}
+
+/** Satu baris rekap bulanan (CAP-22). `saldo_akhir` = saldo seluruh siswa pada akhir bulan itu. */
+export interface ItemRekapBulanan {
+  bulan: string; // YYYY-MM
+  setoran: number;
+  penarikan: number;
+  biaya_adm: number;
+  jumlah_transaksi: number;
+  saldo_akhir: number;
+}
+
+export interface HasilRekapBulanan {
+  /** Saldo seluruh siswa tepat sebelum tanggal `dari`. */
+  saldo_awal: number;
+  baris: ItemRekapBulanan[];
+}
+
+/** Siswa aktif yang masih bersaldo tetapi lama tidak bertransaksi (CAP-22). */
+export interface ItemSiswaPasif {
+  siswa_id: number;
+  nomor: string;
+  nama: string;
+  kelas_nama: string | null;
+  saldo: number;
+  transaksi_terakhir: string | null;
+}
+
+export interface ItemAktivitas {
+  id: number;
+  waktu: string;
+  aksi: string;
+  entitas: string;
+  entitas_id: number | null;
+  ringkasan: string;
+}
+
+/** Keadaan kunci PIN aplikasi (CAP-16). `tunggu_detik` > 0 berarti percobaan sedang dijeda. */
+export interface StatusKunci {
+  aktif: boolean;
+  terbuka: boolean;
+  tunggu_detik: number;
 }
 
 export interface ItemRekapKelas {
@@ -192,7 +247,8 @@ export interface HasilLaporanTransaksi {
 
 export type PermintaanEkspor =
   | { jenis: 'transaksi'; dari: string; sampai: string; kelasId?: number; jenisTransaksi?: JenisTransaksi }
-  | { jenis: 'rekapSiswa'; tahunAjaranId?: number; kelasId?: number };
+  | { jenis: 'rekapSiswa'; tahunAjaranId?: number; kelasId?: number }
+  | { jenis: 'rekapBulanan'; dari: string; sampai: string };
 
 export interface HasilPeriksaIntegritas {
   apakah_seimbang: boolean;
@@ -313,6 +369,36 @@ export interface PundiApi {
     tanggal?: string;
     keterangan?: string;
   }) => Promise<Result<Transaksi>>;
+  /** Setoran banyak siswa sekaligus; semua tersimpan atau tidak sama sekali (CAP-19). */
+  transaksiSetorMassal: (data: {
+    tanggal?: string;
+    keterangan?: string;
+    baris: { siswa_id: number; nominal: number }[];
+  }) => Promise<Result<{ jumlah: number; total: number; transaksi_ids: number[] }>>;
+  /** Pratinjau potongan biaya administrasi satu kelas (CAP-08); tidak menulis apa pun. */
+  biayaAdmRencana: (data: { kelas_id: number; nominal: number; periode: string }) => Promise<
+    Result<{
+      keterangan: string;
+      dipotong: { siswa_id: number; nomor: string; nama: string; saldo: number }[];
+      dilewati: { siswa_id: number; nomor: string; nama: string; alasan: string }[];
+    }>
+  >;
+  /** Memotong biaya administrasi satu kelas sekaligus; semua tersimpan atau tidak sama sekali. */
+  biayaAdmTerapkan: (data: { kelas_id: number; nominal: number; periode: string; tanggal?: string }) => Promise<
+    Result<{
+      jumlah: number;
+      total: number;
+      dilewati: { siswa_id: number; nomor: string; nama: string; alasan: string }[];
+    }>
+  >;
+  kunciStatus: () => Promise<Result<StatusKunci>>;
+  kunciBuka: (pin: string) => Promise<Result<null>>;
+  kunciKunciSekarang: () => Promise<Result<null>>;
+  /** Mengaktifkan PIN; kode pemulihan hanya dikembalikan sekali. */
+  kunciAtur: (pin: string) => Promise<Result<{ kode_pemulihan: string }>>;
+  kunciUbah: (pinLama: string, pinBaru: string) => Promise<Result<null>>;
+  kunciMatikan: (pin: string) => Promise<Result<null>>;
+  kunciPulihkan: (kode: string, pinBaru: string) => Promise<Result<{ kode_pemulihan: string }>>;
   transaksiTarik: (data: {
     siswa_id: number;
     nominal: number;
@@ -340,6 +426,11 @@ export interface PundiApi {
     kelasId?: number;
   }) => Promise<Result<ItemLaporanSiswa[]>>;
 
+  laporanRekapBulanan: (dari: string, sampai: string) => Promise<Result<HasilRekapBulanan>>;
+  /** Siswa aktif bersaldo yang tidak bertransaksi selama `bulan` bulan terakhir. */
+  laporanSiswaPasif: (bulan: number) => Promise<Result<ItemSiswaPasif[]>>;
+  /** Riwayat aktivitas terbaru lebih dulu; `sebelumId` untuk halaman berikutnya. */
+  auditDaftar: (sebelumId?: number) => Promise<Result<ItemAktivitas[]>>;
   laporanTransaksi: (filter: FilterLaporanTransaksi) => Promise<Result<HasilLaporanTransaksi>>;
   /** Membuka dialog simpan lalu menulis berkas Excel; mengembalikan null bila dibatalkan. */
   laporanEkspor: (data: PermintaanEkspor) => Promise<Result<{ nama_berkas: string } | null>>;
@@ -353,6 +444,10 @@ export interface PundiApi {
   // Integritas & Backup
   integritasPeriksa: () => Promise<Result<HasilPeriksaIntegritas>>;
   backupBuat: (keterangan?: string) => Promise<Result<{ berkas: string; ukuran_bytes: number }>>;
+  /** Membuka dialog folder lalu menyalin cadangan ke sana; null bila dibatalkan (CAP-21). */
+  backupSalinKeLuar: () => Promise<Result<{ nama_berkas: string; ukuran_bytes: number } | null>>;
+  /** Waktu ISO salinan luar terakhir, atau null bila belum pernah. */
+  backupTerakhirKeLuar: () => Promise<Result<string | null>>;
   backupTerakhir: () => Promise<Result<{ tanggal: string; jenis: 'manual' | 'otomatis' | 'pre-restore' } | null>>;
   backupDaftar: () => Promise<
     Result<Array<{ nama: string; token: string; jenis: 'manual' | 'otomatis' | 'pre-restore'; ukuran: number; tanggal: string }>>
@@ -371,8 +466,13 @@ export interface PundiApi {
 }
 
 export interface CetakLaporanInput {
-  jenis: 'rekapKelas' | 'rekapSiswa' | 'transaksi' | 'bukuBesar';
+  jenis: 'rekapKelas' | 'rekapSiswa' | 'transaksi' | 'bukuBesar' | 'slipSaldo' | 'tutupKas' | 'rekapBulanan';
   tahunAjaranId?: number;
+  /** Tanggal kas yang ditutup (jenis `tutupKas`); bawaan hari ini. */
+  tanggal?: string;
+  /** Uang tunai di laci saat pembukaan dan hasil hitung fisik (jenis `tutupKas`), rupiah bulat. */
+  kasAwal?: number;
+  uangFisik?: number;
   kelasId?: number;
   siswaId?: number;
   dari?: string;

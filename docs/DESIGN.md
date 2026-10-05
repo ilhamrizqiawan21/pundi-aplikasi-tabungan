@@ -46,9 +46,11 @@ Titik henti memakai lebar jendela; aturannya ada di `src/renderer/styles/layout.
 | < 1100 px | Bilah samping menjadi rel ikon (76 px). Nama menu tetap terbaca pembaca layar dan muncul sebagai tooltip; label pintasan disembunyikan. Kartu status cadangan menyisakan titik status dan tombol ikon |
 | < 1220 px | Data Siswa satu kolom: daftar di atas (maks 420 px, dapat digulir), buku besar di bawah. Memilih siswa menggulir ke buku besar |
 | < 1360 px | Catat Transaksi dua kolom: pilih siswa di kiri, form di tengah, **Ringkasan hari ini** dan **Riwayat siswa** pindah ke bawah form |
-| Kartu angka Beranda | `auto-fit` minimal 200 px; ikon turun ke atas angka bila kartu sempit. Angka rupiah tidak pernah terpecah dua baris |
+| Kartu angka Beranda | `auto-fit` minimal 200 px; ikon turun ke atas angka bila kartu sempit. Angka rupiah tidak pernah terpecah dua baris. Nominal 14 karakter atau lebih (miliaran) memakai lebar penuh kartu, ikon di atasnya, huruf 18 px |
+| Tinggi < 761 px | Catat Transaksi dirapatkan (padding form dan kotak "Belum ada siswa") agar tombol **Simpan transaksi** tetap terlihat tanpa menggulir pada 1024 × 680 |
+| Tinggi < 700 px | Bilah samping dirapatkan (header, jarak menu, kartu cadangan tanpa teks penjelas) agar sembilan menu muat tanpa menggulir. Berlaku untuk laptop 1366 × 768 pada skala Windows 125% |
 
-Aturan: tidak boleh ada elemen yang keluar dari jendela dan tidak boleh ada gulir horizontal pada lebar mana pun ≥ 1024 px (dijaga uji alur `responsif.spec.ts`).
+Aturan: tidak boleh ada elemen yang keluar dari jendela dan tidak boleh ada gulir horizontal pada lebar mana pun ≥ 1024 px (dijaga uji alur `responsif.spec.ts` dan `layout.spec.ts`).
 
 ## 4. Layar dan alur
 
@@ -75,6 +77,14 @@ Tiga tab: **Rekap per Kelas**, **Rekap per Siswa** (dengan **Ekspor Excel**), da
 
 ### 4.4a Tahun Ajaran & Kelas
 Menu tersendiri (sebelumnya direncanakan di Pengaturan, dipindah atas arahan pemilik agar mudah ditemukan). Daftar tahun ajaran dengan lencana **Aktif**, tombol **Jadikan Aktif**, **Ubah**, **Hapus** (hanya bila tidak aktif dan belum punya kelas). Di bawahnya daftar kelas tahun yang dipilih (nama, tingkat, urutan, jumlah siswa) dengan **Tambah Kelas**, **Ubah**, **Hapus** (hanya bila tanpa siswa dan tanpa transaksi) dan **Salin Kelas dari Tahun Lain** (daftar kelas tanpa siswa). Keadaan kosong: "Belum ada tahun ajaran. Buat tahun ajaran pertama untuk mulai mengelompokkan siswa ke dalam kelas." Form tahun ajaran terisi saran (Juli–Juni). Mengaktifkan tahun ajaran baru menampilkan peringatan bahwa siswa belum punya kelas di tahun itu sampai dipindahkan.
+
+**Tambahan rutinitas harian.** Catat Transaksi punya tombol **Setoran per Kelas** (dialog: pilih kelas, tanggal, tabel siswa dengan kolom nominal; Enter atau panah bawah pindah baris; galat per baris; tombol Simpan menyebut jumlah dan total). Laporan punya tab **Slip Saldo** (pilih kelas, pratinjau, cetak/PDF) dan **Tutup Kas** (kas awal, uang fisik, selisih langsung, cetak berita acara). Beranda menampilkan pengingat kuning bila salinan ke flashdisk belum ada atau lebih dari 14 hari, dapat ditutup selama sesi.
+
+**Tambahan laporan.** Laporan punya tab **Rekap Bulanan**: pilih periode (tahun ajaran atau 12 bulan terakhir), grafik batang setoran (hijau) dan penarikan (merah) per bulan dengan tabel angka di bawahnya, tombol Cetak/PDF dan Ekspor Excel, serta bagian **Saldo mengendap** (siswa aktif bersaldo yang diam 1/3/6/12 bulan). Pengaturan memuat **Riwayat aktivitas** hanya-baca di bagian bawah.
+
+**Biaya administrasi.** Tombol **Biaya Adm** di Catat Transaksi membuka dialog: kelas, periode (label bebas), biaya per siswa, tanggal. **Tinjau** menampilkan jumlah siswa yang dipotong dan daftar yang dilewati beserta alasannya; **Terapkan Potongan** baru aktif setelah ditinjau dan menyimpan sekaligus. Tutup Kas dan Rekap Bulanan menampilkan biaya administrasi terpisah karena tidak memengaruhi kas.
+
+**Kunci PIN.** Bila PIN aktif, yang pertama tampil adalah halaman PIN (logo, satu kolom 6 angka yang terkirim otomatis pada angka ke-6, tautan Lupa PIN) dan tidak ada menu atau data yang dimuat. Bilah atas punya tombol **Kunci** untuk mengunci cepat. Pengaturan memuat panel **Keamanan: PIN aplikasi** (aktifkan, ubah, matikan, kunci sekarang). Kode pemulihan tampil sekali dan harus dicentang "sudah menyimpan" sebelum lanjut.
 
 ### 4.5 Kenaikan Kelas
 Pilih kelas asal → daftar siswa (semua tercentang) → pilih kelas tujuan (tahun ajaran baru) → **Tinjau** (daftar perubahan) → **Terapkan**. Pilihan lulus/keluar per siswa.

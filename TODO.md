@@ -61,10 +61,17 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 
 | ID | Tugas | CAP | Bukti | ✓ |
 | --- | --- | --- | --- | --- |
-| F4-1 | Biaya administrasi (sesuai D-06) | 08 | Uji | [ ] |
+| F4-1 | Biaya administrasi (sesuai D-06) | 08 | `npm test` lulus (biaya-adm.test.ts: satu siswa, rencana dan alasan dilewati, massal atomik, periode ganda, koreksi membuka lagi, kas/rekap memisahkan biaya adm, uji properti 300 operasi acak: saldo >= 0 dan nol selisih); Playwright biaya-adm.spec.ts. **Aturan D-06 masih sementara; konfirmasi ke bendahara nyata** | [x] |
 | F4-2 | Kenaikan kelas dan kelulusan | 12 | Uji lulus: kenaikan.test.ts (7 uji: pindah/lulus/keluar, saldo dan CAP-17 tak berubah, riwayat kelas lama tetap, semua-atau-tidak-sama-sekali) + Playwright kenaikan.spec.ts. Dimajukan ke rilis 0.1 atas permintaan pemilik; PRD §7 diperbarui. Pembatalan sebelum disimpan lewat langkah Tinjau | [x] |
 | F4-3 | Migrasi dari aplikasi lama lewat Excel, dengan layar pencocokan | 14 | Uji lulus dengan data sintetis (impor.test.ts, impor.spec.ts): pemetaan kolom otomatis dan manual, saldo awal sebagai transaksi saldo_awal lewat ledger, pencocokan jumlah siswa dan total saldo sebelum simpan, semua-atau-tidak-sama-sekali. Dimajukan ke 0.1 atas permintaan pemilik. **Belum diuji dengan berkas ekspor aplikasi lama sungguhan (S-04)** | [x] |
 | F4-4 | Tema (lima) dan PIN aplikasi | 15, 16 | Uji | [ ] |
+| F4-5 | Slip saldo siswa per kelas (cetak/PDF) | 18 | `npm test` lulus (rutinitas-harian.test.ts: saldo + 5 transaksi terakhir urut, satu siswa, HTML ter-escape); Playwright harian.spec.ts membaca pratinjau. **Belum diukur pada cetak nyata** | [ ] |
+| F4-6 | Setoran massal per kelas | 19 | `npm test` lulus (atomik: satu baris gagal tidak menyimpan apa pun dan nomor bukti tidak terpakai; siswa non-aktif menolak semua; nol selisih CAP-17); Playwright: isi keyboard, validasi, simpan | [x] |
+| F4-7 | Tutup kas harian + berita acara | 20 | `npm test` lulus (rumus kas seharusnya dan label selisih); Playwright: selisih Kurang/Sesuai. **Belum diukur pada cetak nyata** | [ ] |
+| F4-9 | Rekap bulanan, grafik, saldo mengendap | 22 | `npm test` lulus (analitik.test.ts: total per bulan, bulan kosong 0, saldo awal periode, saldo awal migrasi bukan setoran, rentang tidak sah, siswa pasif, ekspor Excel dibaca kembali, HTML ter-escape); Playwright analitik.spec.ts. **Cetak belum diukur pada cetak nyata** | [ ] |
+| F4-10 | Riwayat aktivitas (hanya baca) di Pengaturan | 23 | `npm test` lulus (urutan, halaman `sebelumId`, ringkasan tanpa nama/nominal); Playwright analitik.spec.ts | [x] |
+| F4-11 | Kunci PIN 6 angka (CAP-16): halaman PIN, ubah/matikan, kode pemulihan, jeda percobaan | 16 | `npx vitest run src/main/services/kunci.test.ts` 12 uji lulus (hash tanpa teks PIN, jeda lintas instans dan batas 15 menit, ubah/matikan, pemulihan satu kali, berkas rusak = terkunci); Playwright pin.spec.ts (53 uji e2e total lulus): aktifkan, terkunci menolak baca/tulis di proses utama, PIN salah/benar, lupa PIN, matikan. **Perlu dicoba manual oleh pemilik; aktivasi lisensi belum dibuat (menunggu D-09)** | [ ] |
+| F4-8 | Salinan cadangan ke flashdisk + pengingat di Beranda | 21 | `npm test` lulus (salinan utuh dapat dibuka, tercatat tanpa jalur, folder tidak ada ditolak); Playwright: pengingat tampil dan dapat ditutup. Dialog folder asli belum dicoba manual | [ ] |
 
 ## F5 — macOS Apple Silicon
 

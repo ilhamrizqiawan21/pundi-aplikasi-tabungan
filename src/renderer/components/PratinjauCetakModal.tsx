@@ -113,7 +113,7 @@ export function PratinjauCetakModal({
               onClick={handleSimpan}
               disabled={menyimpanPdf || mencetak}
             >
-              {menyimpanPdf ? 'Menyimpan PDF...' : '📄 Simpan PDF'}
+              {menyimpanPdf ? 'Menyimpan PDF...' : 'Simpan PDF'}
             </button>
           )}
           <button
@@ -122,7 +122,7 @@ export function PratinjauCetakModal({
             onClick={handleCetak}
             disabled={mencetak || menyimpanPdf}
           >
-            {mencetak ? 'Mencetak...' : '🖨️ Cetak'}
+            {mencetak ? 'Mencetak...' : 'Cetak'}
           </button>
           <button
             type="button"

@@ -42,6 +42,9 @@
 .kartu-metrik { flex-wrap: wrap; }
 .kartu-metrik > .kartu-metrik-isi { flex: 1 1 140px; }
 .kartu-metrik .nilai-uang { white-space: nowrap; }
+/* Nominal >= 14 karakter (mis. Rp 8.810.074.512): angka mendapat lebar penuh kartu, ikon di atasnya, huruf sedikit lebih kecil */
+.kartu-metrik-panjang > .kartu-metrik-isi { flex-basis: 100%; }
+.kartu-metrik-panjang .nilai-uang { font-size: 18px !important; }
 
 /* ---------- Catat Transaksi ---------- */
 .grid-catat {
@@ -51,6 +54,13 @@
   align-items: start;
 }
 .catat-kiri { max-height: calc(100vh - 120px); }
+.catat-kosong { padding: 24px; }
+.catat-form { padding: 24px; gap: 20px; }
+/* Jendela pendek (tinggi < 761 px): rapatkan agar tombol Simpan tetap terlihat tanpa menggulir */
+@media (max-height: 760px) {
+  .catat-kosong { padding: 12px 16px; }
+  .catat-form { padding: 16px 20px; gap: 14px; }
+}
 @media (max-width: 1359px) {
   .grid-catat { grid-template-columns: 300px minmax(0, 1fr); }
   .grid-catat > .catat-kiri { grid-row: 1 / span 2; }
@@ -68,4 +78,14 @@
 @media (max-width: 1219px) {
   .grid-siswa { grid-template-columns: minmax(0, 1fr); }
   .siswa-daftar { max-height: 420px; }
+}
+
+/* ---------- Jendela pendek (tinggi < 700 px, mis. laptop 768 px dengan skala 125%) ----------
+ * Sembilan menu dan kartu cadangan harus tetap muat tanpa menggulir bilah samping.
+ * Ditaruh paling akhir agar menang atas aturan rel ikon di atas. */
+@media (max-height: 699px) {
+  .brand-header { padding-top: 10px; padding-bottom: 6px; }
+  .nav-item { padding-top: 5px; padding-bottom: 5px; }
+  .sidebar-backup-card { padding-top: 8px !important; padding-bottom: 8px !important; gap: 6px !important; }
+  .sidebar-backup-card > p { display: none; }
 }

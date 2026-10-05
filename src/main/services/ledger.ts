@@ -25,6 +25,52 @@ export interface TarikInput {
   keterangan?: string;
 }
 
+export interface SetorMassalInput {
+  tanggal?: string;
+  keterangan?: string;
+  baris: { siswa_id: number; nominal: number }[];
+}
+
+export interface HasilSetorMassal {
+  jumlah: number;
+  total: number;
+  transaksi_ids: number[];
+}
+
+/** Dilempar di dalam transaksi SQL setoran massal agar semuanya dibatalkan bila satu baris gagal. */
+class GagalBarisMassal extends Error {
+  constructor(public readonly hasil: { kode: string; pesan: string }, public readonly nomorBaris: number) {
+    super('GAGAL_BARIS_MASSAL');
+  }
+}
+
+export interface BiayaAdmInput {
+  siswa_id: number;
+  nominal: number;
+  tanggal?: string;
+  keterangan?: string;
+}
+
+export interface BiayaAdmMassalInput {
+  kelas_id: number;
+  nominal: number;
+  /** Label periode bebas (mis. "Semester 1 2025/2026"); menjadi bagian keterangan dan kunci anti-ganda. */
+  periode: string;
+  tanggal?: string;
+}
+
+export interface RencanaBiayaAdm {
+  keterangan: string;
+  dipotong: { siswa_id: number; nomor: string; nama: string; saldo: number }[];
+  dilewati: { siswa_id: number; nomor: string; nama: string; alasan: string }[];
+}
+
+export interface HasilBiayaAdmMassal {
+  jumlah: number;
+  total: number;
+  dilewati: RencanaBiayaAdm['dilewati'];
+}
+
 export interface BalikInput {
   transaksi_id: number;
   alasan: string;
@@ -184,6 +230,204 @@ export class LedgerService {
         return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
       }
       console.error('ledger.setor gagal:', (err as { code?: string }).code ?? 'TAK_DIKENAL');
+      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
+  /**
+   * CAP-19: Setoran massal satu kelas. Semua baris disimpan dalam satu transaksi SQL lewat `setor`
+   * (nomor bukti dan saldo dibuat di sana); satu baris gagal berarti tidak ada yang tersimpan.
+   */
+  public setorMassal(input: SetorMassalInput): Result<HasilSetorMassal> {
+    const db = getDb();
+    try {
+      const transaksiIds: number[] = [];
+      let total = 0;
+      db.transaction(() => {
+        input.baris.forEach((b, i) => {
+          const res = this.setor({
+            siswa_id: b.siswa_id,
+            nominal: b.nominal,
+            tanggal: input.tanggal,
+            keterangan: input.keterangan,
+          });
+          if (!res.ok) throw new GagalBarisMassal(res, i + 1);
+          transaksiIds.push(res.data.id);
+          total += b.nominal;
+        });
+      })();
+      if (!Number.isSafeInteger(total)) {
+        // Tidak terjangkau karena tiap saldo sudah dicek; dijaga agar jumlah tidak pernah tidak valid
+        return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
+      }
+      return { ok: true, data: { jumlah: transaksiIds.length, total, transaksi_ids: transaksiIds } };
+    } catch (err: unknown) {
+      if (err instanceof GagalBarisMassal) {
+        return {
+          ok: false,
+          kode: err.hasil.kode,
+          pesan: `Baris ke-${err.nomorBaris}: ${err.hasil.pesan} Tidak ada setoran yang tersimpan.`,
+        };
+      }
+      console.error('ledger.setorMassal gagal:', (err as { code?: string }).code ?? 'TAK_DIKENAL');
+      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
+  /**
+   * CAP-08: Biaya administrasi satu siswa. Transaksi tersendiri (`biaya_adm`) yang mengurangi saldo;
+   * tidak boleh membuat saldo negatif. Uang tidak keluar dari laci, jadi tidak masuk hitungan kas.
+   */
+  public biayaAdm(input: BiayaAdmInput): Result<Transaksi> {
+    const db = getDb();
+    const tanggal = input.tanggal || hariIniLokal();
+
+    if (!Number.isSafeInteger(input.nominal) || input.nominal <= 0) {
+      return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
+    }
+    const salahTanggal = galatTanggal(tanggal, false);
+    if (salahTanggal) return { ok: false, kode: 'VALIDASI_GAGAL', pesan: salahTanggal };
+
+    try {
+      let createdTrx: Transaksi | null = null;
+      db.transaction(() => {
+        const siswa = db.prepare(`SELECT id FROM siswa WHERE id = ?`).get(input.siswa_id);
+        if (!siswa) throw new Error('SISWA_TIDAK_DITEMUKAN');
+
+        const saldoLama = this.getSaldoSiswa(input.siswa_id);
+        if (input.nominal > saldoLama) throw new Error('SALDO_TIDAK_CUKUP');
+
+        const saldoBaru = saldoLama - input.nominal;
+        const nomorBukti = this.generateNomorBukti(db, tanggal);
+        const kelasId = this.getKelasAktifSiswa(db, input.siswa_id);
+        const dibuatPada = new Date().toISOString();
+
+        const insert = db.prepare(`
+          INSERT INTO transaksi (
+            nomor_bukti, siswa_id, kelas_id, tanggal, jenis, nilai,
+            saldo_setelah, keterangan, membalik_id, impor_id, dibuat_pada
+          ) VALUES (?, ?, ?, ?, 'biaya_adm', ?, ?, ?, NULL, NULL, ?)
+        `).run(nomorBukti, input.siswa_id, kelasId, tanggal, -input.nominal, saldoBaru, input.keterangan || null, dibuatPada);
+
+        db.prepare(`
+          INSERT INTO audit_log (waktu, aksi, entitas, entitas_id, ringkasan)
+          VALUES (?, 'transaksi.biaya_adm', 'transaksi', ?, 'Biaya administrasi dicatat')
+        `).run(dibuatPada, insert.lastInsertRowid);
+
+        createdTrx = {
+          id: Number(insert.lastInsertRowid),
+          nomor_bukti: nomorBukti,
+          siswa_id: input.siswa_id,
+          kelas_id: kelasId,
+          tanggal,
+          jenis: 'biaya_adm',
+          nilai: -input.nominal,
+          saldo_setelah: saldoBaru,
+          keterangan: input.keterangan || null,
+          membalik_id: null,
+          impor_id: null,
+          dibuat_pada: dibuatPada,
+        };
+      })();
+      return { ok: true, data: createdTrx! };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg === 'SISWA_TIDAK_DITEMUKAN') {
+        return { ok: false, kode: 'SISWA_TIDAK_DITEMUKAN', pesan: ERROR_MESSAGES.SISWA_TIDAK_DITEMUKAN };
+      }
+      if (msg === 'SALDO_TIDAK_CUKUP') {
+        return { ok: false, kode: 'SALDO_TIDAK_CUKUP', pesan: ERROR_MESSAGES.SALDO_TIDAK_CUKUP };
+      }
+      console.error('ledger.biayaAdm gagal:', (err as { code?: string }).code ?? 'TAK_DIKENAL');
+      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
+  /**
+   * Rencana potongan biaya administrasi satu kelas (hanya membaca). Aturan (D-06): hanya siswa aktif;
+   * siswa yang saldonya kurang dari biaya dilewati (tidak ada potongan sebagian); siswa yang sudah dipotong
+   * untuk periode yang sama (dan belum dikoreksi) dilewati agar tidak ganda.
+   */
+  public rencanaBiayaAdm(input: { kelas_id: number; nominal: number; periode: string }): Result<RencanaBiayaAdm> {
+    const db = getDb();
+    const periode = input.periode.trim();
+    if (!Number.isSafeInteger(input.nominal) || input.nominal <= 0) {
+      return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
+    }
+    if (periode.length < 3 || periode.length > 40) {
+      return { ok: false, kode: 'VALIDASI_GAGAL', pesan: 'Periode harus 3 sampai 40 karakter.' };
+    }
+    const keterangan = `Biaya administrasi ${periode}`;
+    try {
+      const siswaKelas = db.prepare(`
+        SELECT s.id, s.nomor, s.nama, s.status
+        FROM siswa s
+        JOIN penempatan p ON p.siswa_id = s.id AND p.kelas_id = ?
+        ORDER BY s.nama ASC
+      `).all(input.kelas_id) as { id: number; nomor: string; nama: string; status: string }[];
+
+      const sudahDipotong = db.prepare(`
+        SELECT 1 FROM transaksi t
+        WHERE t.siswa_id = ? AND t.jenis = 'biaya_adm' AND t.keterangan = ?
+          AND NOT EXISTS (SELECT 1 FROM transaksi b WHERE b.membalik_id = t.id)
+      `);
+
+      const rencana: RencanaBiayaAdm = { keterangan, dipotong: [], dilewati: [] };
+      for (const s of siswaKelas) {
+        const saldo = this.getSaldoSiswa(s.id);
+        const lewati = (alasan: string) => rencana.dilewati.push({ siswa_id: s.id, nomor: s.nomor, nama: s.nama, alasan });
+        if (s.status !== 'aktif') lewati(s.status === 'lulus' ? 'Sudah lulus' : 'Sudah keluar');
+        else if (sudahDipotong.get(s.id, keterangan)) lewati('Sudah dipotong untuk periode ini');
+        else if (saldo < input.nominal) lewati('Saldo kurang dari biaya');
+        else rencana.dipotong.push({ siswa_id: s.id, nomor: s.nomor, nama: s.nama, saldo });
+      }
+      return { ok: true, data: rencana };
+    } catch {
+      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
+  /**
+   * CAP-08: Potong biaya administrasi satu kelas sekaligus. Rencana dihitung ulang di dalam transaksi SQL
+   * (bukan memercayai pratinjau), lalu tiap siswa yang layak dipotong lewat `biayaAdm`; gagal satu = batal semua.
+   */
+  public biayaAdmMassal(input: BiayaAdmMassalInput): Result<HasilBiayaAdmMassal> {
+    const db = getDb();
+    try {
+      let hasil: HasilBiayaAdmMassal | null = null;
+      let galat: { kode: string; pesan: string } | null = null;
+      db.transaction(() => {
+        const rencana = this.rencanaBiayaAdm(input);
+        if (!rencana.ok) {
+          galat = rencana;
+          return;
+        }
+        if (rencana.data.dipotong.length === 0) {
+          galat = { kode: 'VALIDASI_GAGAL', pesan: 'Tidak ada siswa yang bisa dipotong pada kelas ini.' };
+          return;
+        }
+        for (const s of rencana.data.dipotong) {
+          const res = this.biayaAdm({
+            siswa_id: s.siswa_id,
+            nominal: input.nominal,
+            tanggal: input.tanggal,
+            keterangan: rencana.data.keterangan,
+          });
+          if (!res.ok) throw new GagalBarisMassal(res, rencana.data.dipotong.indexOf(s) + 1);
+        }
+        hasil = {
+          jumlah: rencana.data.dipotong.length,
+          total: rencana.data.dipotong.length * input.nominal,
+          dilewati: rencana.data.dilewati,
+        };
+      })();
+      if (galat) return { ok: false, ...(galat as { kode: string; pesan: string }) };
+      return { ok: true, data: hasil! };
+    } catch (err: unknown) {
+      if (err instanceof GagalBarisMassal) {
+        return { ok: false, kode: err.hasil.kode, pesan: `Siswa ke-${err.nomorBaris}: ${err.hasil.pesan} Tidak ada potongan yang tersimpan.` };
+      }
+      console.error('ledger.biayaAdmMassal gagal:', (err as { code?: string }).code ?? 'TAK_DIKENAL');
       return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
     }
   }

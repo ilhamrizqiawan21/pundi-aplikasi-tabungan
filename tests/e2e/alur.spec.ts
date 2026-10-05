@@ -179,11 +179,11 @@ test.describe('pintasan keyboard', () => {
     'Pengaturan Aplikasi',
   ];
 
-  test('label pintasan di menu sesuai kenyataan: Alt+1..9 dan Ctrl+K untuk Catat Transaksi', async () => {
+  test('menu tidak menampilkan label pintasan (Alt+1..9 tetap berfungsi)', async () => {
     const tombol = nav().getByRole('button');
     await expect(tombol).toHaveCount(9);
     for (let i = 0; i < 9; i++) {
-      await expect(tombol.nth(i)).toContainText(i === 1 ? 'Ctrl+K' : `Alt+${i + 1}`);
+      await expect(tombol.nth(i)).not.toContainText(/Alt\+|Ctrl\+/);
     }
   });
 

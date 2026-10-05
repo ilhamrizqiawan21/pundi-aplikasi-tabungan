@@ -11,6 +11,14 @@ export function esc(input: unknown): string {
     .replace(/'/g, '&#039;');
 }
 
+const LABEL_STRUK: Record<string, string> = {
+  setoran: 'SETORAN',
+  penarikan: 'PENARIKAN',
+  biaya_adm: 'BIAYA ADMINISTRASI',
+  saldo_awal: 'SALDO AWAL',
+  pembalik: 'KOREKSI',
+};
+
 export function generateReceiptHtml(
   transaksi: Transaksi,
   siswa: Siswa,
@@ -58,7 +66,7 @@ export function generateReceiptHtml(
   <div class="divider"></div>
 
   <div class="row bold" style="font-size: 13px;">
-    <span>${transaksi.jenis === 'setoran' ? 'SETORAN' : transaksi.jenis === 'penarikan' ? 'PENARIKAN' : 'KOREKSI'}</span>
+    <span>${LABEL_STRUK[transaksi.jenis] ?? 'KOREKSI'}</span>
     <span>${transaksi.nilai > 0 ? formatRupiah(transaksi.nilai) : formatRupiah(Math.abs(transaksi.nilai))}</span>
   </div>
   <div class="row bold">

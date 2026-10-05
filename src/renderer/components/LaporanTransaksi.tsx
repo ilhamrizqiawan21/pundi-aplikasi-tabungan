@@ -186,7 +186,7 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
                   onClick={handleCetakTransaksi}
                   disabled={hasil.jumlah === 0 || cetakLoading}
                 >
-                  {cetakLoading ? 'Menyiapkan...' : '🖨️ Cetak / PDF'}
+                  {cetakLoading ? 'Menyiapkan...' : 'Cetak / PDF'}
                 </button>
                 <button
                   type="button"

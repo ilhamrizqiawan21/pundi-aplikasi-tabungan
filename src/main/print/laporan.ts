@@ -3,6 +3,9 @@ import type {
   ItemRekapKelas,
   ItemLaporanSiswa,
   ItemLaporanTransaksi,
+  ItemSlipSaldo,
+  HasilRekapBulanan,
+  RingkasanKasHarian,
   Siswa,
   Transaksi,
 } from '../../shared/types.js';
@@ -279,7 +282,7 @@ export function generateLaporanTransaksiHtml(
           <td>${esc(t.siswa_nama)}</td>
           <td class="text-center">${esc(t.siswa_nomor)}</td>
           <td class="text-center">${esc(t.kelas_nama || '-')}</td>
-          <td class="text-center bold">${t.jenis === 'setoran' ? 'SETOR' : t.jenis === 'penarikan' ? 'TARIK' : 'KOREKSI'}</td>
+          <td class="text-center bold">${esc(LABEL_BUKU[t.jenis] ?? 'KOREKSI')}</td>
           <td class="text-right tabular-nums bold" style="${t.nilai > 0 ? 'color: #0b7a40;' : 'color: #b31d28;'}">
             ${t.nilai > 0 ? `+${formatRupiah(t.nilai)}` : formatRupiah(t.nilai)}
           </td>
@@ -307,6 +310,14 @@ export function generateLaporanTransaksiHtml(
 </html>
   `.trim();
 }
+
+const LABEL_BUKU: Record<string, string> = {
+  setoran: 'SETOR',
+  penarikan: 'TARIK',
+  biaya_adm: 'BIAYA ADM',
+  saldo_awal: 'SALDO AWAL',
+  pembalik: 'KOREKSI',
+};
 
 export function generateBukuBesarSiswaHtml(
   profil: ProfilSekolah,
@@ -401,6 +412,196 @@ export function generateBukuBesarSiswaHtml(
     </tfoot>
   </table>
 
+  ${tandaTanganHtml(profil)}
+</body>
+</html>
+  `.trim();
+}
+
+
+const LABEL_JENIS: Record<string, string> = {
+  setoran: 'Setor',
+  penarikan: 'Tarik',
+  pembalik: 'Koreksi',
+  saldo_awal: 'Saldo awal',
+};
+
+/** Slip saldo siswa (CAP-18): dua kolom per halaman A4, satu slip per siswa, garis potong tipis. */
+export function generateSlipSaldoHtml(profil: ProfilSekolah, data: ItemSlipSaldo[], judulKelas: string): string {
+  const dicetak = formatTanggalIndonesia(new Date());
+  const slip = (s: ItemSlipSaldo): string => `
+    <div class="slip">
+      <div class="slip-kop">${esc(profil.nama || 'TABUNGAN SISWA')}</div>
+      <div class="slip-judul">Slip Saldo Tabungan</div>
+      <div class="slip-nama">${esc(s.nama)}</div>
+      <div class="slip-meta">${esc(s.nomor)} &middot; Kelas ${esc(s.kelas_nama || '-')}</div>
+      <div class="slip-saldo tabular-nums">${formatRupiah(s.saldo)}</div>
+      <table class="slip-tabel">
+        <tbody>
+          ${
+            s.transaksi.length === 0
+              ? '<tr><td class="text-center" colspan="3">Belum ada transaksi.</td></tr>'
+              : s.transaksi
+                  .map(
+                    (t) => `<tr>
+            <td>${esc(t.tanggal)}</td>
+            <td>${esc(LABEL_JENIS[t.jenis] ?? t.jenis)}</td>
+            <td class="text-right tabular-nums">${t.nilai < 0 ? '-' : ''}${formatRupiah(Math.abs(t.nilai))}</td>
+          </tr>`
+                  )
+                  .join('')
+          }
+        </tbody>
+      </table>
+      <div class="slip-kaki">Per ${esc(dicetak)}</div>
+    </div>`;
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Slip Saldo ${esc(judulKelas)}</title>
+  <style>
+    ${baseStyles}
+    .lembar { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+    .slip { box-sizing: border-box; height: 66mm; padding: 4mm 5mm; border: 0.3mm dashed #888; page-break-inside: avoid; overflow: hidden; }
+    .slip-kop { font-size: 9pt; font-weight: bold; text-transform: uppercase; text-align: center; }
+    .slip-judul { font-size: 8pt; text-align: center; color: #444; margin-bottom: 2mm; }
+    .slip-nama { font-size: 11pt; font-weight: bold; }
+    .slip-meta { font-size: 8pt; color: #444; }
+    .slip-saldo { font-size: 15pt; font-weight: bold; margin: 1.5mm 0; }
+    .slip-tabel { font-size: 8pt; margin-top: 0; }
+    .slip-tabel td { border: none; border-bottom: 0.2mm solid #ccc; padding: 0.6mm 1mm; }
+    .slip-kaki { font-size: 7pt; color: #666; margin-top: 1mm; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="lembar">
+    ${data.length === 0 ? '<p>Tidak ada siswa pada kelas ini.</p>' : data.map(slip).join('')}
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+/** Berita acara penutupan kas harian: hitung kas yang seharusnya lawan uang fisik di laci. */
+export function generateTutupKasHtml(
+  profil: ProfilSekolah,
+  kas: RingkasanKasHarian,
+  kasAwal: number,
+  uangFisik: number
+): string {
+  const seharusnya = kasAwal + kas.total_setoran - kas.total_penarikan;
+  const selisih = uangFisik - seharusnya;
+  const ketSelisih = selisih === 0 ? 'Sesuai' : selisih > 0 ? 'Lebih' : 'Kurang';
+  const baris = (label: string, nilai: string, tebal = false): string => `
+    <tr>
+      <td class="text-left${tebal ? ' bold' : ''}">${esc(label)}</td>
+      <td class="text-right tabular-nums${tebal ? ' bold' : ''}">${nilai}</td>
+    </tr>`;
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Berita Acara Kas Harian ${esc(kas.tanggal)}</title>
+  <style>${baseStyles}</style>
+</head>
+<body>
+  ${kopSekolahHtml(profil)}
+  <div style="text-align: center; margin-bottom: 12px;">
+    <h3 style="margin: 0; font-size: 14px; text-transform: uppercase;">Berita Acara Penutupan Kas Harian</h3>
+    <div style="font-size: 12px; margin-top: 2px;">Tanggal ${esc(formatTanggalIndonesia(kas.tanggal))}</div>
+  </div>
+  <table style="max-width: 420px; margin: 0 auto;">
+    <tbody>
+      ${baris('Kas awal di laci', formatRupiah(kasAwal))}
+      ${baris('Setoran hari ini', formatRupiah(kas.total_setoran))}
+      ${baris('Penarikan hari ini', `- ${formatRupiah(kas.total_penarikan)}`)}
+      ${baris('Kas seharusnya', formatRupiah(seharusnya), true)}
+      ${baris('Uang fisik hasil hitung', formatRupiah(uangFisik), true)}
+      ${baris(`Selisih (${ketSelisih})`, `${selisih > 0 ? '+ ' : selisih < 0 ? '- ' : ''}${formatRupiah(Math.abs(selisih))}`, true)}
+      ${baris('Jumlah transaksi', String(kas.jumlah_transaksi))}
+      ${kas.total_biaya_adm !== 0 ? baris('Biaya administrasi (mengurangi saldo siswa, tidak memengaruhi kas)', formatRupiah(kas.total_biaya_adm)) : ''}
+    </tbody>
+  </table>
+  ${tandaTanganHtml(profil)}
+</body>
+</html>
+  `.trim();
+}
+
+
+const NAMA_BULAN = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+/** "2026-03" menjadi "Maret 2026". */
+export function labelBulan(bulan: string): string {
+  const [y, m] = bulan.split('-');
+  return `${NAMA_BULAN[Number(m) - 1] ?? m} ${y}`;
+}
+
+/** Rekap bulanan (CAP-22): setoran, penarikan, jumlah transaksi, dan saldo akhir tiap bulan. */
+export function generateRekapBulananHtml(profil: ProfilSekolah, data: HasilRekapBulanan, dari: string, sampai: string): string {
+  const totalSetoran = data.baris.reduce((t, r) => t + r.setoran, 0);
+  const totalPenarikan = data.baris.reduce((t, r) => t + r.penarikan, 0);
+  const totalTransaksi = data.baris.reduce((t, r) => t + r.jumlah_transaksi, 0);
+  const saldoAkhir = data.baris.length > 0 ? data.baris[data.baris.length - 1].saldo_akhir : data.saldo_awal;
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Rekap Bulanan ${esc(dari)} sampai ${esc(sampai)}</title>
+  <style>${baseStyles}</style>
+</head>
+<body>
+  ${kopSekolahHtml(profil)}
+  <div style="text-align: center; margin-bottom: 12px;">
+    <h3 style="margin: 0; font-size: 14px; text-transform: uppercase;">Rekap Tabungan per Bulan</h3>
+    <div style="font-size: 12px; margin-top: 2px;">${esc(formatTanggalIndonesia(dari))} sampai ${esc(formatTanggalIndonesia(sampai))}</div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th class="text-left">Bulan</th>
+        <th class="text-right">Setoran</th>
+        <th class="text-right">Penarikan</th>
+        <th class="text-right">Biaya Adm</th>
+        <th class="text-right">Transaksi</th>
+        <th class="text-right">Saldo Akhir Bulan</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="text-left">Saldo awal periode</td>
+        <td></td><td></td><td></td><td></td>
+        <td class="text-right tabular-nums">${formatRupiah(data.saldo_awal)}</td>
+      </tr>
+      ${data.baris
+        .map(
+          (r) => `<tr>
+        <td class="text-left">${esc(labelBulan(r.bulan))}</td>
+        <td class="text-right tabular-nums">${formatRupiah(r.setoran)}</td>
+        <td class="text-right tabular-nums">${formatRupiah(r.penarikan)}</td>
+        <td class="text-right tabular-nums">${formatRupiah(r.biaya_adm)}</td>
+        <td class="text-right tabular-nums">${r.jumlah_transaksi}</td>
+        <td class="text-right tabular-nums">${formatRupiah(r.saldo_akhir)}</td>
+      </tr>`
+        )
+        .join('')}
+    </tbody>
+    <tfoot>
+      <tr style="background-color: #f2f2f2; font-weight: bold;">
+        <td class="text-left">Total</td>
+        <td class="text-right tabular-nums">${formatRupiah(totalSetoran)}</td>
+        <td class="text-right tabular-nums">${formatRupiah(totalPenarikan)}</td>
+        <td class="text-right tabular-nums">${formatRupiah(data.baris.reduce((t, r) => t + r.biaya_adm, 0))}</td>
+        <td class="text-right tabular-nums">${totalTransaksi}</td>
+        <td class="text-right tabular-nums">${formatRupiah(saldoAkhir)}</td>
+      </tr>
+    </tfoot>
+  </table>
   ${tandaTanganHtml(profil)}
 </body>
 </html>

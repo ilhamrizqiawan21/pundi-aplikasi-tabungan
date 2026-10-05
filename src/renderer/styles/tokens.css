@@ -1,4 +1,4 @@
-/* Design Tokens - Pundi (DESIGN §2 & Mockup Pundi.pdf) */
+/* Token desain Pundi (DESIGN §2) */
 :root,
 [data-theme="putih"] {
   --bg: #F1F5F9;
@@ -84,7 +84,7 @@
   --danger-bg: #FEE2E2;
   --danger-text: #B91C1C;
 
-  /* Sidebar Mockup Tokens */
+  /* Token bilah samping */
   --sidebar-bg: #0C1E38;
   --sidebar-text: #F1F5F9;
   --sidebar-muted: #8498AE;

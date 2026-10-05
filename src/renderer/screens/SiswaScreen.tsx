@@ -155,7 +155,7 @@ export function SiswaScreen() {
   return (
     <div className="grid-siswa">
       {/* ======================================================== */}
-      {/* PANEL KIRI: DAFTAR SISWA (Mockup Page 3)                 */}
+      {/* PANEL KIRI: DAFTAR SISWA                                 */}
       {/* ======================================================== */}
       <section
         className="siswa-daftar"
@@ -317,7 +317,7 @@ export function SiswaScreen() {
           })}
         </div>
 
-        {/* Tabel / Daftar Siswa (Menyediakan role="row" agar Playwright alur.spec.ts & akademik.spec.ts lulus) */}
+        {/* Tabel daftar siswa */}
         <div
           style={{
             flex: 1,
@@ -396,12 +396,12 @@ export function SiswaScreen() {
       </section>
 
       {/* ======================================================== */}
-      {/* PANEL KANAN: BUKU BESAR SISWA TERPILIH (Mockup Page 3)   */}
+      {/* PANEL KANAN: BUKU BESAR SISWA TERPILIH                   */}
       {/* ======================================================== */}
       <section ref={detailRef} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
         {detailSiswa ? (
           <>
-            {/* Hero Card Siswa Terpilih (Sesuai Mockup Biru Royal) */}
+            {/* Kartu siswa terpilih */}
             <div
               style={{
                 background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',

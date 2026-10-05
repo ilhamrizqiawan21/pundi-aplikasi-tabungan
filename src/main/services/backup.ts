@@ -81,6 +81,43 @@ export class BackupService {
   }
 
   /**
+   * CAP-21: salinan cadangan ke folder pilihan pengguna (flashdisk, drive lain). Memakai VACUUM INTO,
+   * bukan menyalin berkas mentah. Folder dipilih lewat dialog di proses utama.
+   */
+  public salinKeLuar(folderTujuan: string): Result<{ nama_berkas: string; ukuran_bytes: number }> {
+    const db = getDb();
+    try {
+      if (!fs.existsSync(folderTujuan) || !fs.statSync(folderTujuan).isDirectory()) {
+        return { ok: false, kode: 'BACKUP_GAGAL', pesan: 'Folder tujuan tidak ditemukan.' };
+      }
+      const nama = `pundi_salinan_${timestampWib()}.sqlite`;
+      const target = path.join(folderTujuan, nama);
+      db.exec(`VACUUM INTO '${target.replace(/'/g, "''")}';`);
+      const ukuran = fs.statSync(target).size;
+      // Tanpa nama folder di log (NFR-02: log tidak memuat jalur pribadi)
+      db.prepare(`
+        INSERT INTO audit_log (waktu, aksi, entitas, entitas_id, ringkasan)
+        VALUES (?, 'backup.salinKeLuar', 'backup', NULL, 'Salinan cadangan ke folder luar')
+      `).run(new Date().toISOString());
+      return { ok: true, data: { nama_berkas: nama, ukuran_bytes: ukuran } };
+    } catch {
+      return { ok: false, kode: 'BACKUP_GAGAL', pesan: ERROR_MESSAGES.BACKUP_GAGAL };
+    }
+  }
+
+  /** Waktu salinan luar terakhir (dari audit log), atau null bila belum pernah. */
+  public terakhirKeLuar(): Result<string | null> {
+    try {
+      const row = getDb()
+        .prepare(`SELECT waktu FROM audit_log WHERE aksi = 'backup.salinKeLuar' ORDER BY id DESC LIMIT 1`)
+        .get() as { waktu: string } | undefined;
+      return { ok: true, data: row?.waktu ?? null };
+    } catch {
+      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
+  /**
    * Waktu cadangan terakhir yang dibuat pengguna/jadwal (manual atau otomatis). Cadangan pengaman
    * sebelum pemulihan tidak dihitung. Tidak membuat token berkas, jadi aman dipanggil dari bilah samping.
    */

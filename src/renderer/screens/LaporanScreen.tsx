@@ -2,9 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import type { ItemRekapKelas, ItemLaporanSiswa, Kelas, TahunAjaran } from '../../shared/types.js';
 import { formatRupiah } from '../../shared/rupiah.js';
 import { LaporanTransaksi } from '../components/LaporanTransaksi.js';
+import { SlipSaldoPanel } from '../components/SlipSaldoPanel.js';
+import { RekapBulananPanel } from '../components/RekapBulananPanel.js';
+import { TutupKasPanel } from '../components/TutupKasPanel.js';
 import { PratinjauCetakModal } from '../components/PratinjauCetakModal.js';
 
-type TabLaporan = 'kelas' | 'siswa' | 'transaksi';
+type TabLaporan = 'kelas' | 'siswa' | 'transaksi' | 'slip' | 'tutupkas' | 'bulanan';
 
 export function LaporanScreen() {
   const [tab, setTab] = useState<TabLaporan>('kelas');
@@ -40,7 +43,7 @@ export function LaporanScreen() {
   }, []);
 
   const fetchData = useCallback(async () => {
-    if (tab === 'transaksi') return; // dimuat sendiri oleh LaporanTransaksi
+    if (tab !== 'kelas' && tab !== 'siswa') return; // tab lain memuat datanya sendiri
     setLoading(true);
     try {
       if (tab === 'kelas') {
@@ -214,10 +217,55 @@ export function LaporanScreen() {
           >
             Transaksi
           </button>
+          <button
+            onClick={() => setTab('bulanan')}
+            style={{
+              padding: '6px 14px',
+              fontSize: '13px',
+              fontWeight: 600,
+              borderRadius: '4px',
+              border: 'none',
+              backgroundColor: tab === 'bulanan' ? 'var(--accent)' : 'transparent',
+              color: tab === 'bulanan' ? 'var(--accent-text)' : 'var(--text)',
+              cursor: 'pointer',
+            }}
+          >
+            Rekap Bulanan
+          </button>
+          <button
+            onClick={() => setTab('slip')}
+            style={{
+              padding: '6px 14px',
+              fontSize: '13px',
+              fontWeight: 600,
+              borderRadius: '4px',
+              border: 'none',
+              backgroundColor: tab === 'slip' ? 'var(--accent)' : 'transparent',
+              color: tab === 'slip' ? 'var(--accent-text)' : 'var(--text)',
+              cursor: 'pointer',
+            }}
+          >
+            Slip Saldo
+          </button>
+          <button
+            onClick={() => setTab('tutupkas')}
+            style={{
+              padding: '6px 14px',
+              fontSize: '13px',
+              fontWeight: 600,
+              borderRadius: '4px',
+              border: 'none',
+              backgroundColor: tab === 'tutupkas' ? 'var(--accent)' : 'transparent',
+              color: tab === 'tutupkas' ? 'var(--accent-text)' : 'var(--text)',
+              cursor: 'pointer',
+            }}
+          >
+            Tutup Kas
+          </button>
         </div>
 
         {/* Filter */}
-        {tab !== 'transaksi' && (
+        {(tab === 'kelas' || tab === 'siswa') && (
         <div style={{ display: 'flex', gap: '10px' }}>
           <select
             value={selectedTaId}
@@ -286,7 +334,7 @@ export function LaporanScreen() {
               cursor: 'pointer',
             }}
           >
-            {cetakLoading ? 'Menyiapkan...' : '🖨️ Cetak / PDF'}
+            {cetakLoading ? 'Menyiapkan...' : 'Cetak / PDF'}
           </button>
 
           {tab === 'siswa' && (
@@ -324,9 +372,12 @@ export function LaporanScreen() {
       )}
 
       {tab === 'transaksi' && <LaporanTransaksi kelasList={kelasList} />}
+      {tab === 'slip' && <SlipSaldoPanel kelasList={kelasList} />}
+      {tab === 'tutupkas' && <TutupKasPanel />}
+      {tab === 'bulanan' && <RekapBulananPanel tahunAjaranList={tahunAjaranList} />}
 
       {/* Tabel Laporan */}
-      {tab !== 'transaksi' && (
+      {(tab === 'kelas' || tab === 'siswa') && (
       <div
         style={{
           backgroundColor: 'var(--bg)',

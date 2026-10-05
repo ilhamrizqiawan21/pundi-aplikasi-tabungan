@@ -68,6 +68,7 @@ export function Modal({ isOpen, onClose, title, children, width = '480px' }: Mod
           <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{title}</h3>
           <button
             onClick={onClose}
+            aria-label="Tutup jendela"
             style={{
               background: 'transparent',
               border: 'none',

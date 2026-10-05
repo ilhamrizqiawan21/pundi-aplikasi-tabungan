@@ -4,6 +4,9 @@ import { hariIniLokal, formatTanggalIndonesia } from '../../shared/tanggal.js';
 import { formatRupiah } from '../../shared/rupiah.js';
 import { IconWallet } from '../components/Icons.js';
 
+/** Nominal panjang (miliaran) mendapat kartu yang memberi ruang penuh pada angka agar tidak meluber. */
+const kelasKartu = (n: number) => (formatRupiah(n).length >= 14 ? 'kartu-metrik kartu-metrik-panjang' : 'kartu-metrik');
+
 interface BerandaScreenProps {
   onGoToCatat: () => void;
 }
@@ -96,12 +99,12 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
       {/* ======================================================== */}
-      {/* 4 STAT METRIC CARDS (Mockup Page 2)                      */}
+      {/* EMPAT KARTU RINGKASAN                                    */}
       {/* ======================================================== */}
       <div className="grid-metrik">
         {/* Card 1: Setoran Hari Ini */}
         <div
-          className="kartu-metrik"
+          className={kelasKartu(kas?.total_setoran || 0)}
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
@@ -145,7 +148,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
 
         {/* Card 2: Penarikan Hari Ini */}
         <div
-          className="kartu-metrik"
+          className={kelasKartu(kas?.total_penarikan || 0)}
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
@@ -236,7 +239,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
 
         {/* Card 4: Total Saldo Siswa */}
         <div
-          className="kartu-metrik"
+          className={kelasKartu(kas?.saldo_seluruh_siswa || 0)}
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
@@ -279,7 +282,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
       </div>
 
       {/* ======================================================== */}
-      {/* BARIS TENGAH: GRAFIK & SALDO PER KELAS (Mockup Page 2)    */}
+      {/* BARIS TENGAH: GRAFIK DAN SALDO PER KELAS                  */}
       {/* ======================================================== */}
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '18px' }}>
         {/* Card Kiri: Setoran dan Penarikan (Grafik Batang) */}
@@ -400,7 +403,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
                       }}
                     />
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', width: '95px', textAlign: 'right' }} className="tabular-nums">
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', minWidth: '95px', flexShrink: 0, whiteSpace: 'nowrap', textAlign: 'right' }} className="tabular-nums">
                     {formatRupiah(k.total_saldo)}
                   </span>
                 </div>
@@ -417,7 +420,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
       </div>
 
       {/* ======================================================== */}
-      {/* BARIS BAWAH: TRANSAKSI TERBARU (Mockup Page 2)            */}
+      {/* BARIS BAWAH: TRANSAKSI TERBARU                            */}
       {/* ======================================================== */}
       <div
         style={{

@@ -88,15 +88,15 @@ test.describe.serial('impor siswa dan saldo awal', () => {
 
     // Angka kontrol yang salah memblokir; yang benar meloloskan
     await s.page.getByLabel('Jumlah siswa di aplikasi lama').fill('4');
-    await expect(s.page.getByText(/✗ Berbeda 1 siswa/)).toBeVisible();
+    await expect(s.page.getByText(/Berbeda 1 siswa/)).toBeVisible();
     await expect(terapkan()).toBeDisabled();
     await s.page.getByLabel('Jumlah siswa di aplikasi lama').fill('3');
     await s.page.getByLabel('Total saldo di aplikasi lama').fill('Rp 139.999');
-    await expect(s.page.getByText(/✗ Berbeda Rp 1/)).toBeVisible();
+    await expect(s.page.getByText(/Berbeda Rp 1/)).toBeVisible();
     await expect(terapkan()).toBeDisabled();
     await s.page.getByLabel('Total saldo di aplikasi lama').fill('Rp 140.000');
-    await expect(s.page.getByText('✓ Jumlah siswa cocok')).toBeVisible();
-    await expect(s.page.getByText('✓ Total saldo cocok')).toBeVisible();
+    await expect(s.page.getByText('Jumlah siswa cocok')).toBeVisible();
+    await expect(s.page.getByText('Total saldo cocok')).toBeVisible();
 
     await s.page.getByLabel('Tanggal saldo awal').fill('2026-07-01');
     await terapkan().click();

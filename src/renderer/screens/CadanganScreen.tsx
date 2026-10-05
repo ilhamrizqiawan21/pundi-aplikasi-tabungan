@@ -58,6 +58,13 @@ export function CadanganScreen() {
     }
   };
 
+  const handleSalinKeLuar = async () => {
+    setMsg(null);
+    const res = await window.pundi.backupSalinKeLuar();
+    if (!res.ok) setMsg({ text: `Gagal menyalin cadangan: ${res.pesan}`, type: 'err' });
+    else if (res.data) setMsg({ text: `Salinan cadangan tersimpan di folder pilihan Anda (${res.data.nama_berkas}).`, type: 'ok' });
+  };
+
   const handlePilihBerkas = async () => {
     setMsg(null);
     const res = await window.pundi.dialogPilihFile({ ekstensi: ['sqlite'] });
@@ -113,7 +120,7 @@ export function CadanganScreen() {
       >
         <div>
           <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>
-            Cadangan & Pemulihan Basis Data (CAP-13)
+            Cadangan dan pemulihan data
           </h3>
           <p style={{ fontSize: '13px', color: 'var(--muted)' }}>
             Pundi menyimpan cadangan otomatis secara berkala. Sangat disarankan untuk menyalin berkas cadangan ke flashdisk atau media penyimpanan eksternal.
@@ -121,6 +128,20 @@ export function CadanganScreen() {
         </div>
 
         <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
+        <button
+          onClick={handleSalinKeLuar}
+          style={{
+            padding: '10px 16px',
+            backgroundColor: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '6px',
+            fontWeight: 600,
+            fontSize: '13px',
+            cursor: 'pointer',
+          }}
+        >
+          Salin ke flashdisk…
+        </button>
         <button
           onClick={handlePilihBerkas}
           style={{

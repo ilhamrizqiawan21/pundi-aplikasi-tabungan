@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { tanggalKalenderValid } from './tanggal.js';
+import { galatPin } from './pin.js';
 
 /** Tanggal YYYY-MM-DD yang benar-benar ada di kalender. */
 const TanggalKalender = z
@@ -130,6 +131,11 @@ export const LaporanEksporSchema = z.discriminatedUnion('jenis', [
     jenisTransaksi: JenisTrx.optional(),
   }),
   z.object({
+    jenis: z.literal('rekapBulanan'),
+    dari: Tanggal,
+    sampai: Tanggal,
+  }),
+  z.object({
     jenis: z.literal('rekapSiswa'),
     tahunAjaranId: z.number().int().positive().optional(),
     kelasId: z.number().int().positive().optional(),
@@ -143,6 +149,31 @@ export const TransaksiSetorSchema = z.object({
   tanggal: TanggalKalender.optional(),
   keterangan: z.string().trim().max(255).optional(),
 });
+
+export const TransaksiSetorMassalSchema = z
+  .object({
+    tanggal: TanggalKalender.optional(),
+    keterangan: z.string().trim().max(255).optional(),
+    baris: z
+      .array(
+        z.object({
+          siswa_id: z.number().int().positive('ID Siswa tidak valid'),
+          nominal: NominalRupiah('Nominal setoran harus lebih dari 0'),
+        })
+      )
+      .min(1, 'Isi minimal satu setoran.')
+      .max(500, 'Terlalu banyak baris sekaligus (maksimal 500).'),
+  })
+  .refine((d) => new Set(d.baris.map((b) => b.siswa_id)).size === d.baris.length, {
+    message: 'Satu siswa tidak boleh muncul dua kali dalam satu setoran massal.',
+  });
+
+export const BiayaAdmRencanaSchema = z.object({
+  kelas_id: z.number().int().positive('Kelas tidak valid'),
+  nominal: NominalRupiah('Nominal biaya harus lebih dari 0'),
+  periode: z.string().trim().min(3, 'Periode minimal 3 karakter').max(40, 'Periode maksimal 40 karakter'),
+});
+export const BiayaAdmTerapkanSchema = BiayaAdmRencanaSchema.extend({ tanggal: TanggalKalender.optional() });
 
 export const TransaksiTarikSchema = z.object({
   siswa_id: z.number().int().positive('ID Siswa tidak valid'),
@@ -182,8 +213,11 @@ export const PengaturanSimpanSchema = z.object({
 
 // Cetak & PDF
 export const CetakLaporanSchema = z.object({
-  jenis: z.enum(['rekapKelas', 'rekapSiswa', 'transaksi', 'bukuBesar']),
+  jenis: z.enum(['rekapKelas', 'rekapSiswa', 'transaksi', 'bukuBesar', 'slipSaldo', 'tutupKas', 'rekapBulanan']),
   tahunAjaranId: z.number().int().positive().optional(),
+  tanggal: TanggalKalender.optional(),
+  kasAwal: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
+  uangFisik: z.number().int().min(0).max(Number.MAX_SAFE_INTEGER).optional(),
   kelasId: z.number().int().positive().optional(),
   siswaId: z.number().int().positive().optional(),
   dari: TanggalKalender.optional(),
@@ -197,6 +231,19 @@ export const CetakHtmlSchema = z.object({
 
 
 // Handler yang sebelumnya menerima masukan tanpa skema
+export const RekapBulananSchema = z.object({ dari: TanggalKalender, sampai: TanggalKalender });
+export const SiswaPasifSchema = z.object({ bulan: z.number().int().min(1).max(24) });
+export const AuditDaftarSchema = z.object({ sebelumId: z.number().int().positive().optional() }).default({});
+const PinBaru = z.string().superRefine((v, ctx) => {
+  const g = galatPin(v);
+  if (g) ctx.addIssue({ code: 'custom', message: g });
+});
+// PIN yang dimasukkan untuk membuka/mematikan hanya dicek bentuknya; kebenarannya dicek di layanan kunci
+const PinMasuk = z.string().regex(/^\d{6}$/, 'PIN harus 6 angka.');
+export const KunciPinSchema = z.object({ pin: PinMasuk });
+export const KunciAturSchema = z.object({ pin: PinBaru });
+export const KunciUbahSchema = z.object({ pinLama: PinMasuk, pinBaru: PinBaru });
+export const KunciPulihkanSchema = z.object({ kode: z.string().trim().min(8).max(40), pinBaru: PinBaru });
 export const KasHarianSchema = z.object({ tanggal: TanggalKalender.optional() }).default({});
 export const TahunAjaranOpsionalSchema = z.object({ tahunAjaranId: z.number().int().positive().nullish() }).default({});
 export const RekapSiswaSchema = z

@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { ProfilSekolah, TahunAjaran, TemaAplikasi } from '../shared/types.js';
+import type { ProfilSekolah, StatusKunci, TahunAjaran, TemaAplikasi } from '../shared/types.js';
+import { LayarKunci } from './components/LayarKunci.js';
 
 import logoUrl from './assets/logo.png';
+import { tombol, tombolUtama } from './styles/ui.js';
 import { formatWaktuWib } from '../shared/tanggal.js';
 import { BerandaScreen } from './screens/BerandaScreen.js';
 import { CatatTransaksiScreen } from './screens/CatatTransaksiScreen.js';
@@ -23,6 +25,7 @@ import {
   IconCadangan,
   IconPengaturan,
   IconCalendar,
+  getInitials,
 } from './components/Icons.js';
 
 export type ScreenId =
@@ -43,13 +46,12 @@ interface ItemNav {
   subjudul: string;
   icon: typeof IconBeranda;
   highlight?: boolean;
-  pintasan?: string;
 }
 
 // Urutan di sini = urutan menu = nomor Alt+1 sampai Alt+9 (DESIGN §6, NFR-08, dan uji alur)
 const NAV: ItemNav[] = [
   { id: 'beranda', label: 'Beranda', judul: 'Beranda (Kas Harian)', subjudul: 'Ringkasan tabungan sekolah hari ini.', icon: IconBeranda },
-  { id: 'catat', label: 'Catat Transaksi', judul: 'Catat Transaksi', subjudul: 'Pilih siswa, isi nominal, tekan Enter.', icon: IconCatat, highlight: true, pintasan: 'Ctrl+K' },
+  { id: 'catat', label: 'Catat Transaksi', judul: 'Catat Transaksi', subjudul: 'Pilih siswa, isi nominal, tekan Enter.', icon: IconCatat, highlight: true },
   { id: 'siswa', label: 'Siswa', judul: 'Data Siswa & Buku Besar', subjudul: 'Data siswa dan buku besar tabungan.', icon: IconSiswa },
   { id: 'laporan', label: 'Laporan', judul: 'Laporan Tabungan', subjudul: 'Rekapitulasi tabungan dan riwayat kas sekolah.', icon: IconLaporan },
   { id: 'akademik', label: 'Tahun Ajaran & Kelas', judul: 'Tahun Ajaran & Kelas', subjudul: 'Kelola periode akademik dan pengelompokan kelas.', icon: IconAkademik },
@@ -61,6 +63,8 @@ const NAV: ItemNav[] = [
 
 /** Cadangan lebih lama dari ini dianggap perlu diperbarui. */
 const BATAS_HARI_CADANGAN = 7;
+/** Salinan ke flashdisk/drive lain lebih lama dari ini memicu pengingat di Beranda (CAP-21). */
+const BATAS_HARI_SALINAN_LUAR = 14;
 
 function ringkasCadangan(iso: string | null | undefined): { aman: boolean; judul: string; teks: string } {
   if (iso === undefined) return { aman: false, judul: 'Memeriksa cadangan', teks: '' };
@@ -74,13 +78,22 @@ function ringkasCadangan(iso: string | null | undefined): { aman: boolean; judul
   };
 }
 
-export default function App() {
+interface AplikasiUtamaProps {
+  /** PIN aktif: tombol Kunci tampil di bilah atas. */
+  pinAktif: boolean;
+  onKunci: () => void;
+}
+
+function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
   const [screen, setScreen] = useState<ScreenId>('beranda');
   const [profil, setProfil] = useState<ProfilSekolah | null>(null);
   const [tahunAjaranAktif, setTahunAjaranAktif] = useState<TahunAjaran | null>(null);
   const [tema, setTema] = useState<TemaAplikasi>('putih');
   // undefined = belum diketahui; null = belum pernah ada cadangan; string = waktu ISO cadangan terakhir
   const [cadanganTerakhir, setCadanganTerakhir] = useState<string | null | undefined>(undefined);
+  // Waktu salinan luar terakhir; undefined = belum diketahui. Pengingat dapat ditutup selama sesi ini.
+  const [salinanLuarTerakhir, setSalinanLuarTerakhir] = useState<string | null | undefined>(undefined);
+  const [pengingatDitutup, setPengingatDitutup] = useState(false);
   const [backingUp, setBackingUp] = useState(false);
   const kontenRef = useRef<HTMLElement>(null);
 
@@ -142,6 +155,8 @@ export default function App() {
     if (!window.pundi) return;
     const res = await window.pundi.backupTerakhir();
     if (res.ok) setCadanganTerakhir(res.data?.tanggal ?? null);
+    const luar = await window.pundi.backupTerakhirKeLuar();
+    if (luar.ok) setSalinanLuarTerakhir(luar.data);
   }, []);
 
   // Dimuat ulang tiap pindah layar agar cadangan dari menu Cadangan ikut tercermin
@@ -166,6 +181,13 @@ export default function App() {
   };
 
   const cadangan = ringkasCadangan(cadanganTerakhir);
+  const umurSalinanLuar =
+    salinanLuarTerakhir === undefined
+      ? null
+      : salinanLuarTerakhir === null
+        ? Infinity
+        : Math.floor((Date.now() - new Date(salinanLuarTerakhir).getTime()) / 86_400_000);
+  const perluSalinanLuar = screen === 'beranda' && !pengingatDitutup && umurSalinanLuar !== null && umurSalinanLuar > BATAS_HARI_SALINAN_LUAR;
   const activeNav = NAV.find((n) => n.id === screen) || NAV[0];
 
   // Format Tanggal Hari Ini (Misal: "Kamis, 1 Oktober 2026")
@@ -178,7 +200,7 @@ export default function App() {
 
   return (
     <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: 'var(--bg)' }}>
-      {/* Sidebar Navigasi (Sesuai Mockup Pundi) */}
+      {/* Bilah samping: navigasi utama */}
       <aside
         className="app-sidebar"
         style={{
@@ -210,9 +232,9 @@ export default function App() {
           </div>
         </div>
 
-        {/* Menu Items (Tepat 9 button berurutan untuk lolos alur.spec.ts) */}
+        {/* Menu utama: sembilan tombol, urutannya sama dengan pintasan Alt+1 sampai Alt+9 */}
         <nav aria-label="Menu utama" style={{ flex: 1, overflowY: 'auto', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          {NAV.map((n, idx) => {
+          {NAV.map((n) => {
             const Icon = n.icon;
             const isActive = screen === n.id;
             return (
@@ -249,33 +271,6 @@ export default function App() {
                   </span>
                   <span className="rail-hide-visually">{n.label}</span>
                 </div>
-                {n.pintasan ? (
-                  <span
-                    className="rail-hide-visually"
-                    style={{
-                      fontSize: '9px',
-                      fontWeight: 600,
-                      opacity: 0.85,
-                      backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.08)',
-                      color: '#FFFFFF',
-                      padding: '1px 5px',
-                      borderRadius: '4px',
-                    }}
-                  >
-                    {n.pintasan}
-                  </span>
-                ) : (
-                  <span
-                    className="rail-hide-visually"
-                    style={{
-                      fontSize: '9px',
-                      opacity: 0.55,
-                      color: '#94A3B8',
-                    }}
-                  >
-                    Alt+{idx + 1}
-                  </span>
-                )}
               </button>
             );
           })}
@@ -345,7 +340,7 @@ export default function App() {
 
       {/* Area Konten Utama */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
-        {/* Bilah Atas Sesuai Mockup Pundi */}
+        {/* Bilah atas: sekolah, tanggal, tahun ajaran, operator */}
         <header
           style={{
             height: '68px',
@@ -405,6 +400,17 @@ export default function App() {
               </div>
             )}
 
+            {pinAktif && (
+              <button
+                type="button"
+                onClick={onKunci}
+                title="Kunci aplikasi sekarang"
+                style={{ ...tombol, padding: '7px 12px', fontSize: '12px', borderRadius: '10px' }}
+              >
+                Kunci
+              </button>
+            )}
+
             {/* Operator Pill */}
             <div
               style={{
@@ -433,7 +439,7 @@ export default function App() {
                   flexShrink: 0,
                 }}
               >
-                BN
+                {getInitials(profil?.bendahara || 'Bendahara')}
               </div>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2 }}>
@@ -460,7 +466,7 @@ export default function App() {
           }}
         >
           <div style={{ width: '100%', maxWidth: '1440px', margin: '0 auto' }}>
-            {/* Heading Level 2 di dalam main (Diperlukan oleh Playwright uji jendela & alur) */}
+            {/* Judul layar aktif */}
             <div style={{ marginBottom: '20px' }}>
               <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.3px', margin: 0 }}>
                 {activeNav.judul}
@@ -469,6 +475,41 @@ export default function App() {
                 {activeNav.subjudul}
               </p>
             </div>
+
+            {perluSalinanLuar && (
+              <div
+                role="region"
+                aria-label="Pengingat salinan cadangan"
+                style={{
+                  marginBottom: '16px',
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  border: '1px solid var(--warn)',
+                  backgroundColor: 'var(--surface)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px',
+                  flexWrap: 'wrap',
+                  fontSize: '13px',
+                }}
+              >
+                <span>
+                  <strong>Simpan salinan data di flashdisk.</strong>{' '}
+                  {umurSalinanLuar === Infinity
+                    ? 'Belum pernah ada salinan di luar komputer ini. Bila komputer rusak, data tabungan bisa hilang.'
+                    : `Salinan terakhir di luar komputer ini ${umurSalinanLuar} hari lalu.`}
+                </span>
+                <span style={{ display: 'flex', gap: '8px' }}>
+                  <button type="button" style={{ ...tombol, padding: '6px 12px' }} onClick={() => setPengingatDitutup(true)}>
+                    Nanti saja
+                  </button>
+                  <button type="button" style={{ ...tombolUtama, padding: '6px 14px' }} onClick={() => setScreen('cadangan')}>
+                    Salin sekarang
+                  </button>
+                </span>
+              </div>
+            )}
 
             {screen === 'beranda' && (
               <BerandaScreen onGoToCatat={() => setScreen('catat')} />
@@ -487,5 +528,38 @@ export default function App() {
         </main>
       </div>
     </div>
+  );
+}
+
+/**
+ * Pintu masuk aplikasi (CAP-16): bila PIN aktif dan belum dibuka, hanya halaman PIN yang tampil dan tidak ada
+ * data yang dimuat. Layar utama baru dipasang setelah kunci terbuka.
+ */
+export default function App() {
+  const [status, setStatus] = useState<StatusKunci | null>(null);
+
+  const muatStatus = useCallback(async () => {
+    const r = await window.pundi.kunciStatus();
+    if (r.ok) setStatus(r.data);
+  }, []);
+
+  useEffect(() => {
+    if (!window.pundi) return; // mode pratinjau di peramban biasa (tanpa Electron)
+    void muatStatus();
+    window.addEventListener('pundi:kunci-berubah', muatStatus);
+    return () => window.removeEventListener('pundi:kunci-berubah', muatStatus);
+  }, [muatStatus]);
+
+  if (!window.pundi) return <AplikasiUtama pinAktif={false} onKunci={() => undefined} />;
+  if (!status) return null;
+  if (status.aktif && !status.terbuka) return <LayarKunci onBuka={muatStatus} />;
+  return (
+    <AplikasiUtama
+      pinAktif={status.aktif}
+      onKunci={async () => {
+        await window.pundi.kunciKunciSekarang();
+        await muatStatus();
+      }}
+    />
   );
 }

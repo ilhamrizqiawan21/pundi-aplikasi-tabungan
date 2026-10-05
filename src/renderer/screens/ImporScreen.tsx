@@ -365,7 +365,7 @@ export function ImporScreen() {
                     <input id="im-kontrol-jumlah" inputMode="numeric" style={gayaKolom} value={kontrolJumlah} onChange={(e) => setKontrolJumlah(e.target.value)} placeholder="Contoh: 250" />
                     {cocokJumlah !== null && (
                       <div role="status" style={{ marginTop: '6px', fontSize: '13px', fontWeight: 600, color: cocokJumlah ? 'var(--ok)' : 'var(--danger)' }}>
-                        {cocokJumlah ? '✓ Jumlah siswa cocok' : `✗ Berbeda ${Math.abs((kontrol.opsi.jumlah_siswa ?? 0) - hasil.valid_count)} siswa`}
+                        {cocokJumlah ? 'Jumlah siswa cocok' : `Berbeda ${Math.abs((kontrol.opsi.jumlah_siswa ?? 0) - hasil.valid_count)} siswa`}
                       </div>
                     )}
                   </div>
@@ -377,7 +377,7 @@ export function ImporScreen() {
                     <input id="im-kontrol-saldo" inputMode="numeric" style={gayaKolom} value={kontrolSaldo} onChange={(e) => setKontrolSaldo(e.target.value)} placeholder="Contoh: Rp 12.500.000" />
                     {cocokSaldo !== null && (
                       <div role="status" style={{ marginTop: '6px', fontSize: '13px', fontWeight: 600, color: cocokSaldo ? 'var(--ok)' : 'var(--danger)' }}>
-                        {cocokSaldo ? '✓ Total saldo cocok' : `✗ Berbeda ${formatRupiah(Math.abs((kontrol.opsi.total_saldo ?? 0) - hasil.total_saldo))}`}
+                        {cocokSaldo ? 'Total saldo cocok' : `Berbeda ${formatRupiah(Math.abs((kontrol.opsi.total_saldo ?? 0) - hasil.total_saldo))}`}
                       </div>
                     )}
                   </div>

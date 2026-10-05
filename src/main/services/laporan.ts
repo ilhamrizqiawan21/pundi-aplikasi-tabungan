@@ -4,6 +4,9 @@ import type {
   RingkasanKasHarian,
   ItemRekapKelas,
   ItemLaporanSiswa,
+  ItemSlipSaldo,
+  HasilRekapBulanan,
+  ItemSiswaPasif,
   FilterLaporanTransaksi,
   ItemLaporanTransaksi,
   HasilLaporanTransaksi,
@@ -14,6 +17,12 @@ import { hariIniLokal } from '../../shared/tanggal.js';
 
 // Batas baris yang dikirim ke layar; total tetap dihitung atas semua baris yang cocok
 const BATAS_TAMPIL = 1000;
+// Jumlah transaksi terakhir per siswa pada slip saldo
+const JUMLAH_TRANSAKSI_SLIP = 5;
+
+// Biaya administrasi (dan koreksinya) mengurangi saldo siswa tetapi bukan uang yang keluar dari laci,
+// jadi dipisah dari setoran/penarikan pada kas harian dan rekap bulanan (CAP-08, D-06).
+const BIAYA_ADM_SQL = `(jenis = 'biaya_adm' OR (jenis = 'pembalik' AND membalik_id IN (SELECT id FROM transaksi WHERE jenis = 'biaya_adm')))`;
 
 export class LaporanService {
   /**
@@ -26,14 +35,16 @@ export class LaporanService {
     try {
       const row = db.prepare(`
         SELECT
-          COALESCE(SUM(CASE WHEN nilai > 0 THEN nilai ELSE 0 END), 0) AS total_setoran,
-          COALESCE(SUM(CASE WHEN nilai < 0 THEN ABS(nilai) ELSE 0 END), 0) AS total_penarikan,
+          COALESCE(SUM(CASE WHEN nilai > 0 AND NOT ${BIAYA_ADM_SQL} THEN nilai ELSE 0 END), 0) AS total_setoran,
+          COALESCE(SUM(CASE WHEN nilai < 0 AND NOT ${BIAYA_ADM_SQL} THEN ABS(nilai) ELSE 0 END), 0) AS total_penarikan,
+          COALESCE(SUM(CASE WHEN ${BIAYA_ADM_SQL} THEN -nilai ELSE 0 END), 0) AS total_biaya_adm,
           COUNT(*) AS jumlah_transaksi
         FROM transaksi
         WHERE tanggal = ? AND jenis <> 'saldo_awal'
       `).get(tanggal) as {
         total_setoran: number;
         total_penarikan: number;
+        total_biaya_adm: number;
         jumlah_transaksi: number;
       };
 
@@ -48,6 +59,7 @@ export class LaporanService {
           tanggal,
           total_setoran: row.total_setoran,
           total_penarikan: row.total_penarikan,
+          total_biaya_adm: row.total_biaya_adm,
           jumlah_transaksi: row.jumlah_transaksi,
           saldo_seluruh_siswa: saldoSemua.total_saldo,
         },
@@ -136,6 +148,145 @@ export class LaporanService {
         ORDER BY s.nama ASC
       `).all(...params) as ItemLaporanSiswa[];
 
+      return { ok: true, data: rows };
+    } catch {
+      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
+  /**
+   * Slip saldo (CAP-18): saldo dan transaksi terakhir tiap siswa pada satu kelas, atau satu siswa.
+   * Dua kueri saja (daftar siswa + transaksi terakhir semua siswa itu), bukan satu kueri per siswa.
+   */
+  public slipSaldo(filter: { kelasId?: number; siswaId?: number }): Result<ItemSlipSaldo[]> {
+    const db = getDb();
+    try {
+      const daftar = this.rekapSiswa({ kelasId: filter.kelasId });
+      if (!daftar.ok) return daftar;
+      const dipilih = filter.siswaId ? daftar.data.filter((s) => s.siswa_id === filter.siswaId) : daftar.data;
+      if (dipilih.length === 0) return { ok: true, data: [] };
+
+      const ids = dipilih.map((s) => s.siswa_id);
+      const rows = db.prepare(`
+        SELECT siswa_id, tanggal, jenis, nilai, saldo_setelah FROM (
+          SELECT siswa_id, tanggal, jenis, nilai, saldo_setelah, id,
+                 ROW_NUMBER() OVER (PARTITION BY siswa_id ORDER BY tanggal DESC, id DESC) AS urut
+          FROM transaksi
+          WHERE siswa_id IN (${ids.map(() => '?').join(',')})
+        )
+        WHERE urut <= ?
+        ORDER BY siswa_id, tanggal, id
+      `).all(...ids, JUMLAH_TRANSAKSI_SLIP) as (ItemSlipSaldo['transaksi'][number] & { siswa_id: number })[];
+
+      const perSiswa = new Map<number, ItemSlipSaldo['transaksi']>();
+      for (const { siswa_id, ...t } of rows) {
+        const daftarT = perSiswa.get(siswa_id) ?? [];
+        daftarT.push(t);
+        perSiswa.set(siswa_id, daftarT);
+      }
+      return {
+        ok: true,
+        data: dipilih.map((s) => ({
+          siswa_id: s.siswa_id,
+          nomor: s.nomor,
+          nama: s.nama,
+          kelas_nama: s.kelas_nama,
+          status: s.status,
+          saldo: s.saldo_akhir,
+          transaksi: perSiswa.get(s.siswa_id) ?? [],
+        })),
+      };
+    } catch {
+      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
+  /**
+   * Rekap per bulan (CAP-22). Setoran/penarikan mengikuti `kasHarian` (tanpa saldo awal migrasi);
+   * saldo akhir bulan memuat semua transaksi. Bulan tanpa transaksi tetap muncul dengan nilai 0.
+   */
+  public rekapBulanan(filter: { dari: string; sampai: string }): Result<HasilRekapBulanan> {
+    const db = getDb();
+    if (filter.dari > filter.sampai) {
+      return { ok: false, kode: 'VALIDASI_GAGAL', pesan: 'Tanggal awal tidak boleh setelah tanggal akhir.' };
+    }
+    const bulanList: string[] = [];
+    let [y, m] = filter.dari.split('-').map(Number);
+    const [yAkhir, mAkhir] = filter.sampai.split('-').map(Number);
+    while (y < yAkhir || (y === yAkhir && m <= mAkhir)) {
+      bulanList.push(`${y}-${String(m).padStart(2, '0')}`);
+      if (++m > 12) {
+        m = 1;
+        y++;
+      }
+    }
+    if (bulanList.length > 60) {
+      return { ok: false, kode: 'VALIDASI_GAGAL', pesan: 'Rentang maksimal 60 bulan.' };
+    }
+
+    try {
+      const awal = db.prepare('SELECT COALESCE(SUM(nilai), 0) AS saldo FROM transaksi WHERE tanggal < ?').get(filter.dari) as {
+        saldo: number;
+      };
+      const rows = db.prepare(`
+        SELECT substr(tanggal, 1, 7) AS bulan,
+          COALESCE(SUM(CASE WHEN jenis <> 'saldo_awal' AND nilai > 0 AND NOT ${BIAYA_ADM_SQL} THEN nilai ELSE 0 END), 0) AS setoran,
+          COALESCE(SUM(CASE WHEN jenis <> 'saldo_awal' AND nilai < 0 AND NOT ${BIAYA_ADM_SQL} THEN -nilai ELSE 0 END), 0) AS penarikan,
+          COALESCE(SUM(CASE WHEN ${BIAYA_ADM_SQL} THEN -nilai ELSE 0 END), 0) AS biaya_adm,
+          SUM(CASE WHEN jenis <> 'saldo_awal' THEN 1 ELSE 0 END) AS jumlah_transaksi,
+          SUM(nilai) AS bersih
+        FROM transaksi WHERE tanggal >= ? AND tanggal <= ?
+        GROUP BY bulan
+      `).all(filter.dari, filter.sampai) as {
+        bulan: string;
+        setoran: number;
+        penarikan: number;
+        biaya_adm: number;
+        jumlah_transaksi: number;
+        bersih: number;
+      }[];
+      const perBulan = new Map(rows.map((r) => [r.bulan, r]));
+      let saldo = awal.saldo;
+      const baris = bulanList.map((bulan) => {
+        const r = perBulan.get(bulan);
+        saldo += r?.bersih ?? 0;
+        return {
+          bulan,
+          setoran: r?.setoran ?? 0,
+          penarikan: r?.penarikan ?? 0,
+          biaya_adm: r?.biaya_adm ?? 0,
+          jumlah_transaksi: r?.jumlah_transaksi ?? 0,
+          saldo_akhir: saldo,
+        };
+      });
+      return { ok: true, data: { saldo_awal: awal.saldo, baris } };
+    } catch {
+      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
+  /** Siswa aktif bersaldo > 0 yang transaksi terakhirnya lebih lama dari `bulan` bulan (paling lama dulu, maks 200). */
+  public siswaPasif(bulan: number): Result<ItemSiswaPasif[]> {
+    const db = getDb();
+    try {
+      const batas = new Date();
+      batas.setMonth(batas.getMonth() - bulan);
+      const batasTanggal = `${batas.getFullYear()}-${String(batas.getMonth() + 1).padStart(2, '0')}-${String(batas.getDate()).padStart(2, '0')}`;
+      const rows = db.prepare(`
+        SELECT s.id AS siswa_id, s.nomor, s.nama, k.nama AS kelas_nama,
+               COALESCE(SUM(t.nilai), 0) AS saldo, MAX(t.tanggal) AS transaksi_terakhir
+        FROM siswa s
+        LEFT JOIN penempatan p ON p.siswa_id = s.id AND p.tahun_ajaran_id = (
+          SELECT id FROM tahun_ajaran WHERE aktif = 1 LIMIT 1
+        )
+        LEFT JOIN kelas k ON k.id = p.kelas_id
+        LEFT JOIN transaksi t ON t.siswa_id = s.id
+        WHERE s.status = 'aktif'
+        GROUP BY s.id, s.nomor, s.nama, k.nama
+        HAVING saldo > 0 AND transaksi_terakhir < ?
+        ORDER BY transaksi_terakhir ASC, s.nama ASC
+        LIMIT 200
+      `).all(batasTanggal) as ItemSiswaPasif[];
       return { ok: true, data: rows };
     } catch {
       return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
@@ -278,6 +429,40 @@ export class LaporanService {
         });
       }
 
+      await workbook.xlsx.writeFile(targetPath);
+      return { ok: true, data: { berkas: targetPath } };
+    } catch {
+      return { ok: false, kode: 'FILE_TIDAK_VALID', pesan: 'Gagal mengekspor laporan ke Excel.' };
+    }
+  }
+
+  /** Ekspor rekap bulanan ke Excel (CAP-22). */
+  public async eksporRekapBulanan(
+    targetPath: string,
+    filter: { dari: string; sampai: string }
+  ): Promise<Result<{ berkas: string }>> {
+    const dataRes = this.rekapBulanan(filter);
+    if (!dataRes.ok) return dataRes;
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const sheet = workbook.addWorksheet('Rekap Bulanan');
+      sheet.columns = [
+        { header: 'Bulan', key: 'bulan', width: 12 },
+        { header: 'Setoran (Rp)', key: 'setoran', width: 18 },
+        { header: 'Penarikan (Rp)', key: 'penarikan', width: 18 },
+        { header: 'Biaya Administrasi (Rp)', key: 'biaya_adm', width: 22 },
+        { header: 'Jumlah Transaksi', key: 'jumlah_transaksi', width: 18 },
+        { header: 'Saldo Akhir Bulan (Rp)', key: 'saldo_akhir', width: 24 },
+      ];
+      sheet.addRow({ bulan: 'Saldo awal', saldo_akhir: dataRes.data.saldo_awal });
+      for (const r of dataRes.data.baris) sheet.addRow(r);
+      sheet.addRow({
+        bulan: 'Total',
+        setoran: dataRes.data.baris.reduce((t, r) => t + r.setoran, 0),
+        penarikan: dataRes.data.baris.reduce((t, r) => t + r.penarikan, 0),
+        biaya_adm: dataRes.data.baris.reduce((t, r) => t + r.biaya_adm, 0),
+        jumlah_transaksi: dataRes.data.baris.reduce((t, r) => t + r.jumlah_transaksi, 0),
+      });
       await workbook.xlsx.writeFile(targetPath);
       return { ok: true, data: { berkas: targetPath } };
     } catch {

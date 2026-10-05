@@ -1,3 +1,5 @@
+import { KeamananPanel } from '../components/KeamananPanel.js';
+import { RiwayatAktivitasPanel } from '../components/RiwayatAktivitasPanel.js';
 import { useState, useEffect, type FormEvent } from 'react';
 import type { TemaAplikasi, UkuranStruk, HasilPeriksaIntegritas } from '../../shared/types.js';
 
@@ -119,7 +121,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
         }}
       >
         <h3 style={{ fontSize: '16px', fontWeight: 600, borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
-          Profil Sekolah & Madrasah (CAP-01)
+          Profil sekolah
         </h3>
 
         <div>
@@ -230,7 +232,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
             marginTop: '8px',
           }}
         >
-          Tampilan & Cetak (CAP-15 & D-10)
+          Tampilan dan cetak
         </h3>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
@@ -317,7 +319,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Pemeriksaan Integritas Saldo (CAP-17)</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Pemeriksaan saldo</h3>
             <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '2px' }}>
               Memvalidasi setiap baris saldo berjalan dengan kalkulasi total transaksi pada basis data.
             </p>
@@ -358,8 +360,8 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
               }}
             >
               {hasilIntegritas.apakah_seimbang
-                ? '✓ Seluruh Saldo Seimbang (Nol Selisih)'
-                : `⚠ Ditemukan Selisih pada ${hasilIntegritas.selisih.length} Siswa`}
+                ? 'Seluruh saldo seimbang (nol selisih)'
+                : `Ditemukan selisih pada ${hasilIntegritas.selisih.length} siswa`}
             </div>
             <div style={{ color: 'var(--muted)', fontSize: '12px' }}>
               Diperiksa {hasilIntegritas.total_siswa_diperiksa} siswa dan{' '}
@@ -368,6 +370,8 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
           </div>
         )}
       </div>
+      <KeamananPanel />
+      <RiwayatAktivitasPanel />
     </div>
   );
 }

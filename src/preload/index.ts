@@ -34,6 +34,16 @@ const api: PundiApi = {
 
   // Transaksi & Buku Besar
   transaksiSetor: (data) => ipcRenderer.invoke('transaksi.setor', data),
+  transaksiSetorMassal: (data) => ipcRenderer.invoke('transaksi.setorMassal', data),
+  biayaAdmRencana: (data) => ipcRenderer.invoke('biayaAdm.rencana', data),
+  biayaAdmTerapkan: (data) => ipcRenderer.invoke('biayaAdm.terapkan', data),
+  kunciStatus: () => ipcRenderer.invoke('kunci.status'),
+  kunciBuka: (pin) => ipcRenderer.invoke('kunci.buka', { pin }),
+  kunciKunciSekarang: () => ipcRenderer.invoke('kunci.kunciSekarang'),
+  kunciAtur: (pin) => ipcRenderer.invoke('kunci.atur', { pin }),
+  kunciUbah: (pinLama, pinBaru) => ipcRenderer.invoke('kunci.ubah', { pinLama, pinBaru }),
+  kunciMatikan: (pin) => ipcRenderer.invoke('kunci.matikan', { pin }),
+  kunciPulihkan: (kode, pinBaru) => ipcRenderer.invoke('kunci.pulihkan', { kode, pinBaru }),
   transaksiTarik: (data) => ipcRenderer.invoke('transaksi.tarik', data),
   transaksiBalik: (data) => ipcRenderer.invoke('transaksi.balik', data),
   transaksiRiwayat: (filter) =>
@@ -47,6 +57,9 @@ const api: PundiApi = {
   laporanRekapSiswa: (filter) =>
     ipcRenderer.invoke('laporan.rekapSiswa', filter),
 
+  laporanRekapBulanan: (dari, sampai) => ipcRenderer.invoke('laporan.rekapBulanan', { dari, sampai }),
+  laporanSiswaPasif: (bulan) => ipcRenderer.invoke('laporan.siswaPasif', { bulan }),
+  auditDaftar: (sebelumId) => ipcRenderer.invoke('audit.daftar', { sebelumId }),
   laporanTransaksi: (filter) => ipcRenderer.invoke('laporan.transaksi', filter),
   laporanEkspor: (data) => ipcRenderer.invoke('laporan.ekspor', data),
 
@@ -62,6 +75,8 @@ const api: PundiApi = {
   integritasPeriksa: () => ipcRenderer.invoke('integritas.periksa'),
   backupBuat: (keterangan) =>
     ipcRenderer.invoke('backup.buat', { keterangan }),
+  backupSalinKeLuar: () => ipcRenderer.invoke('backup.salinKeLuar'),
+  backupTerakhirKeLuar: () => ipcRenderer.invoke('backup.terakhirKeLuar'),
   backupTerakhir: () => ipcRenderer.invoke('backup.terakhir'),
   backupDaftar: () => ipcRenderer.invoke('backup.daftar'),
   backupRestore: (tokenBerkas) =>

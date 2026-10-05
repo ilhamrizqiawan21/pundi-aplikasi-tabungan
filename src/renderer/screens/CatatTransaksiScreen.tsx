@@ -4,6 +4,9 @@ import { hariIniLokal, formatTanggalIndonesia } from '../../shared/tanggal.js';
 import { formatRupiah, parseRupiah } from '../../shared/rupiah.js';
 import { PratinjauCetakModal } from '../components/PratinjauCetakModal.js';
 import { KoreksiModal } from '../components/KoreksiModal.js';
+import { SetoranKelasModal } from '../components/SetoranKelasModal.js';
+import { BiayaAdminModal } from '../components/BiayaAdminModal.js';
+import { tombol } from '../styles/ui.js';
 import {
   StudentAvatar,
   IconSearch,
@@ -36,6 +39,8 @@ export function CatatTransaksiScreen() {
     siswa: Siswa;
   } | null>(null);
   const [koreksiTerbuka, setKoreksiTerbuka] = useState(false);
+  const [setoranKelasTerbuka, setSetoranKelasTerbuka] = useState(false);
+  const [biayaAdmTerbuka, setBiayaAdmTerbuka] = useState(false);
   const [previewStruk, setPreviewStruk] = useState<{ html: string; nomor_bukti: string } | null>(null);
   const [cetakLoading, setCetakLoading] = useState(false);
 
@@ -263,7 +268,7 @@ export function CatatTransaksiScreen() {
   return (
     <div className="grid-catat">
       {/* ======================================================== */}
-      {/* KOLOM KIRI: PILIH SISWA (Mockup Page 1)                    */}
+      {/* KOLOM KIRI: PILIH SISWA                                    */}
       {/* ======================================================== */}
       <section
         className="catat-kiri"
@@ -279,11 +284,21 @@ export function CatatTransaksiScreen() {
           overflow: 'hidden',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 4px' }}>
-          <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)' }}>Pilih siswa</h3>
-          <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>
-            {searchResults.length} siswa
-          </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 4px' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', whiteSpace: 'nowrap' }}>Pilih siswa</h3>
+            <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+              {searchResults.length} siswa
+            </span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <button type="button" style={{ ...tombol, padding: '5px 8px', fontSize: '12px', whiteSpace: 'nowrap' }} onClick={() => setSetoranKelasTerbuka(true)}>
+              Setoran per Kelas
+            </button>
+            <button type="button" style={{ ...tombol, padding: '5px 8px', fontSize: '12px', whiteSpace: 'nowrap' }} onClick={() => setBiayaAdmTerbuka(true)}>
+              Biaya Adm
+            </button>
+          </div>
         </div>
 
         {/* Input Pencarian */}
@@ -386,10 +401,10 @@ export function CatatTransaksiScreen() {
       </section>
 
       {/* ======================================================== */}
-      {/* KOLOM TENGAH: RUANG KERJA TRANSAKSI (Mockup Page 1)        */}
+      {/* KOLOM TENGAH: RUANG KERJA TRANSAKSI                        */}
       {/* ======================================================== */}
       <section style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-        {/* Banner Konfirmasi Transaksi Terakhir (Wajib untuk Playwright) */}
+        {/* Konfirmasi transaksi terakhir */}
         {lastTrx && (
           <div
             style={{
@@ -406,7 +421,7 @@ export function CatatTransaksiScreen() {
           >
             <div>
               <div style={{ fontWeight: 600, color: 'var(--ok-text)', fontSize: '13px' }}>
-                ✓ {lastTrx.transaksi.jenis === 'setoran' ? 'Setoran' : 'Penarikan'}{' '}
+                {lastTrx.transaksi.jenis === 'setoran' ? 'Setoran' : 'Penarikan'}{' '}
                 {formatRupiah(Math.abs(lastTrx.transaksi.nilai))} untuk {lastTrx.siswa.nama} berhasil tersimpan.
               </div>
               <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
@@ -430,7 +445,7 @@ export function CatatTransaksiScreen() {
                   color: 'var(--text)',
                 }}
               >
-                {cetakLoading ? 'Memuat...' : '🖨️ Cetak Struk (Ctrl+P)'}
+                {cetakLoading ? 'Memuat...' : 'Cetak Struk (Ctrl+P)'}
               </button>
               <button
                 onClick={() => setKoreksiTerbuka(true)}
@@ -468,12 +483,11 @@ export function CatatTransaksiScreen() {
               gap: '8px',
             }}
           >
-            <span>⚠️</span>
             <span>{errorMsg}</span>
           </div>
         )}
 
-        {/* Hero Banner Siswa Terpilih (Sesuai Mockup Biru Royal) */}
+        {/* Kartu siswa terpilih */}
         {selectedSiswa ? (
           <div
             style={{
@@ -517,10 +531,10 @@ export function CatatTransaksiScreen() {
           </div>
         ) : (
           <div
+            className="catat-kosong"
             style={{
               borderRadius: '18px',
               border: '2px dashed var(--border)',
-              padding: '24px',
               textAlign: 'center',
               backgroundColor: 'var(--card-bg)',
               color: 'var(--muted)',
@@ -537,16 +551,15 @@ export function CatatTransaksiScreen() {
 
         {/* Card Form Transaksi Baru */}
         <form
+          className="catat-form"
           onSubmit={handleSubmit}
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
             borderRadius: '18px',
             boxShadow: 'var(--card-shadow)',
-            padding: '24px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '20px',
           }}
         >
           {/* Header Bar Form: Judul & Toggle Setoran / Penarikan */}
@@ -954,6 +967,26 @@ export function CatatTransaksiScreen() {
         onClose={() => setKoreksiTerbuka(false)}
         onSuccess={() => {
           setLastTrx(null);
+          muatDataKas();
+          muatSiswaAwal();
+        }}
+      />
+
+      {/* Setoran massal satu kelas (CAP-19) */}
+      <SetoranKelasModal
+        isOpen={setoranKelasTerbuka}
+        onClose={() => setSetoranKelasTerbuka(false)}
+        onSaved={() => {
+          muatDataKas();
+          muatSiswaAwal();
+        }}
+      />
+
+      {/* Biaya administrasi satu kelas (CAP-08) */}
+      <BiayaAdminModal
+        isOpen={biayaAdmTerbuka}
+        onClose={() => setBiayaAdmTerbuka(false)}
+        onSaved={() => {
           muatDataKas();
           muatSiswaAwal();
         }}

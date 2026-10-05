@@ -10,6 +10,8 @@ import { BackupService } from '../services/backup.js';
 import { LaporanService } from '../services/laporan.js';
 import { ImporService } from '../services/impor.js';
 import { KenaikanService } from '../services/kenaikan.js';
+import { AuditService } from '../services/audit.js';
+import { KunciService } from '../services/kunci.js';
 import {
   SiswaCariSchema,
   SiswaSimpanSchema,
@@ -23,6 +25,9 @@ import {
   KenaikanTerapkanSchema,
   TransaksiSetorSchema,
   TransaksiTarikSchema,
+  TransaksiSetorMassalSchema,
+  BiayaAdmRencanaSchema,
+  BiayaAdmTerapkanSchema,
   TransaksiBalikSchema,
   TransaksiRiwayatSchema,
   ProfilSekolahSimpanSchema,
@@ -32,6 +37,13 @@ import {
   CetakLaporanSchema,
   CetakHtmlSchema,
   KasHarianSchema,
+  RekapBulananSchema,
+  KunciPinSchema,
+  KunciAturSchema,
+  KunciUbahSchema,
+  KunciPulihkanSchema,
+  SiswaPasifSchema,
+  AuditDaftarSchema,
   TahunAjaranOpsionalSchema,
   RekapSiswaSchema,
   BackupBuatSchema,
@@ -49,6 +61,9 @@ import {
   generateLaporanSiswaHtml,
   generateLaporanTransaksiHtml,
   generateBukuBesarSiswaHtml,
+  generateSlipSaldoHtml,
+  generateTutupKasHtml,
+  generateRekapBulananHtml,
 } from '../print/laporan.js';
 import { printHtml, savePdf } from '../print/printer.js';
 
@@ -84,7 +99,12 @@ function ambilJalurToken(token: string): string | undefined {
 export interface IpcOptions {
   /** Folder cadangan, di dalam folder data pengguna. */
   backupDir: string;
+  /** Folder data pengguna tempat berkas kunci PIN disimpan (di luar basis data). */
+  kunciDir: string;
 }
+
+// Saat aplikasi terkunci, hanya saluran ini yang boleh dipanggil renderer (CAP-16)
+const SALURAN_BEBAS_KUNCI = new Set(['kunci.status', 'kunci.buka', 'kunci.pulihkan']);
 
 function verifySender(event: IpcMainInvokeEvent): boolean {
   return isTrustedSender(event.senderFrame, trustedConfig());
@@ -100,6 +120,8 @@ export function registerIpcHandlers(opts: IpcOptions): void {
   const laporan = new LaporanService();
   const impor = new ImporService();
   const kenaikan = new KenaikanService();
+  const audit = new AuditService();
+  const kunci = new KunciService(opts.kunciDir);
 
   // Helper pembungkus handler aman
   function handle<TInput, TOutput>(
@@ -110,6 +132,10 @@ export function registerIpcHandlers(opts: IpcOptions): void {
     ipcMain.handle(channel, async (event, rawInput) => {
       if (!verifySender(event)) {
         return { ok: false, kode: 'AKSES_DITOLAK', pesan: 'Pengirim IPC tidak diizinkan.' };
+      }
+      // Gerbang kunci di proses utama, bukan hanya di layar: renderer yang terkunci tidak bisa membaca atau menulis data
+      if (kunci.terkunci() && !SALURAN_BEBAS_KUNCI.has(channel)) {
+        return { ok: false, kode: 'TERKUNCI', pesan: 'Aplikasi terkunci. Masukkan PIN terlebih dahulu.' };
       }
 
       try {
@@ -125,6 +151,15 @@ export function registerIpcHandlers(opts: IpcOptions): void {
       }
     });
   }
+
+  // --- KUNCI PIN (CAP-16) ---
+  handle('kunci.status', null, () => kunci.status());
+  handle('kunci.buka', KunciPinSchema, (data) => kunci.buka(data.pin));
+  handle('kunci.kunciSekarang', null, () => kunci.kunciSekarang());
+  handle('kunci.atur', KunciAturSchema, (data) => kunci.atur(data.pin));
+  handle('kunci.ubah', KunciUbahSchema, (data) => kunci.ubah(data.pinLama, data.pinBaru));
+  handle('kunci.matikan', KunciPinSchema, (data) => kunci.matikan(data.pin));
+  handle('kunci.pulihkan', KunciPulihkanSchema, (data) => kunci.pulihkan(data.kode, data.pinBaru));
 
   // --- SISWA ---
   handle('siswa.cari', SiswaCariSchema, (data) =>
@@ -157,6 +192,9 @@ export function registerIpcHandlers(opts: IpcOptions): void {
 
   // --- TRANSAKSI & BUKU BESAR ---
   handle('transaksi.setor', TransaksiSetorSchema, (data) => ledger.setor(data));
+  handle('transaksi.setorMassal', TransaksiSetorMassalSchema, (data) => ledger.setorMassal(data));
+  handle('biayaAdm.rencana', BiayaAdmRencanaSchema, (data) => ledger.rencanaBiayaAdm(data));
+  handle('biayaAdm.terapkan', BiayaAdmTerapkanSchema, (data) => ledger.biayaAdmMassal(data));
   handle('transaksi.tarik', TransaksiTarikSchema, (data) => ledger.tarik(data));
   handle('transaksi.balik', TransaksiBalikSchema, (data) => ledger.balik(data));
   handle('transaksi.riwayat', TransaksiRiwayatSchema, (data) => ledger.riwayat(data));
@@ -172,11 +210,20 @@ export function registerIpcHandlers(opts: IpcOptions): void {
     laporan.rekapSiswa({ tahunAjaranId: data.tahunAjaranId ?? undefined, kelasId: data.kelasId ?? undefined })
   );
 
+  handle('laporan.rekapBulanan', RekapBulananSchema, (data) => laporan.rekapBulanan(data));
+  handle('laporan.siswaPasif', SiswaPasifSchema, (data) => laporan.siswaPasif(data.bulan));
+  handle('audit.daftar', AuditDaftarSchema, (data) => audit.daftar({ sebelumId: data.sebelumId }));
+
   handle('laporan.transaksi', LaporanTransaksiSchema, (data) => laporan.transaksi(data));
 
   // Berkas ekspor dipilih lewat dialog simpan di proses utama; renderer tidak pernah memegang jalur (NFR-07)
   handle('laporan.ekspor', LaporanEksporSchema, async (data) => {
-    const judul = data.jenis === 'transaksi' ? `transaksi_${data.dari}_${data.sampai}` : 'rekap_siswa';
+    const judul =
+      data.jenis === 'transaksi'
+        ? `transaksi_${data.dari}_${data.sampai}`
+        : data.jenis === 'rekapBulanan'
+          ? `rekap_bulanan_${data.dari}_${data.sampai}`
+          : 'rekap_siswa';
     const pilihan = await dialog.showSaveDialog({
       defaultPath: `${judul}.xlsx`,
       filters: [{ name: 'Excel', extensions: ['xlsx'] }],
@@ -191,10 +238,12 @@ export function registerIpcHandlers(opts: IpcOptions): void {
             kelasId: data.kelasId,
             jenis: data.jenisTransaksi,
           })
-        : await laporan.eksporRekapSiswa(pilihan.filePath, {
-            tahunAjaranId: data.tahunAjaranId,
-            kelasId: data.kelasId,
-          });
+        : data.jenis === 'rekapBulanan'
+          ? await laporan.eksporRekapBulanan(pilihan.filePath, { dari: data.dari, sampai: data.sampai })
+          : await laporan.eksporRekapSiswa(pilihan.filePath, {
+              tahunAjaranId: data.tahunAjaranId,
+              kelasId: data.kelasId,
+            });
     if (!hasil.ok) return hasil;
     return { ok: true, data: { nama_berkas: path.basename(pilihan.filePath) } };
   });
@@ -241,6 +290,16 @@ export function registerIpcHandlers(opts: IpcOptions): void {
     backup.buat(data.keterangan)
   );
   handle('backup.terakhir', null, () => backup.terakhir());
+  // Folder tujuan dipilih lewat dialog di proses utama; renderer tidak pernah memegang jalur (NFR-07)
+  handle<unknown, { nama_berkas: string; ukuran_bytes: number } | null>('backup.salinKeLuar', null, async () => {
+    const pilihan = await dialog.showOpenDialog({
+      title: 'Pilih folder tujuan salinan cadangan',
+      properties: ['openDirectory', 'createDirectory'],
+    });
+    if (pilihan.canceled || pilihan.filePaths.length === 0) return { ok: true, data: null };
+    return backup.salinKeLuar(pilihan.filePaths[0]);
+  });
+  handle('backup.terakhirKeLuar', null, () => backup.terakhirKeLuar());
   handle('backup.daftar', null, () => {
     for (const t of daftarCadanganTokens) fileTokenStore.delete(t);
     daftarCadanganTokens.clear();
@@ -391,6 +450,34 @@ export function registerIpcHandlers(opts: IpcOptions): void {
       if (!riwayatRes.ok) return riwayatRes;
       const html = generateBukuBesarSiswaHtml(profil, siswaRes.data, riwayatRes.data);
       return { ok: true, data: { html, judul: `buku_besar_${siswaRes.data.nomor}` } };
+    }
+
+    if (input.jenis === 'slipSaldo') {
+      if (!input.kelasId && !input.siswaId) {
+        return { ok: false, kode: 'VALIDASI_GAGAL', pesan: 'Pilih kelas atau siswa untuk slip saldo.' };
+      }
+      const dataRes = laporan.slipSaldo({ kelasId: input.kelasId, siswaId: input.siswaId });
+      if (!dataRes.ok) return dataRes;
+      const namaKelas = dataRes.data[0]?.kelas_nama ?? 'siswa';
+      const html = generateSlipSaldoHtml(profil, dataRes.data, namaKelas);
+      return { ok: true, data: { html, judul: `slip_saldo_${namaKelas.replace(/[^\w-]+/g, '_')}` } };
+    }
+
+    if (input.jenis === 'tutupKas') {
+      const kasRes = laporan.kasHarian(input.tanggal);
+      if (!kasRes.ok) return kasRes;
+      const html = generateTutupKasHtml(profil, kasRes.data, input.kasAwal ?? 0, input.uangFisik ?? 0);
+      return { ok: true, data: { html, judul: `tutup_kas_${kasRes.data.tanggal}` } };
+    }
+
+    if (input.jenis === 'rekapBulanan') {
+      if (!input.dari || !input.sampai) {
+        return { ok: false, kode: 'VALIDASI_GAGAL', pesan: 'Rentang tanggal diperlukan untuk rekap bulanan.' };
+      }
+      const dataRes = laporan.rekapBulanan({ dari: input.dari, sampai: input.sampai });
+      if (!dataRes.ok) return dataRes;
+      const html = generateRekapBulananHtml(profil, dataRes.data, input.dari, input.sampai);
+      return { ok: true, data: { html, judul: `rekap_bulanan_${input.dari}_${input.sampai}` } };
     }
 
     return { ok: false, kode: 'VALIDASI_GAGAL', pesan: 'Jenis laporan tidak dikenali.' };
