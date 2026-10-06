@@ -65,7 +65,7 @@ export function KoreksiModal({
           style={{
             padding: '12px 14px',
             backgroundColor: 'var(--surface)',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             border: '1px solid var(--border)',
             fontSize: '13px',
           }}
@@ -98,7 +98,7 @@ export function KoreksiModal({
             backgroundColor: 'var(--warn-bg)',
             border: '1px solid var(--warn)',
             padding: '8px 12px',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
           }}
         >
           Transaksi lama tidak akan dihapus. Sistem akan mencatat transaksi pembalik sebesar{' '}
@@ -112,7 +112,7 @@ export function KoreksiModal({
               padding: '10px 14px',
               backgroundColor: 'var(--danger-bg)',
               color: 'var(--danger-text)',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '13px',
               border: '1px solid var(--danger)',
             }}
@@ -137,7 +137,7 @@ export function KoreksiModal({
             style={{
               width: '100%',
               padding: '8px 12px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--surface)',
             }}
@@ -150,7 +150,7 @@ export function KoreksiModal({
             onClick={onClose}
             style={{
               padding: '8px 16px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--surface)',
               cursor: 'pointer',
@@ -164,7 +164,7 @@ export function KoreksiModal({
             disabled={loading}
             style={{
               padding: '8px 18px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: 'none',
               backgroundColor: 'var(--danger)',
               color: '#fff',

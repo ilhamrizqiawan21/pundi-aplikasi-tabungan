@@ -111,7 +111,7 @@ export function CadanganScreen() {
           padding: '20px',
           backgroundColor: 'var(--surface)',
           border: '1px solid var(--border)',
-          borderRadius: '8px',
+          borderRadius: 'var(--radius-sm)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -134,7 +134,7 @@ export function CadanganScreen() {
             padding: '10px 16px',
             backgroundColor: 'var(--surface)',
             border: '1px solid var(--border)',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             fontWeight: 600,
             fontSize: '13px',
             cursor: 'pointer',
@@ -148,7 +148,7 @@ export function CadanganScreen() {
             padding: '10px 16px',
             backgroundColor: 'var(--surface)',
             border: '1px solid var(--border)',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             fontWeight: 600,
             fontSize: '13px',
             cursor: 'pointer',
@@ -164,7 +164,7 @@ export function CadanganScreen() {
             backgroundColor: 'var(--accent)',
             color: 'var(--accent-text)',
             border: 'none',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             fontWeight: 600,
             fontSize: '13px',
             cursor: 'pointer',
@@ -179,12 +179,12 @@ export function CadanganScreen() {
         <div
           style={{
             padding: '12px 16px',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             fontSize: '13px',
             fontWeight: 500,
-            backgroundColor: msg.type === 'ok' ? '#EAF7ED' : '#FDEDEC',
-            color: msg.type === 'ok' ? 'var(--ok)' : 'var(--danger)',
-            border: `1px solid ${msg.type === 'ok' ? '#C3E6CB' : '#FADBD8'}`,
+            backgroundColor: msg.type === 'ok' ? 'var(--ok-bg)' : 'var(--danger-bg)',
+            color: msg.type === 'ok' ? 'var(--ok-text)' : 'var(--danger-text)',
+            border: `1px solid ${msg.type === 'ok' ? 'var(--ok-border)' : 'var(--danger-border)'}`,
           }}
         >
           {msg.text}
@@ -196,7 +196,7 @@ export function CadanganScreen() {
         style={{
           backgroundColor: 'var(--bg)',
           border: '1px solid var(--border)',
-          borderRadius: '8px',
+          borderRadius: 'var(--radius-sm)',
           overflow: 'hidden',
         }}
       >
@@ -218,7 +218,7 @@ export function CadanganScreen() {
               fontSize: '12px',
               backgroundColor: 'var(--bg)',
               border: '1px solid var(--border)',
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               cursor: 'pointer',
             }}
           >
@@ -226,41 +226,41 @@ export function CadanganScreen() {
           </button>
         </div>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+        <table className="tabel">
           <thead>
-            <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-              <th style={{ padding: '10px 16px', fontWeight: 600 }}>Nama Berkas Cadangan</th>
-              <th style={{ padding: '10px 16px', fontWeight: 600 }}>Jenis</th>
-              <th style={{ padding: '10px 16px', fontWeight: 600 }}>Waktu Dibuat</th>
-              <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'right' }}>Ukuran</th>
-              <th style={{ padding: '10px 16px', fontWeight: 600, textAlign: 'right' }}>Aksi</th>
+            <tr>
+              <th>Nama Berkas Cadangan</th>
+              <th>Jenis</th>
+              <th>Waktu Dibuat</th>
+              <th className="angka">Ukuran</th>
+              <th className="angka">Aksi</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)' }}>
+                <td colSpan={5} className="kosong">
                   Memuat daftar cadangan...
                 </td>
               </tr>
             ) : backups.length === 0 ? (
               <tr>
-                <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: 'var(--muted)' }}>
+                <td colSpan={5} className="kosong">
                   Belum ada berkas cadangan. Klik "Cadangkan Sekarang" untuk membuat cadangan baru.
                 </td>
               </tr>
             ) : (
               backups.map((b) => (
-                <tr key={b.nama} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '10px 16px', fontWeight: 600 }}>{b.nama}</td>
-                  <td style={{ padding: '10px 16px' }}>{LABEL_JENIS[b.jenis]}</td>
-                  <td style={{ padding: '10px 16px', color: 'var(--muted)' }}>
+                <tr key={b.nama}>
+                  <td style={{ fontWeight: 600 }}>{b.nama}</td>
+                  <td>{LABEL_JENIS[b.jenis]}</td>
+                  <td style={{ color: 'var(--muted)' }}>
                     {formatWaktuWib(b.tanggal)}
                   </td>
-                  <td className="tabular-nums" style={{ padding: '10px 16px', textAlign: 'right' }}>
+                  <td className="angka">
                     {formatUkuran(b.ukuran)}
                   </td>
-                  <td style={{ padding: '10px 16px', textAlign: 'right' }}>
+                  <td className="angka">
                     <button
                       onClick={() => setTarget({ token: b.token, nama: b.nama })}
                       aria-label={`Pulihkan dari ${b.nama}`}
@@ -269,7 +269,7 @@ export function CadanganScreen() {
                         fontSize: '12px',
                         backgroundColor: 'var(--bg)',
                         border: '1px solid var(--border)',
-                        borderRadius: '4px',
+                        borderRadius: 'var(--radius-sm)',
                         cursor: 'pointer',
                       }}
                     >
@@ -294,7 +294,7 @@ export function CadanganScreen() {
             style={{
               padding: '12px 14px',
               border: '1px solid var(--danger)',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               color: 'var(--danger)',
               fontWeight: 600,
             }}
@@ -315,7 +315,7 @@ export function CadanganScreen() {
               onClick={() => setTarget(null)}
               style={{
                 padding: '8px 16px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border)',
                 backgroundColor: 'var(--surface)',
                 cursor: 'pointer',
@@ -330,7 +330,7 @@ export function CadanganScreen() {
               onClick={handlePulihkan}
               style={{
                 padding: '8px 18px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: 'none',
                 backgroundColor: 'var(--danger)',
                 color: 'var(--accent-text)',

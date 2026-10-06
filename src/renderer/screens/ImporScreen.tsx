@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import type { HasilPratinjauImpor, OpsiImpor, PemetaanKolom } from '../../shared/types.js';
 import { formatRupiah, parseRupiahKetat } from '../../shared/rupiah.js';
 import { hariIniLokal } from '../../shared/tanggal.js';
-import { tombol, tombolUtama, kolom as gayaKolom, labelStyle, kartu, kartuKepala, sel } from '../styles/ui.js';
+import { tombol, tombolUtama, kolom as gayaKolom, labelStyle, kartu, kartuKepala } from '../styles/ui.js';
 
 const FIELD: Array<{ kunci: keyof PemetaanKolom; label: string; wajib?: boolean; bantuan: string }> = [
   { kunci: 'nama', label: 'Nama siswa', wajib: true, bantuan: 'Wajib' },
@@ -187,12 +187,12 @@ export function ImporScreen() {
       </ol>
 
       {berhasil && (
-        <div role="status" style={{ padding: '12px 16px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: '6px', fontSize: '13px', fontWeight: 600 }}>
+        <div role="status" style={{ padding: '12px 16px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px', fontWeight: 600 }}>
           {berhasil}
         </div>
       )}
       {galat && (
-        <div role="alert" style={{ padding: '12px 16px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '6px', fontSize: '13px' }}>
+        <div role="alert" style={{ padding: '12px 16px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
           {galat}
         </div>
       )}
@@ -200,7 +200,7 @@ export function ImporScreen() {
       {/* 1. Pilih berkas */}
       <section style={{ ...kartu, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }} aria-label="Pilih berkas">
         <div style={{ fontSize: '13px' }}>
-          <h3 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '4px' }}>Impor siswa dan saldo dari Excel atau CSV</h3>
+          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>Impor siswa dan saldo dari Excel atau CSV</h3>
           <p style={{ color: 'var(--muted)' }}>
             Cocok untuk daftar siswa baru maupun pindahan dari aplikasi lama: ekspor datanya ke Excel/CSV, lalu pilih berkasnya di sini. Kolom
             dicocokkan otomatis dan dapat Anda ubah.
@@ -254,9 +254,9 @@ export function ImporScreen() {
             </div>
             {hasil.contoh.length > 0 && (
               <div style={{ overflowX: 'auto', borderTop: '1px solid var(--border)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }} aria-label="Contoh isi berkas">
+                <table className="tabel" aria-label="Contoh isi berkas">
                   <thead>
-                    <tr style={{ backgroundColor: 'var(--surface)' }}>
+                    <tr>
                       {hasil.kolom.map((judul, i) => (
                         <th key={i} style={{ padding: '6px 12px', fontWeight: 600 }}>{judul}</th>
                       ))}
@@ -264,7 +264,7 @@ export function ImporScreen() {
                   </thead>
                   <tbody>
                     {hasil.contoh.map((baris, r) => (
-                      <tr key={r} style={{ borderTop: '1px solid var(--border)' }}>
+                      <tr key={r}>
                         {baris.map((v, c) => (
                           <td key={c} style={{ padding: '6px 12px', color: 'var(--muted)' }}>{v}</td>
                         ))}
@@ -305,7 +305,7 @@ export function ImporScreen() {
                   </div>
                 )}
                 {hasil.peringatan.length > 0 && (
-                  <ul style={{ padding: '10px 18px 10px 34px', fontSize: '13px', color: 'var(--warn)', borderBottom: '1px solid var(--border)' }}>
+                  <ul style={{ padding: '10px 18px 10px 34px', fontSize: '13px', color: 'var(--warn-text)', borderBottom: '1px solid var(--border)' }}>
                     {hasil.peringatan.map((p) => (
                       <li key={p}>{p}</li>
                     ))}
@@ -313,26 +313,26 @@ export function ImporScreen() {
                 )}
 
                 <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+                  <table className="tabel">
                     <thead>
-                      <tr style={{ borderBottom: '1px solid var(--border)', backgroundColor: 'var(--surface)' }}>
-                        <th style={sel}>Baris</th>
-                        <th style={sel}>Nama</th>
-                        <th style={sel}>NIS</th>
-                        <th style={sel}>Kelas</th>
-                        <th style={{ ...sel, textAlign: 'right' }}>Saldo</th>
-                        <th style={sel}>Keterangan</th>
+                      <tr>
+                        <th>Baris</th>
+                        <th>Nama</th>
+                        <th>NIS</th>
+                        <th>Kelas</th>
+                        <th className="angka">Saldo</th>
+                        <th>Keterangan</th>
                       </tr>
                     </thead>
                     <tbody>
                       {barisTampil.map((b) => (
-                        <tr key={b.nomor_baris} style={{ borderBottom: '1px solid var(--border)' }}>
-                          <td style={sel}>{b.nomor_baris}</td>
-                          <td style={{ ...sel, fontWeight: 600 }}>{b.nama || '—'}</td>
-                          <td style={sel}>{b.nis ?? '—'}</td>
-                          <td style={sel}>{b.kelas ?? '—'}</td>
-                          <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>{b.saldo ? formatRupiah(b.saldo) : '—'}</td>
-                          <td style={{ ...sel, color: b.valid ? 'var(--muted)' : 'var(--danger)' }}>
+                        <tr key={b.nomor_baris}>
+                          <td>{b.nomor_baris}</td>
+                          <td style={{ fontWeight: 600 }}>{b.nama || '—'}</td>
+                          <td>{b.nis ?? '—'}</td>
+                          <td>{b.kelas ?? '—'}</td>
+                          <td className="angka">{b.saldo ? formatRupiah(b.saldo) : '—'}</td>
+                          <td style={{ color: b.valid ? 'var(--muted)' : 'var(--danger)' }}>
                             {b.valid ? (b.catatan ?? 'Baik') : b.alasan_galat}
                           </td>
                         </tr>
@@ -360,7 +360,7 @@ export function ImporScreen() {
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
                   <div>
                     <div style={labelStyle}>Jumlah siswa di berkas</div>
-                    <div className="tabular-nums" style={{ fontSize: '18px', fontWeight: 700 }}>{hasil.valid_count}</div>
+                    <div className="tabular-nums" style={{ fontSize: '20px', fontWeight: 700 }}>{hasil.valid_count}</div>
                     <label htmlFor="im-kontrol-jumlah" style={{ ...labelStyle, marginTop: '10px' }}>Jumlah siswa di aplikasi lama</label>
                     <input id="im-kontrol-jumlah" inputMode="numeric" style={gayaKolom} value={kontrolJumlah} onChange={(e) => setKontrolJumlah(e.target.value)} placeholder="Contoh: 250" />
                     {cocokJumlah !== null && (
@@ -372,7 +372,7 @@ export function ImporScreen() {
 
                   <div>
                     <div style={labelStyle}>Total saldo di berkas</div>
-                    <div className="tabular-nums" style={{ fontSize: '18px', fontWeight: 700 }}>{formatRupiah(hasil.total_saldo)}</div>
+                    <div className="tabular-nums" style={{ fontSize: '20px', fontWeight: 700 }}>{formatRupiah(hasil.total_saldo)}</div>
                     <label htmlFor="im-kontrol-saldo" style={{ ...labelStyle, marginTop: '10px' }}>Total saldo di aplikasi lama</label>
                     <input id="im-kontrol-saldo" inputMode="numeric" style={gayaKolom} value={kontrolSaldo} onChange={(e) => setKontrolSaldo(e.target.value)} placeholder="Contoh: Rp 12.500.000" />
                     {cocokSaldo !== null && (

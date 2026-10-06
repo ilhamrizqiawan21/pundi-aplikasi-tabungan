@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import type { TahunAjaran, Kelas } from '../../shared/types.js';
 import { Modal } from '../components/Modal.js';
-import { tombol, tombolUtama, kolom, labelStyle, kartu, kartuKepala, sel } from '../styles/ui.js';
+import { tombol, tombolUtama, kolom, labelStyle, kartu, kartuKepala } from '../styles/ui.js';
 import { formatTanggalIndonesia, hariIniLokal } from '../../shared/tanggal.js';
 
 interface AkademikScreenProps {
@@ -111,7 +111,7 @@ export function AkademikScreen({ onChanged }: AkademikScreenProps) {
           role="status"
           style={{
             padding: '10px 14px',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             fontSize: '13px',
             fontWeight: 500,
             border: `1px solid ${pesan.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)'}`,
@@ -137,25 +137,22 @@ export function AkademikScreen({ onChanged }: AkademikScreenProps) {
             Belum ada tahun ajaran. Buat tahun ajaran pertama untuk mulai mengelompokkan siswa ke dalam kelas.
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+          <table className="tabel">
             <thead>
-              <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-                <th style={sel}>Tahun Ajaran</th>
-                <th style={sel}>Periode</th>
-                <th style={sel}>Status</th>
-                <th style={{ ...sel, textAlign: 'right' }}>Aksi</th>
+              <tr>
+                <th>Tahun Ajaran</th>
+                <th>Periode</th>
+                <th>Status</th>
+                <th className="angka">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {tahunList.map((t) => (
                 <tr
                   key={t.id}
-                  style={{
-                    borderBottom: '1px solid var(--border)',
-                    backgroundColor: t.id === terpilihId ? 'var(--surface)' : 'transparent',
-                  }}
+                  className={t.id === terpilihId ? 'baris-dipilih' : undefined}
                 >
-                  <td style={{ ...sel, fontWeight: 600 }}>
+                  <td style={{ fontWeight: 600 }}>
                     <button
                       type="button"
                       onClick={() => setTerpilihId(t.id)}
@@ -165,19 +162,19 @@ export function AkademikScreen({ onChanged }: AkademikScreenProps) {
                       {t.nama}
                     </button>
                   </td>
-                  <td style={{ ...sel, color: 'var(--muted)' }}>
+                  <td style={{ color: 'var(--muted)' }}>
                     {formatTanggalIndonesia(t.mulai)} – {formatTanggalIndonesia(t.selesai)}
                   </td>
-                  <td style={sel}>
+                  <td>
                     {t.aktif === 1 ? (
-                      <span style={{ color: 'var(--ok)', fontWeight: 600, border: '1px solid var(--ok)', borderRadius: '4px', padding: '2px 8px', fontSize: '12px' }}>
+                      <span style={{ color: 'var(--ok)', fontWeight: 600, border: '1px solid var(--ok)', borderRadius: 'var(--radius-sm)', padding: '2px 8px', fontSize: '12px' }}>
                         Aktif
                       </span>
                     ) : (
                       <span style={{ color: 'var(--muted)' }}>Tidak aktif</span>
                     )}
                   </td>
-                  <td style={{ ...sel, textAlign: 'right' }}>
+                  <td className="angka">
                     <span style={{ display: 'inline-flex', gap: '6px' }}>
                       {t.aktif !== 1 && (
                         <button type="button" style={tombol} onClick={() => setAktivasi(t)}>
@@ -219,33 +216,33 @@ export function AkademikScreen({ onChanged }: AkademikScreenProps) {
               </button>
             </span>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+          <table className="tabel">
             <thead>
-              <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-                <th style={sel}>Kelas</th>
-                <th style={sel}>Tingkat</th>
-                <th style={sel}>Urutan</th>
-                <th style={{ ...sel, textAlign: 'right' }}>Jumlah Siswa</th>
-                <th style={{ ...sel, textAlign: 'right' }}>Aksi</th>
+              <tr>
+                <th>Kelas</th>
+                <th>Tingkat</th>
+                <th>Urutan</th>
+                <th className="angka">Jumlah Siswa</th>
+                <th className="angka">Aksi</th>
               </tr>
             </thead>
             <tbody>
               {kelasList.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ ...sel, padding: '24px', textAlign: 'center', color: 'var(--muted)' }}>
+                  <td colSpan={5} className="kosong">
                     Belum ada kelas pada tahun ajaran ini. Tambah kelas, atau salin dari tahun ajaran lain.
                   </td>
                 </tr>
               ) : (
                 kelasList.map((k) => (
-                  <tr key={k.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={{ ...sel, fontWeight: 600 }}>{k.nama}</td>
-                    <td style={sel}>{k.tingkat}</td>
-                    <td style={sel}>{k.urutan}</td>
-                    <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>
+                  <tr key={k.id}>
+                    <td style={{ fontWeight: 600 }}>{k.nama}</td>
+                    <td>{k.tingkat}</td>
+                    <td>{k.urutan}</td>
+                    <td className="angka">
                       {k.jumlah_siswa ?? 0}
                     </td>
-                    <td style={{ ...sel, textAlign: 'right' }}>
+                    <td className="angka">
                       <span style={{ display: 'inline-flex', gap: '6px' }}>
                         <button type="button" style={tombol} onClick={() => setFormKelas({ edit: k })} aria-label={`Ubah kelas ${k.nama}`}>
                           Ubah
@@ -331,7 +328,7 @@ export function AkademikScreen({ onChanged }: AkademikScreenProps) {
 function Galat({ teks }: { teks: string | null }) {
   if (!teks) return null;
   return (
-    <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '6px', fontSize: '13px' }}>
+    <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
       {teks}
     </div>
   );

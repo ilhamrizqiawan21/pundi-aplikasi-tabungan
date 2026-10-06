@@ -114,15 +114,27 @@ export class LaporanService {
     const db = getDb();
     try {
       const conditions: string[] = [];
-      const params: unknown[] = [];
+      const whereParams: unknown[] = [];
 
+      // Penempatan yang dipakai: tahun ajaran milik kelas yang dipilih, atau tahun ajaran yang diminta, atau yang aktif
+      let taId: number | null = null;
       if (filter.kelasId) {
+        const k = db.prepare(`SELECT tahun_ajaran_id FROM kelas WHERE id = ?`).get(filter.kelasId) as
+          | { tahun_ajaran_id: number }
+          | undefined;
+        if (!k) return { ok: true, data: [] };
+        taId = k.tahun_ajaran_id;
         conditions.push('p.kelas_id = ?');
-        params.push(filter.kelasId);
+        whereParams.push(filter.kelasId);
       } else if (filter.tahunAjaranId) {
+        taId = filter.tahunAjaranId;
         conditions.push('p.tahun_ajaran_id = ?');
-        params.push(filter.tahunAjaranId);
+        whereParams.push(filter.tahunAjaranId);
+      } else {
+        const aktif = db.prepare(`SELECT id FROM tahun_ajaran WHERE aktif = 1 LIMIT 1`).get() as { id: number } | undefined;
+        taId = aktif?.id ?? null;
       }
+      const params: unknown[] = [taId, ...whereParams];
 
       const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
@@ -138,9 +150,7 @@ export class LaporanService {
           COALESCE(SUM(CASE WHEN t.nilai < 0 THEN ABS(t.nilai) ELSE 0 END), 0) AS total_penarikan,
           COALESCE(SUM(t.nilai), 0) AS saldo_akhir
         FROM siswa s
-        LEFT JOIN penempatan p ON p.siswa_id = s.id AND p.tahun_ajaran_id = (
-          SELECT id FROM tahun_ajaran WHERE aktif = 1 LIMIT 1
-        )
+        LEFT JOIN penempatan p ON p.siswa_id = s.id AND p.tahun_ajaran_id = ?
         LEFT JOIN kelas k ON k.id = p.kelas_id
         LEFT JOIN transaksi t ON t.siswa_id = s.id
         ${whereClause}

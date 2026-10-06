@@ -109,3 +109,55 @@ describe('LaporanService.transaksi (CAP-11)', () => {
     expect(baris).toEqual(expect.arrayContaining([['Ani Fiktif', 75000], ['Budi Fiktif', 40000]]));
   });
 });
+
+describe('Laporan: riwayat panjang dan tahun ajaran non-aktif', () => {
+  let tmpDir: string;
+  const laporan = new LaporanService();
+  const ledger = new LedgerService();
+  const akademik = new AkademikService();
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pundi-laporan-panjang-'));
+    initDb({ dbPath: path.join(tmpDir, 'test.sqlite'), migrationsDir: path.join(process.cwd(), 'migrations') });
+  });
+
+  afterEach(() => {
+    closeDb();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  it('riwayat dengan semua=true memuat seluruh transaksi (bukan 100 terakhir)', () => {
+    const ta = akademik.tahunAjaranSimpan({ nama: '2025/2026', mulai: '2025-07-01', selesai: '2026-06-30', aktif: true });
+    if (!ta.ok) throw new Error(ta.pesan);
+    const s = new SiswaService().simpan({ nama: 'Citra Fiktif', status: 'aktif' });
+    if (!s.ok) throw new Error('siswa gagal dibuat');
+    for (let i = 0; i < 130; i++) ledger.setor({ siswa_id: s.data.id, nominal: 1000, tanggal: '2026-03-01' });
+
+    const terbatas = ledger.riwayat({ siswa_id: s.data.id });
+    const semua = ledger.riwayat({ siswa_id: s.data.id, semua: true });
+    expect(terbatas.ok && terbatas.data.length).toBe(100);
+    expect(semua.ok && semua.data.length).toBe(130);
+  });
+
+  it('rekapSiswa dan slipSaldo tetap terisi untuk tahun ajaran yang tidak aktif', () => {
+    const lama = akademik.tahunAjaranSimpan({ nama: '2024/2025', mulai: '2024-07-01', selesai: '2025-06-30', aktif: true });
+    if (!lama.ok) throw new Error(lama.pesan);
+    const kLama = akademik.kelasSimpan({ tahun_ajaran_id: lama.data.id, nama: '6A', tingkat: 6, urutan: 1 });
+    if (!kLama.ok) throw new Error(kLama.pesan);
+    const s = new SiswaService().simpan({ nama: 'Dewi Fiktif', status: 'aktif', kelas_id: kLama.data.id });
+    if (!s.ok) throw new Error('siswa gagal dibuat');
+    ledger.setor({ siswa_id: s.data.id, nominal: 25000, tanggal: '2025-01-10' });
+
+    const baru = akademik.tahunAjaranSimpan({ nama: '2025/2026', mulai: '2025-07-01', selesai: '2026-06-30', aktif: true });
+    if (!baru.ok) throw new Error(baru.pesan);
+
+    const perTahun = laporan.rekapSiswa({ tahunAjaranId: lama.data.id });
+    expect(perTahun.ok && perTahun.data.map((r) => [r.nama, r.kelas_nama, r.saldo_akhir])).toEqual([['Dewi Fiktif', '6A', 25000]]);
+
+    const perKelas = laporan.rekapSiswa({ kelasId: kLama.data.id });
+    expect(perKelas.ok && perKelas.data.map((r) => r.nama)).toEqual(['Dewi Fiktif']);
+
+    const slip = laporan.slipSaldo({ kelasId: kLama.data.id });
+    expect(slip.ok && slip.data.map((r) => [r.nama, r.saldo])).toEqual([['Dewi Fiktif', 25000]]);
+  });
+});

@@ -83,6 +83,8 @@ export interface RiwayatFilter {
   sampai_tanggal?: string;
   kelas_id?: number;
   limit?: number;
+  /** Tanpa batas baris (untuk cetak buku besar yang totalnya harus mencakup seluruh riwayat). Hanya dari main, bukan dari IPC. */
+  semua?: boolean;
 }
 
 /** Tanggal transaksi harus ada di kalender; setoran/penarikan tidak boleh bertanggal masa depan. */
@@ -747,7 +749,7 @@ export class LedgerService {
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-    const limit = filter.limit ? Math.min(filter.limit, 500) : 100;
+    const limit = filter.semua ? -1 : filter.limit ? Math.min(filter.limit, 500) : 100; // SQLite: LIMIT -1 = tanpa batas
 
     try {
       const rows = db.prepare(`

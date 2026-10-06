@@ -274,7 +274,7 @@ export function CatatTransaksiScreen() {
         className="catat-kiri"
         style={{
           backgroundColor: 'var(--card-bg)',
-          borderRadius: '16px',
+          borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--border)',
           boxShadow: 'var(--card-shadow)',
           padding: '18px 16px',
@@ -286,8 +286,8 @@ export function CatatTransaksiScreen() {
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 4px' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', whiteSpace: 'nowrap' }}>Pilih siswa</h3>
-            <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', whiteSpace: 'nowrap' }}>Pilih siswa</h3>
+            <span style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
               {searchResults.length} siswa
             </span>
           </div>
@@ -317,10 +317,9 @@ export function CatatTransaksiScreen() {
               width: '100%',
               padding: '9px 12px 9px 34px',
               fontSize: '13px',
-              borderRadius: '10px',
+              borderRadius: 'var(--radius-md)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--bg)',
-              outline: 'none',
               transition: 'border-color 0.15s ease',
             }}
           />
@@ -360,7 +359,7 @@ export function CatatTransaksiScreen() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '9px 10px',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--radius-md)',
                   cursor: 'pointer',
                   backgroundColor: isSelected
                     ? 'rgba(37, 99, 235, 0.08)'
@@ -379,7 +378,7 @@ export function CatatTransaksiScreen() {
                     <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {s.nama}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '1px' }}>
+                    <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '1px' }}>
                       {s.kelas_nama ? `${s.kelas_nama} · ` : ''}{s.nomor}{s.status !== 'aktif' ? ` · ${s.status === 'lulus' ? 'Lulus' : 'Keluar'}` : ''}
                     </div>
                   </div>
@@ -411,7 +410,7 @@ export function CatatTransaksiScreen() {
               padding: '14px 18px',
               backgroundColor: 'var(--ok-bg)',
               border: '1px solid rgba(22, 163, 74, 0.25)',
-              borderRadius: '14px',
+              borderRadius: 'var(--radius-lg)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -436,9 +435,9 @@ export function CatatTransaksiScreen() {
                 title="Cetak struk transaksi terakhir (Ctrl+P)"
                 style={{
                   padding: '6px 12px',
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: 'var(--surface)',
                   border: '1px solid var(--border)',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--radius-sm)',
                   fontSize: '12px',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -451,10 +450,10 @@ export function CatatTransaksiScreen() {
                 onClick={() => setKoreksiTerbuka(true)}
                 style={{
                   padding: '6px 12px',
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: 'var(--surface)',
                   border: '1px solid var(--danger-bg)',
                   color: 'var(--danger)',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--radius-sm)',
                   fontSize: '12px',
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -475,7 +474,7 @@ export function CatatTransaksiScreen() {
               backgroundColor: 'var(--danger-bg)',
               border: '1px solid rgba(220, 38, 38, 0.25)',
               color: 'var(--danger-text)',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-md)',
               fontSize: '13px',
               fontWeight: 600,
               display: 'flex',
@@ -491,10 +490,10 @@ export function CatatTransaksiScreen() {
         {selectedSiswa ? (
           <div
             style={{
-              background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-              borderRadius: '18px',
+              background: 'linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%)',
+              borderRadius: 'var(--radius-xl)',
               padding: '22px 26px',
-              color: '#FFFFFF',
+              color: 'var(--on-color)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -509,11 +508,11 @@ export function CatatTransaksiScreen() {
                 </h2>
                 <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
                   {selectedSiswa.kelas_nama && (
-                    <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: '6px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
                       Kelas {selectedSiswa.kelas_nama}
                     </span>
                   )}
-                  <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
                     {selectedSiswa.nomor}
                   </span>
                 </div>
@@ -533,18 +532,18 @@ export function CatatTransaksiScreen() {
           <div
             className="catat-kosong"
             style={{
-              borderRadius: '18px',
+              borderRadius: 'var(--radius-xl)',
               border: '2px dashed var(--border)',
               textAlign: 'center',
               backgroundColor: 'var(--card-bg)',
               color: 'var(--muted)',
             }}
           >
-            <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text)' }}>
+            <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text)' }}>
               Belum ada siswa yang dipilih
             </div>
             <p style={{ fontSize: '12px', marginTop: '4px' }}>
-              Cari nama atau nomor rekening di sebelah kiri, atau tekan <kbd style={{ padding: '2px 6px', borderRadius: '4px', backgroundColor: 'var(--bg)', border: '1px solid var(--border)' }}>Ctrl + K</kbd>
+              Cari nama atau nomor rekening di sebelah kiri, atau tekan <kbd style={{ padding: '2px 6px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg)', border: '1px solid var(--border)' }}>Ctrl + K</kbd>
             </p>
           </div>
         )}
@@ -556,7 +555,7 @@ export function CatatTransaksiScreen() {
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
-            borderRadius: '18px',
+            borderRadius: 'var(--radius-xl)',
             boxShadow: 'var(--card-shadow)',
             display: 'flex',
             flexDirection: 'column',
@@ -569,7 +568,7 @@ export function CatatTransaksiScreen() {
             </h3>
 
             {/* Segmented Control Setoran / Penarikan */}
-            <div style={{ display: 'flex', gap: '6px', backgroundColor: 'var(--bg)', padding: '4px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', gap: '6px', backgroundColor: 'var(--bg)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
               <button
                 type="button"
                 disabled={!bolehSetor}
@@ -581,13 +580,13 @@ export function CatatTransaksiScreen() {
                 style={{
                   opacity: bolehSetor ? 1 : 0.4,
                   padding: '6px 14px',
-                  borderRadius: '7px',
+                  borderRadius: 'var(--radius-sm)',
                   fontSize: '12px',
                   fontWeight: 700,
                   border: 'none',
                   cursor: 'pointer',
                   backgroundColor: jenis === 'setoran' ? 'var(--ok)' : 'transparent',
-                  color: jenis === 'setoran' ? '#FFFFFF' : 'var(--muted)',
+                  color: jenis === 'setoran' ? 'var(--on-color)' : 'var(--muted)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
@@ -604,13 +603,13 @@ export function CatatTransaksiScreen() {
                 }}
                 style={{
                   padding: '6px 14px',
-                  borderRadius: '7px',
+                  borderRadius: 'var(--radius-sm)',
                   fontSize: '12px',
                   fontWeight: 700,
                   border: 'none',
                   cursor: 'pointer',
                   backgroundColor: jenis === 'penarikan' ? 'var(--danger)' : 'transparent',
-                  color: jenis === 'penarikan' ? '#FFFFFF' : 'var(--muted)',
+                  color: jenis === 'penarikan' ? 'var(--on-color)' : 'var(--muted)',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
@@ -636,7 +635,7 @@ export function CatatTransaksiScreen() {
                 alignItems: 'center',
                 backgroundColor: 'var(--bg)',
                 border: '1.5px solid var(--border)',
-                borderRadius: '12px',
+                borderRadius: 'var(--radius-md)',
                 padding: '4px 14px',
               }}
             >
@@ -652,12 +651,11 @@ export function CatatTransaksiScreen() {
                 onKeyDown={handleNominalKeyDown}
                 style={{
                   width: '100%',
-                  fontSize: '26px',
+                  fontSize: '24px',
                   fontWeight: 800,
                   color: jenis === 'setoran' ? 'var(--ok-text)' : 'var(--danger-text)',
                   backgroundColor: 'transparent',
                   border: 'none',
-                  outline: 'none',
                   letterSpacing: '-0.5px',
                 }}
                 className="tabular-nums"
@@ -671,8 +669,8 @@ export function CatatTransaksiScreen() {
                   padding: '4px 8px',
                   backgroundColor: 'var(--surface)',
                   border: '1px solid var(--border)',
-                  borderRadius: '6px',
-                  fontSize: '11px',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '12px',
                   fontWeight: 600,
                   color: 'var(--muted)',
                   userSelect: 'none',
@@ -693,7 +691,7 @@ export function CatatTransaksiScreen() {
                   onClick={() => handleAddNominal(amt)}
                   style={{
                     padding: '6px 12px',
-                    borderRadius: '8px',
+                    borderRadius: 'var(--radius-sm)',
                     backgroundColor: 'var(--bg)',
                     border: '1px solid var(--border)',
                     fontSize: '12px',
@@ -725,7 +723,7 @@ export function CatatTransaksiScreen() {
                   padding: '9px 12px',
                   backgroundColor: 'var(--bg)',
                   border: '1px solid var(--border)',
-                  borderRadius: '10px',
+                  borderRadius: 'var(--radius-md)',
                 }}
               >
                 <IconCalendar width={15} height={15} style={{ color: 'var(--muted)' }} />
@@ -736,7 +734,6 @@ export function CatatTransaksiScreen() {
                   style={{
                     border: 'none',
                     backgroundColor: 'transparent',
-                    outline: 'none',
                     fontSize: '13px',
                     fontWeight: 500,
                     color: 'var(--text)',
@@ -760,9 +757,8 @@ export function CatatTransaksiScreen() {
                   padding: '9px 12px',
                   backgroundColor: 'var(--bg)',
                   border: '1px solid var(--border)',
-                  borderRadius: '10px',
+                  borderRadius: 'var(--radius-md)',
                   fontSize: '13px',
-                  outline: 'none',
                 }}
               />
             </div>
@@ -779,7 +775,7 @@ export function CatatTransaksiScreen() {
             }}
           >
             <div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600 }}>
                 Saldo sesudah transaksi
               </div>
               <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginTop: '1px' }} className="tabular-nums">
@@ -799,7 +795,7 @@ export function CatatTransaksiScreen() {
                   padding: '10px 18px',
                   backgroundColor: 'var(--surface)',
                   border: '1px solid var(--border)',
-                  borderRadius: '10px',
+                  borderRadius: 'var(--radius-md)',
                   fontSize: '13px',
                   fontWeight: 600,
                   color: 'var(--text)',
@@ -817,7 +813,7 @@ export function CatatTransaksiScreen() {
                   backgroundColor: 'var(--accent)',
                   color: 'var(--accent-text)',
                   border: 'none',
-                  borderRadius: '10px',
+                  borderRadius: 'var(--radius-md)',
                   fontSize: '13px',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -844,7 +840,7 @@ export function CatatTransaksiScreen() {
         <div
           style={{
             backgroundColor: 'var(--card-bg)',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border)',
             boxShadow: 'var(--card-shadow)',
             padding: '18px 20px',
@@ -856,21 +852,21 @@ export function CatatTransaksiScreen() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>Setoran</div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600 }}>Setoran</div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--ok)', marginTop: '2px' }} className="tabular-nums">
                 {formatRupiah(kasHariIni?.total_setoran || 0)}
               </div>
             </div>
 
             <div>
-              <div style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>Penarikan</div>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600 }}>Penarikan</div>
               <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--danger)', marginTop: '2px' }} className="tabular-nums">
                 {formatRupiah(kasHariIni?.total_penarikan || 0)}
               </div>
             </div>
           </div>
 
-          <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border)', fontSize: '11px', color: 'var(--muted)' }}>
+          <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border)', fontSize: '12px', color: 'var(--muted)' }}>
             {kasHariIni?.jumlah_transaksi || 0} transaksi tercatat hari ini
           </div>
         </div>
@@ -879,7 +875,7 @@ export function CatatTransaksiScreen() {
         <div
           style={{
             backgroundColor: 'var(--card-bg)',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-lg)',
             border: '1px solid var(--border)',
             boxShadow: 'var(--card-shadow)',
             padding: '18px 20px',
@@ -892,7 +888,7 @@ export function CatatTransaksiScreen() {
             <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>
               Riwayat siswa
             </h4>
-            <span style={{ fontSize: '11px', color: 'var(--accent)', fontWeight: 600, cursor: 'pointer' }}>
+            <span style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 600, cursor: 'pointer' }}>
               Lihat semua
             </span>
           </div>
@@ -932,7 +928,7 @@ export function CatatTransaksiScreen() {
                         <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text)' }}>
                           {trx.jenis === 'setoran' ? 'Setoran' : trx.jenis === 'penarikan' ? 'Penarikan' : 'Koreksi'}
                         </div>
-                        <div style={{ fontSize: '10px', color: 'var(--muted)' }}>
+                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
                           {formatTanggalIndonesia(trx.tanggal, { day: 'numeric', month: 'short' })}
                         </div>
                       </div>

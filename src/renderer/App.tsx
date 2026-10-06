@@ -220,13 +220,13 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
             alt=""
             width={44}
             height={44}
-            style={{ borderRadius: '10px', flexShrink: 0, background: '#FFFFFF', objectFit: 'contain' }}
+            style={{ borderRadius: 'var(--radius-md)', flexShrink: 0, background: 'var(--on-color)', objectFit: 'contain' }}
           />
           <div className="rail-hide-visually">
-            <h1 style={{ fontSize: '20px', fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
+            <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--on-color)', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
               Pundi
             </h1>
-            <p style={{ fontSize: '9px', fontWeight: 700, color: '#7DD3FC', letterSpacing: '1.2px', textTransform: 'uppercase', marginTop: '2px' }}>
+            <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--sidebar-accent-text)', letterSpacing: '1.2px', textTransform: 'uppercase', marginTop: '2px' }}>
               Tabungan Siswa
             </p>
           </div>
@@ -248,10 +248,10 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
                   display: 'flex',
                   alignItems: 'center',
                   width: '100%',
-                  borderRadius: '10px',
+                  borderRadius: 'var(--radius-md)',
                   border: 'none',
                   backgroundColor: isActive ? 'var(--sidebar-active)' : 'transparent',
-                  color: isActive ? '#FFFFFF' : '#CBD5E1',
+                  color: isActive ? 'var(--on-color)' : 'var(--sidebar-text-dim)',
                   fontWeight: isActive ? 600 : 500,
                   fontSize: '13px',
                   cursor: 'pointer',
@@ -285,7 +285,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
               padding: '12px 14px',
               backgroundColor: 'rgba(255, 255, 255, 0.04)',
               border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: '12px',
+              borderRadius: 'var(--radius-md)',
               display: 'flex',
               flexDirection: 'column',
               gap: '8px',
@@ -303,12 +303,12 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
                   flexShrink: 0,
                 }}
               />
-              <span className="rail-hide-visually" style={{ fontSize: '11px', fontWeight: 700, color: '#FFFFFF' }}>
+              <span className="rail-hide-visually" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--on-color)' }}>
                 {cadangan.judul}
               </span>
             </div>
             {cadangan.teks && (
-              <p className="rail-hide-visually" style={{ fontSize: '11px', color: '#94A3B8', lineHeight: 1.35 }}>
+              <p className="rail-hide-visually" style={{ fontSize: '12px', color: 'var(--sidebar-muted)', lineHeight: 1.35 }}>
                 {cadangan.teks}
               </p>
             )}
@@ -319,11 +319,11 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
               style={{
                 width: '100%',
                 padding: '7px 10px',
-                backgroundColor: '#FFFFFF',
-                color: '#0F172A',
+                backgroundColor: 'var(--on-color)',
+                color: 'var(--sidebar-bg)',
                 border: 'none',
-                borderRadius: '8px',
-                fontSize: '11px',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: '12px',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'background-color 0.15s ease',
@@ -371,7 +371,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
                 padding: '7px 12px',
                 backgroundColor: 'var(--surface)',
                 border: '1px solid var(--border)',
-                borderRadius: '10px',
+                borderRadius: 'var(--radius-md)',
                 fontSize: '12px',
                 fontWeight: 500,
                 color: 'var(--text)',
@@ -389,7 +389,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
                   padding: '7px 12px',
                   backgroundColor: 'var(--surface)',
                   border: '1px solid var(--border)',
-                  borderRadius: '10px',
+                  borderRadius: 'var(--radius-md)',
                   fontSize: '12px',
                   fontWeight: 600,
                   color: 'var(--text)',
@@ -405,7 +405,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
                 type="button"
                 onClick={onKunci}
                 title="Kunci aplikasi sekarang"
-                style={{ ...tombol, padding: '7px 12px', fontSize: '12px', borderRadius: '10px' }}
+                style={{ ...tombol, padding: '7px 12px', fontSize: '12px', borderRadius: 'var(--radius-md)' }}
               >
                 Kunci
               </button>
@@ -420,7 +420,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
                 padding: '4px 10px 4px 6px',
                 backgroundColor: 'var(--surface)',
                 border: '1px solid var(--border)',
-                borderRadius: '10px',
+                borderRadius: 'var(--radius-md)',
                 boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
               }}
             >
@@ -428,9 +428,9 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
                 style={{
                   width: '32px',
                   height: '32px',
-                  borderRadius: '8px',
+                  borderRadius: 'var(--radius-sm)',
                   backgroundColor: 'var(--accent)',
-                  color: '#FFFFFF',
+                  color: 'var(--on-color)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -445,7 +445,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
                 <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2 }}>
                   {profil?.bendahara || 'Bendahara'}
                 </span>
-                <span style={{ fontSize: '10px', color: 'var(--muted)', lineHeight: 1.2 }}>
+                <span style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.2 }}>
                   Operator
                 </span>
               </div>
@@ -483,7 +483,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
                 style={{
                   marginBottom: '16px',
                   padding: '12px 16px',
-                  borderRadius: '12px',
+                  borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--warn)',
                   backgroundColor: 'var(--surface)',
                   display: 'flex',

@@ -200,6 +200,26 @@ test.describe('ketepatan tata letak', () => {
     ['Catat Transaksi', 'Setoran per Kelas', 'Setoran per Kelas'],
     ['Siswa', 'Tambah Siswa', 'Tambah Siswa Baru'],
   ];
+  test('modal menjebak fokus keyboard dan mengembalikannya ke pemicu saat ditutup', async () => {
+    await s.page.locator('nav').getByRole('button', { name: 'Siswa' }).click();
+    const pemicu = s.page.getByRole('button', { name: 'Tambah Siswa' }).first();
+    await pemicu.focus();
+    await pemicu.press('Enter');
+    const dialog = s.page.getByRole('dialog', { name: 'Tambah Siswa Baru' });
+    await expect(dialog).toBeVisible();
+    for (let i = 0; i < 25; i++) {
+      await s.page.keyboard.press(i % 2 === 0 ? 'Tab' : 'Shift+Tab');
+      expect(await dialog.evaluate((e) => e.contains(document.activeElement))).toBe(true);
+    }
+    for (let i = 0; i < 25; i++) {
+      await s.page.keyboard.press('Tab');
+      expect(await dialog.evaluate((e) => e.contains(document.activeElement))).toBe(true);
+    }
+    await s.page.keyboard.press('Escape');
+    await expect(dialog).toBeHidden();
+    await expect(pemicu).toBeFocused();
+  });
+
   for (const [w, h] of [[1024, 680], [1366, 768]] as Array<[number, number]>) {
     for (const [layar, tombol, judul] of MODAL) {
       test(`modal ${judul} muat pada ${w}x${h}`, async () => {

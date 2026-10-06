@@ -86,11 +86,11 @@ export function SiswaFormModal({
           <div
             style={{
               padding: '10px 14px',
-              backgroundColor: '#FDEDEC',
-              color: 'var(--danger)',
-              borderRadius: '6px',
+              backgroundColor: 'var(--danger-bg)',
+              color: 'var(--danger-text)',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '13px',
-              border: '1px solid #FADBD8',
+              border: '1px solid var(--danger-border)',
             }}
           >
             {errorMsg}
@@ -111,7 +111,7 @@ export function SiswaFormModal({
             style={{
               width: '100%',
               padding: '8px 12px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--surface)',
             }}
@@ -131,7 +131,7 @@ export function SiswaFormModal({
               style={{
                 width: '100%',
                 padding: '8px 12px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border)',
                 backgroundColor: 'var(--surface)',
               }}
@@ -148,7 +148,7 @@ export function SiswaFormModal({
               style={{
                 width: '100%',
                 padding: '8px 12px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border)',
                 backgroundColor: 'var(--surface)',
               }}
@@ -178,7 +178,7 @@ export function SiswaFormModal({
             style={{
               width: '100%',
               padding: '8px 12px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--surface)',
             }}
@@ -201,7 +201,7 @@ export function SiswaFormModal({
             style={{
               width: '100%',
               padding: '8px 12px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--surface)',
               resize: 'vertical',
@@ -215,7 +215,7 @@ export function SiswaFormModal({
             onClick={onClose}
             style={{
               padding: '8px 16px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--surface)',
               cursor: 'pointer',
@@ -229,7 +229,7 @@ export function SiswaFormModal({
             disabled={loading}
             style={{
               padding: '8px 18px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: 'none',
               backgroundColor: 'var(--accent)',
               color: 'var(--accent-text)',

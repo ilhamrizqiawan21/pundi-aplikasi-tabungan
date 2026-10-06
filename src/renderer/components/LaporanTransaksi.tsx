@@ -153,12 +153,12 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
       </section>
 
       {galat && (
-        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '6px', fontSize: '13px' }}>
+        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
           {galat}
         </div>
       )}
       {pesan && (
-        <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: '6px', fontSize: '13px' }}>
+        <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
           {pesan}
         </div>
       )}
@@ -263,7 +263,7 @@ function Ringkas({ judul, nilai, warna }: { judul: string; nilai: string; warna?
   return (
     <div style={{ ...kartu, padding: '12px 16px' }}>
       <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{judul}</div>
-      <div className="tabular-nums" style={{ fontSize: '18px', fontWeight: 700, color: warna ?? 'var(--text)', marginTop: '2px' }}>
+      <div className="tabular-nums" style={{ fontSize: '20px', fontWeight: 700, color: warna ?? 'var(--text)', marginTop: '2px' }}>
         {nilai}
       </div>
     </div>

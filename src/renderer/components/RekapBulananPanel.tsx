@@ -3,7 +3,7 @@ import type { HasilRekapBulanan, ItemSiswaPasif, TahunAjaran } from '../../share
 import { formatRupiah } from '../../shared/rupiah.js';
 import { formatTanggalIndonesia } from '../../shared/tanggal.js';
 import { PratinjauCetakModal } from './PratinjauCetakModal.js';
-import { tombol, kolom, labelStyle, kartu, kartuKepala, sel } from '../styles/ui.js';
+import { tombol, kolom, labelStyle, kartu, kartuKepala } from '../styles/ui.js';
 
 interface RekapBulananPanelProps {
   tahunAjaranList: TahunAjaran[];
@@ -135,12 +135,12 @@ export function RekapBulananPanel({ tahunAjaranList }: RekapBulananPanelProps) {
       </section>
 
       {galat && (
-        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '6px', fontSize: '13px' }}>
+        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
           {galat}
         </div>
       )}
       {pesan && (
-        <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: '6px', fontSize: '13px' }}>
+        <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
           {pesan}
         </div>
       )}
@@ -163,40 +163,40 @@ export function RekapBulananPanel({ tahunAjaranList }: RekapBulananPanelProps) {
               Belum ada setoran atau penarikan pada periode ini.
             </p>
           )}
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+          <table className="tabel">
             <thead>
-              <tr style={{ backgroundColor: 'var(--surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
-                <th style={sel}>Bulan</th>
-                <th style={{ ...sel, textAlign: 'right' }}>Setoran</th>
-                <th style={{ ...sel, textAlign: 'right' }}>Penarikan</th>
-                <th style={{ ...sel, textAlign: 'right' }}>Biaya adm</th>
-                <th style={{ ...sel, textAlign: 'right' }}>Transaksi</th>
-                <th style={{ ...sel, textAlign: 'right' }}>Saldo akhir bulan</th>
+              <tr>
+                <th>Bulan</th>
+                <th className="angka">Setoran</th>
+                <th className="angka">Penarikan</th>
+                <th className="angka">Biaya adm</th>
+                <th className="angka">Transaksi</th>
+                <th className="angka">Saldo akhir bulan</th>
               </tr>
             </thead>
             <tbody>
-              <tr style={{ borderBottom: '1px solid var(--border)', color: 'var(--muted)' }}>
-                <td style={sel} colSpan={5}>Saldo awal periode</td>
-                <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>{formatRupiah(hasil.saldo_awal)}</td>
+              <tr style={{ color: 'var(--muted)' }}>
+                <td colSpan={5}>Saldo awal periode</td>
+                <td className="angka">{formatRupiah(hasil.saldo_awal)}</td>
               </tr>
               {hasil.baris.map((b) => (
-                <tr key={b.bulan} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={sel}>{labelBulan(b.bulan)}</td>
-                  <td className="tabular-nums" style={{ ...sel, textAlign: 'right', color: 'var(--ok)' }}>{formatRupiah(b.setoran)}</td>
-                  <td className="tabular-nums" style={{ ...sel, textAlign: 'right', color: 'var(--danger)' }}>{formatRupiah(b.penarikan)}</td>
-                  <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>{formatRupiah(b.biaya_adm)}</td>
-                  <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>{b.jumlah_transaksi}</td>
-                  <td className="tabular-nums" style={{ ...sel, textAlign: 'right', fontWeight: 600 }}>{formatRupiah(b.saldo_akhir)}</td>
+                <tr key={b.bulan}>
+                  <td>{labelBulan(b.bulan)}</td>
+                  <td className="angka" style={{ color: 'var(--ok)' }}>{formatRupiah(b.setoran)}</td>
+                  <td className="angka" style={{ color: 'var(--danger)' }}>{formatRupiah(b.penarikan)}</td>
+                  <td className="angka">{formatRupiah(b.biaya_adm)}</td>
+                  <td className="angka">{b.jumlah_transaksi}</td>
+                  <td className="angka" style={{ fontWeight: 600 }}>{formatRupiah(b.saldo_akhir)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr style={{ fontWeight: 700 }}>
-                <td style={sel}>Total</td>
-                <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>{formatRupiah(totalSetoran)}</td>
-                <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>{formatRupiah(totalPenarikan)}</td>
-                <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>{formatRupiah(hasil.baris.reduce((t, b) => t + b.biaya_adm, 0))}</td>
-                <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>{hasil.baris.reduce((t, b) => t + b.jumlah_transaksi, 0)}</td>
+                <td>Total</td>
+                <td className="angka">{formatRupiah(totalSetoran)}</td>
+                <td className="angka">{formatRupiah(totalPenarikan)}</td>
+                <td className="angka">{formatRupiah(hasil.baris.reduce((t, b) => t + b.biaya_adm, 0))}</td>
+                <td className="angka">{hasil.baris.reduce((t, b) => t + b.jumlah_transaksi, 0)}</td>
                 <td />
               </tr>
             </tfoot>
@@ -223,25 +223,25 @@ export function RekapBulananPanel({ tahunAjaranList }: RekapBulananPanelProps) {
             Tidak ada siswa bersaldo yang diam selama {bulanPasif} bulan atau lebih.
           </p>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+          <table className="tabel">
             <thead>
-              <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-                <th style={sel}>Siswa</th>
-                <th style={sel}>Kelas</th>
-                <th style={sel}>Transaksi terakhir</th>
-                <th style={{ ...sel, textAlign: 'right' }}>Saldo</th>
+              <tr>
+                <th>Siswa</th>
+                <th>Kelas</th>
+                <th>Transaksi terakhir</th>
+                <th className="angka">Saldo</th>
               </tr>
             </thead>
             <tbody>
               {pasif.map((s) => (
-                <tr key={s.siswa_id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={sel}>
+                <tr key={s.siswa_id}>
+                  <td>
                     <div style={{ fontWeight: 600 }}>{s.nama}</div>
                     <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{s.nomor}</div>
                   </td>
-                  <td style={sel}>{s.kelas_nama ?? '-'}</td>
-                  <td style={sel}>{s.transaksi_terakhir ? formatTanggalIndonesia(s.transaksi_terakhir) : '-'}</td>
-                  <td className="tabular-nums" style={{ ...sel, textAlign: 'right', fontWeight: 600 }}>{formatRupiah(s.saldo)}</td>
+                  <td>{s.kelas_nama ?? '-'}</td>
+                  <td>{s.transaksi_terakhir ? formatTanggalIndonesia(s.transaksi_terakhir) : '-'}</td>
+                  <td className="angka" style={{ fontWeight: 600 }}>{formatRupiah(s.saldo)}</td>
                 </tr>
               ))}
             </tbody>

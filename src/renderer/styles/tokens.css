@@ -1,10 +1,28 @@
 /* Token desain Pundi (DESIGN §2) */
+/* Font Inter dibundel (tanpa jaringan); hanya subset latin dan latin-ext */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-ext-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
+}
+
 :root,
 [data-theme="putih"] {
   --bg: #F1F5F9;
   --surface: #FFFFFF;
   --text: #0F172A;
-  --muted: #64748B;
+  --muted: #526277;
   --accent: #2563EB;
   --accent-hover: #1D4ED8;
   --accent-text: #FFFFFF;
@@ -19,8 +37,8 @@
   --surface: #FFFFFF;
   --text: #064E3B;
   --muted: #047857;
-  --accent: #16A34A;
-  --accent-hover: #15803D;
+  --accent: #15803D;
+  --accent-hover: #166534;
   --accent-text: #FFFFFF;
   --border: #DCFCE7;
   --card-bg: #FFFFFF;
@@ -32,7 +50,7 @@
   --bg: #EFF6FF;
   --surface: #FFFFFF;
   --text: #1E3A8A;
-  --muted: #3B82F6;
+  --muted: #2F5DB8;
   --accent: #2563EB;
   --accent-hover: #1D4ED8;
   --accent-text: #FFFFFF;
@@ -72,9 +90,9 @@
 
 /* Status colors (universal across all themes) */
 :root {
-  --ok: #16A34A;
+  --ok: #15803D;
   --ok-bg: #DCFCE7;
-  --ok-text: #15803D;
+  --ok-text: #166534;
 
   --warn: #D97706;
   --warn-bg: #FEF3C7;
@@ -83,6 +101,16 @@
   --danger: #DC2626;
   --danger-bg: #FEE2E2;
   --danger-text: #B91C1C;
+  --ok-border: #BBF7D0;
+  --danger-border: #FECACA;
+
+  /* Teks putih pada latar jenuh yang tetap di semua tema (kartu utama, tombol status) */
+  --on-color: #FFFFFF;
+  --hero-from: #2563EB;
+  --hero-to: #1D4ED8;
+  --viewer-bg: #525659;
+  --sidebar-accent-text: #7DD3FC;
+  --sidebar-text-dim: #CBD5E1;
 
   /* Token bilah samping */
   --sidebar-bg: #0C1E38;
@@ -91,9 +119,10 @@
   --sidebar-active: #2563EB;
   --sidebar-border: rgba(255, 255, 255, 0.08);
 
-  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: 'Inter Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
+  /* Skala huruf: 11 (hanya label kapital), 12, 13, 14, 16, 20, 24, 28 (angka utama). Radius: sm/md/lg/xl; 9999px untuk pil. */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
@@ -177,6 +206,21 @@ input, button, select, textarea {
 .modal-panel { animation: panelMasuk var(--dur) var(--ease); }
 .baris-baru { animation: barisBaru 1.6s ease-out; }
 
+/* Tombol ikon tanpa bingkai (mis. tutup jendela) */
+.tombol-ikon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: transform var(--dur-cepat) var(--ease), background-color var(--dur-cepat) ease, color var(--dur-cepat) ease;
+}
+.tombol-ikon:hover { background-color: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text); }
+
 /* Umpan balik tekan untuk semua tombol */
 button { transition: transform var(--dur-cepat) var(--ease); }
 button:active:not(:disabled) { transform: scale(0.98); }
@@ -198,7 +242,10 @@ button:active:not(:disabled) { transform: scale(0.98); }
 }
 .tabel tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
 .tabel tbody tr { transition: background-color var(--dur-cepat) ease; }
-.tabel tbody tr:hover { background-color: var(--surface); }
+.tabel tbody tr:hover { background-color: color-mix(in srgb, var(--accent) 6%, transparent); }
+.tabel tbody tr.baris-dipilih,
+.tabel tbody tr.baris-dipilih:hover { background-color: color-mix(in srgb, var(--accent) 12%, transparent); }
+.tabel td { user-select: text; }
 .tabel .angka { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tabel .tengah { text-align: center; }
 .tabel td.kosong { padding: 30px; text-align: center; color: var(--muted); }

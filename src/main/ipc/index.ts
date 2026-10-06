@@ -428,12 +428,16 @@ export function registerIpcHandlers(opts: IpcOptions): void {
     if (input.jenis === 'transaksi') {
       const dari = input.dari || hariIniLokal();
       const sampai = input.sampai || hariIniLokal();
-      const dataRes = laporan.transaksi({
-        dari,
-        sampai,
-        kelasId: input.kelasId,
-        jenis: input.jenisTransaksi,
-      });
+      // Cetak memuat seluruh baris (tanpa batas tampilan layar) agar total di kertas sama dengan total sebenarnya
+      const dataRes = laporan.transaksi(
+        {
+          dari,
+          sampai,
+          kelasId: input.kelasId,
+          jenis: input.jenisTransaksi,
+        },
+        null
+      );
       if (!dataRes.ok) return dataRes;
       const filterInfo = input.jenisTransaksi ? `Jenis: ${input.jenisTransaksi.toUpperCase()}` : undefined;
       const html = generateLaporanTransaksiHtml(profil, dataRes.data.baris, dari, sampai, filterInfo);
@@ -446,7 +450,7 @@ export function registerIpcHandlers(opts: IpcOptions): void {
       }
       const siswaRes = siswa.detail(input.siswaId);
       if (!siswaRes.ok) return siswaRes;
-      const riwayatRes = ledger.riwayat({ siswa_id: input.siswaId });
+      const riwayatRes = ledger.riwayat({ siswa_id: input.siswaId, semua: true });
       if (!riwayatRes.ok) return riwayatRes;
       const html = generateBukuBesarSiswaHtml(profil, siswaRes.data, riwayatRes.data);
       return { ok: true, data: { html, judul: `buku_besar_${siswaRes.data.nomor}` } };

@@ -21,12 +21,12 @@ export function KodePemulihan({ kode, onSelesai }: KodePemulihanProps) {
         style={{
           padding: '16px',
           textAlign: 'center',
-          fontSize: '22px',
+          fontSize: '20px',
           fontWeight: 800,
           letterSpacing: '2px',
           fontFamily: 'ui-monospace, Consolas, monospace',
           border: '2px dashed var(--accent)',
-          borderRadius: '12px',
+          borderRadius: 'var(--radius-md)',
           userSelect: 'all',
         }}
       >

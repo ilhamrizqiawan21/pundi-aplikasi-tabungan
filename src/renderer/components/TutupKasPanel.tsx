@@ -65,12 +65,12 @@ export function TutupKasPanel() {
         <div>
           <label htmlFor="tk-awal" style={labelStyle}>Kas awal di laci (Rp)</label>
           <input id="tk-awal" type="text" inputMode="numeric" autoComplete="off" style={kolom} value={kasAwalTeks} placeholder="0" onChange={(e) => setKasAwalTeks(e.target.value)} />
-          {!kasAwal.ok && <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '2px' }}>{kasAwal.alasan}</div>}
+          {!kasAwal.ok && <div style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '2px' }}>{kasAwal.alasan}</div>}
         </div>
         <div>
           <label htmlFor="tk-fisik" style={labelStyle}>Uang fisik hasil hitung (Rp)</label>
           <input id="tk-fisik" type="text" inputMode="numeric" autoComplete="off" style={kolom} value={fisikTeks} onChange={(e) => setFisikTeks(e.target.value)} />
-          {!fisik.ok && <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '2px' }}>{fisik.alasan}</div>}
+          {!fisik.ok && <div style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '2px' }}>{fisik.alasan}</div>}
         </div>
       </div>
 
@@ -95,7 +95,7 @@ export function TutupKasPanel() {
         </dl>
       )}
 
-      <div role="status" style={{ padding: '12px 14px', borderRadius: '10px', border: `1px solid ${warna}`, color: warna, fontSize: '14px', fontWeight: 700 }}>
+      <div role="status" style={{ padding: '12px 14px', borderRadius: 'var(--radius-md)', border: `1px solid ${warna}`, color: warna, fontSize: '14px', fontWeight: 700 }}>
         {selisih
           ? selisih.selisih === 0
             ? 'Kas sesuai. Tidak ada selisih.'
@@ -104,7 +104,7 @@ export function TutupKasPanel() {
       </div>
 
       {galat && (
-        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '6px', fontSize: '13px' }}>
+        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
           {galat}
         </div>
       )}

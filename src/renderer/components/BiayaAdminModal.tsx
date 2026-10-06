@@ -3,7 +3,7 @@ import type { Kelas } from '../../shared/types.js';
 import { hariIniLokal } from '../../shared/tanggal.js';
 import { formatRupiah, parseRupiahKetat } from '../../shared/rupiah.js';
 import { Modal } from './Modal.js';
-import { tombol, tombolUtama, kolom, labelStyle, sel } from '../styles/ui.js';
+import { tombol, tombolUtama, kolom, labelStyle } from '../styles/ui.js';
 
 interface BiayaAdminModalProps {
   isOpen: boolean;
@@ -103,7 +103,7 @@ export function BiayaAdminModal({ isOpen, onClose, onSaved }: BiayaAdminModalPro
             <label htmlFor="ba-nominal" style={labelStyle}>Biaya per siswa (Rp)</label>
             <input id="ba-nominal" type="text" inputMode="numeric" autoComplete="off" style={kolom} value={nominalTeks} onChange={(e) => ubah(() => setNominalTeks(e.target.value))} />
             {nominalTeks.trim() !== '' && !nominalSah && (
-              <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '2px' }}>
+              <div style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '2px' }}>
                 {nominal.ok ? 'Nominal harus lebih dari 0' : nominal.alasan}
               </div>
             )}
@@ -115,12 +115,12 @@ export function BiayaAdminModal({ isOpen, onClose, onSaved }: BiayaAdminModalPro
         </div>
 
         {pesan && (
-          <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: '6px', fontSize: '13px', fontWeight: 500 }}>
+          <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px', fontWeight: 500 }}>
             {pesan}
           </div>
         )}
         {galat && (
-          <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '6px', fontSize: '13px' }}>
+          <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
             {galat}
           </div>
         )}
@@ -133,19 +133,19 @@ export function BiayaAdminModal({ isOpen, onClose, onSaved }: BiayaAdminModalPro
               <strong>{rencana.dilewati.length}</strong> dilewati.
             </div>
             {rencana.dilewati.length > 0 && (
-              <div style={{ maxHeight: '26vh', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '10px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+              <div style={{ maxHeight: '26vh', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)' }}>
+                <table className="tabel">
                   <thead>
-                    <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-                      <th style={sel}>Dilewati</th>
-                      <th style={sel}>Alasan</th>
+                    <tr>
+                      <th>Dilewati</th>
+                      <th>Alasan</th>
                     </tr>
                   </thead>
                   <tbody>
                     {rencana.dilewati.map((s) => (
-                      <tr key={s.siswa_id} style={{ borderBottom: '1px solid var(--border)' }}>
-                        <td style={sel}>{s.nama} <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{s.nomor}</span></td>
-                        <td style={{ ...sel, color: 'var(--warn)' }}>{s.alasan}</td>
+                      <tr key={s.siswa_id}>
+                        <td>{s.nama} <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{s.nomor}</span></td>
+                        <td style={{ color: 'var(--warn-text)' }}>{s.alasan}</td>
                       </tr>
                     ))}
                   </tbody>

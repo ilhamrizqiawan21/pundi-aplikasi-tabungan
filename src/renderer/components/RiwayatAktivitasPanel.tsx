@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ItemAktivitas } from '../../shared/types.js';
 import { formatWaktuWib } from '../../shared/tanggal.js';
-import { tombol, kartu, kartuKepala, sel } from '../styles/ui.js';
+import { tombol, kartu, kartuKepala } from '../styles/ui.js';
 
 const LABEL_AKSI: Record<string, string> = {
   'transaksi.setor': 'Setoran',
@@ -58,7 +58,7 @@ export function RiwayatAktivitasPanel() {
         <button type="button" style={tombol} onClick={() => muat()} disabled={memuat}>Segarkan</button>
       </div>
       {galat && (
-        <div role="alert" style={{ margin: '12px 18px', padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '6px', fontSize: '13px' }}>
+        <div role="alert" style={{ margin: '12px 18px', padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
           {galat}
         </div>
       )}
@@ -68,20 +68,20 @@ export function RiwayatAktivitasPanel() {
         </p>
       ) : (
         <div style={{ maxHeight: '360px', overflowY: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+          <table className="tabel">
             <thead>
-              <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0 }}>
-                <th style={sel}>Waktu</th>
-                <th style={sel}>Kegiatan</th>
-                <th style={sel}>Keterangan</th>
+              <tr>
+                <th>Waktu</th>
+                <th>Kegiatan</th>
+                <th>Keterangan</th>
               </tr>
             </thead>
             <tbody>
               {daftar.map((a) => (
-                <tr key={a.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ ...sel, whiteSpace: 'nowrap', color: 'var(--muted)' }}>{waktuTampil(a.waktu)}</td>
-                  <td style={{ ...sel, fontWeight: 600 }}>{LABEL_AKSI[a.aksi] ?? a.aksi}</td>
-                  <td style={{ ...sel, color: 'var(--muted)' }}>{a.ringkasan}</td>
+                <tr key={a.id}>
+                  <td style={{ whiteSpace: 'nowrap', color: 'var(--muted)' }}>{waktuTampil(a.waktu)}</td>
+                  <td style={{ fontWeight: 600 }}>{LABEL_AKSI[a.aksi] ?? a.aksi}</td>
+                  <td style={{ color: 'var(--muted)' }}>{a.ringkasan}</td>
                 </tr>
               ))}
             </tbody>

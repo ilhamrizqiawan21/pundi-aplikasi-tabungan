@@ -108,7 +108,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-lg)',
             padding: '20px 22px',
             boxShadow: 'var(--card-shadow)',
             display: 'flex',
@@ -121,7 +121,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
               width: '42px',
               height: '42px',
               borderRadius: '9999px',
-              backgroundColor: '#EFF6FF',
+              backgroundColor: 'color-mix(in srgb, var(--accent) 12%, transparent)',
               color: 'var(--accent)',
               display: 'flex',
               alignItems: 'center',
@@ -137,10 +137,10 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
             <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
               Setoran hari ini
             </div>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
+            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
               {formatRupiah(kas?.total_setoran || 0)}
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
               {countSetoran || kas?.jumlah_transaksi ? `${countSetoran || kas?.jumlah_transaksi} transaksi` : '0 transaksi'}
             </div>
           </div>
@@ -152,7 +152,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-lg)',
             padding: '20px 22px',
             boxShadow: 'var(--card-shadow)',
             display: 'flex',
@@ -165,8 +165,8 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
               width: '42px',
               height: '42px',
               borderRadius: '9999px',
-              backgroundColor: '#FEF3C7',
-              color: '#D97706',
+              backgroundColor: 'var(--warn-bg)',
+              color: 'var(--warn-text)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -181,10 +181,10 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
             <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
               Penarikan hari ini
             </div>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
+            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
               {formatRupiah(kas?.total_penarikan || 0)}
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
               {countPenarikan} transaksi
             </div>
           </div>
@@ -196,7 +196,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-lg)',
             padding: '20px 22px',
             boxShadow: 'var(--card-shadow)',
             display: 'flex',
@@ -231,7 +231,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
             <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
               {siswaCount}
             </div>
-            <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
               {kelasCount} kelas
             </div>
           </div>
@@ -243,7 +243,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-lg)',
             padding: '20px 22px',
             boxShadow: 'var(--card-shadow)',
             display: 'flex',
@@ -270,10 +270,10 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
             <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
               Total saldo siswa
             </div>
-            <div style={{ fontSize: '22px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
+            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
               {formatRupiah(kas?.saldo_seluruh_siswa || 0)}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: isSeimbang ? 'var(--ok)' : 'var(--danger)', marginTop: '4px', fontWeight: 600 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: isSeimbang ? 'var(--ok)' : 'var(--danger)', marginTop: '4px', fontWeight: 600 }}>
               <span style={{ width: '6px', height: '6px', borderRadius: '9999px', backgroundColor: isSeimbang ? 'var(--ok)' : 'var(--danger)', display: 'inline-block' }} />
               <span>{isSeimbang ? 'Cocok dengan buku besar' : 'Perlu pemeriksaan saldo'}</span>
             </div>
@@ -290,7 +290,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-lg)',
             padding: '22px',
             boxShadow: 'var(--card-shadow)',
             display: 'flex',
@@ -300,22 +300,22 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           {/* Header Grafik */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
             <div>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
                 Setoran dan penarikan
               </h3>
-              <p style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px', margin: 0 }}>
+              <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px', margin: 0 }}>
                 7 hari kerja terakhir, dalam ribu rupiah
               </p>
             </div>
 
             {/* Legenda Grafik */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '11px', fontWeight: 600 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '12px', fontWeight: 600 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ width: '9px', height: '9px', borderRadius: '9999px', backgroundColor: 'var(--accent)' }} />
                 <span>Setoran</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '9px', height: '9px', borderRadius: '9999px', backgroundColor: '#F59E0B' }} />
+                <span style={{ width: '9px', height: '9px', borderRadius: '9999px', backgroundColor: 'var(--warn)' }} />
                 <span>Penarikan</span>
               </div>
             </div>
@@ -347,14 +347,14 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
                       style={{
                         width: '16px',
                         height: `${hPenarikan}px`,
-                        backgroundColor: '#F59E0B',
+                        backgroundColor: 'var(--warn)',
                         borderRadius: '6px 6px 0 0',
                         transition: 'height 0.3s ease',
                       }}
                     />
                   </div>
                   {/* Label Hari */}
-                  <span style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
                     {d.label}
                   </span>
                 </div>
@@ -368,7 +368,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           style={{
             backgroundColor: 'var(--card-bg)',
             border: '1px solid var(--border)',
-            borderRadius: '16px',
+            borderRadius: 'var(--radius-lg)',
             padding: '22px',
             boxShadow: 'var(--card-shadow)',
             display: 'flex',
@@ -376,10 +376,10 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
               Saldo per kelas
             </h3>
-            <span style={{ fontSize: '11px', color: 'var(--muted)' }}>
+            <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
               {rekapKelas.length} kelas terdaftar
             </span>
           </div>
@@ -426,7 +426,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
         style={{
           backgroundColor: 'var(--card-bg)',
           border: '1px solid var(--border)',
-          borderRadius: '16px',
+          borderRadius: 'var(--radius-lg)',
           boxShadow: 'var(--card-shadow)',
           overflow: 'hidden',
         }}
@@ -440,7 +440,7 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
             justifyContent: 'space-between',
           }}
         >
-          <h3 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
             Transaksi terbaru
           </h3>
           <button
@@ -458,27 +458,27 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
           </button>
         </div>
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+        <table className="tabel">
           <thead>
-            <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)', color: 'var(--muted)' }}>
-              <th style={{ padding: '12px 22px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>Waktu / Tanggal</th>
-              <th style={{ padding: '12px 18px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>Nama Siswa</th>
-              <th style={{ padding: '12px 18px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>Kelas</th>
-              <th style={{ padding: '12px 18px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase' }}>Jenis</th>
-              <th style={{ padding: '12px 18px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase', textAlign: 'right' }}>Nominal</th>
-              <th style={{ padding: '12px 22px', fontWeight: 600, fontSize: '11px', letterSpacing: '0.6px', textTransform: 'uppercase', textAlign: 'right' }}>Saldo Sesudah</th>
+            <tr>
+              <th>Waktu / Tanggal</th>
+              <th>Nama Siswa</th>
+              <th>Kelas</th>
+              <th>Jenis</th>
+              <th className="angka">Nominal</th>
+              <th className="angka">Saldo Sesudah</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
+                <td colSpan={6} className="kosong">
                   Memuat data transaksi...
                 </td>
               </tr>
             ) : transaksiList.length === 0 ? (
               <tr>
-                <td colSpan={6} style={{ padding: '30px', textAlign: 'center', color: 'var(--muted)' }}>
+                <td colSpan={6} className="kosong">
                   Belum ada transaksi tercatat.
                 </td>
               </tr>
@@ -487,33 +487,25 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
                 const isSetor = t.jenis === 'setoran' || (t.jenis === 'pembalik' && t.nilai > 0);
                 const isTarik = t.jenis === 'penarikan' || (t.jenis === 'pembalik' && t.nilai < 0);
                 return (
-                  <tr
-                    key={t.id}
-                    style={{
-                      borderBottom: '1px solid var(--border)',
-                      transition: 'background-color 0.12s ease',
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface)')}
-                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
-                  >
-                    <td style={{ padding: '13px 22px', color: 'var(--muted)', fontSize: '12px' }}>
+                  <tr key={t.id}>
+                    <td style={{ color: 'var(--muted)', fontSize: '12px' }}>
                       {formatTanggalIndonesia(t.tanggal, { day: 'numeric', month: 'short' })}
                     </td>
-                    <td style={{ padding: '13px 18px', fontWeight: 600, color: 'var(--text)' }}>
+                    <td style={{ fontWeight: 600 }}>
                       {t.siswa_nama || '-'}
                     </td>
-                    <td style={{ padding: '13px 18px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'var(--bg)', padding: '2px 8px', borderRadius: '6px', border: '1px solid var(--border)' }}>
+                    <td>
+                      <span style={{ fontSize: '12px', fontWeight: 600, backgroundColor: 'var(--bg)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
                         {t.kelas_nama || '-'}
                       </span>
                     </td>
-                    <td style={{ padding: '13px 18px' }}>
+                    <td>
                       <span
                         style={{
-                          fontSize: '11px',
+                          fontSize: '12px',
                           fontWeight: 700,
                           padding: '3px 8px',
-                          borderRadius: '6px',
+                          borderRadius: 'var(--radius-sm)',
                           backgroundColor: isSetor ? 'var(--ok-bg)' : isTarik ? 'var(--danger-bg)' : 'var(--bg)',
                           color: isSetor ? 'var(--ok-text)' : isTarik ? 'var(--danger-text)' : 'var(--muted)',
                         }}
@@ -522,17 +514,15 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
                       </span>
                     </td>
                     <td
+                      className="angka"
                       style={{
-                        padding: '13px 18px',
-                        textAlign: 'right',
                         fontWeight: 700,
                         color: isSetor ? 'var(--ok)' : isTarik ? 'var(--danger)' : 'var(--text)',
                       }}
-                      className="tabular-nums"
                     >
                       {isSetor ? `+ ${formatRupiah(Math.abs(t.nilai))}` : `− ${formatRupiah(Math.abs(t.nilai))}`}
                     </td>
-                    <td style={{ padding: '13px 22px', textAlign: 'right', fontWeight: 700, color: 'var(--text)' }} className="tabular-nums">
+                    <td className="angka" style={{ fontWeight: 700 }}>
                       {formatRupiah(t.saldo_setelah)}
                     </td>
                   </tr>

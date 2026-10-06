@@ -95,12 +95,12 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
         <div
           style={{
             padding: '12px 16px',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             fontSize: '13px',
             fontWeight: 500,
-            backgroundColor: msg.type === 'ok' ? '#EAF7ED' : '#FDEDEC',
-            color: msg.type === 'ok' ? 'var(--ok)' : 'var(--danger)',
-            border: `1px solid ${msg.type === 'ok' ? '#C3E6CB' : '#FADBD8'}`,
+            backgroundColor: msg.type === 'ok' ? 'var(--ok-bg)' : 'var(--danger-bg)',
+            color: msg.type === 'ok' ? 'var(--ok-text)' : 'var(--danger-text)',
+            border: `1px solid ${msg.type === 'ok' ? 'var(--ok-border)' : 'var(--danger-border)'}`,
           }}
         >
           {msg.text}
@@ -113,7 +113,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
         style={{
           backgroundColor: 'var(--surface)',
           padding: '24px',
-          borderRadius: '8px',
+          borderRadius: 'var(--radius-sm)',
           border: '1px solid var(--border)',
           display: 'flex',
           flexDirection: 'column',
@@ -136,7 +136,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
             style={{
               width: '100%',
               padding: '8px 12px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--bg)',
             }}
@@ -156,7 +156,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
               style={{
                 width: '100%',
                 padding: '8px 12px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border)',
                 backgroundColor: 'var(--bg)',
               }}
@@ -175,7 +175,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
               style={{
                 width: '100%',
                 padding: '8px 12px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border)',
                 backgroundColor: 'var(--bg)',
               }}
@@ -196,7 +196,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
               style={{
                 width: '100%',
                 padding: '8px 12px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border)',
                 backgroundColor: 'var(--bg)',
               }}
@@ -215,7 +215,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
               style={{
                 width: '100%',
                 padding: '8px 12px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border)',
                 backgroundColor: 'var(--bg)',
               }}
@@ -250,7 +250,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
               style={{
                 width: '100%',
                 padding: '8px 12px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border)',
                 backgroundColor: 'var(--bg)',
               }}
@@ -273,7 +273,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
               style={{
                 width: '100%',
                 padding: '8px 12px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border)',
                 backgroundColor: 'var(--bg)',
               }}
@@ -294,7 +294,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
               backgroundColor: 'var(--accent)',
               color: 'var(--accent-text)',
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               fontWeight: 600,
               fontSize: '13px',
               cursor: 'pointer',
@@ -310,7 +310,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
         style={{
           backgroundColor: 'var(--surface)',
           padding: '24px',
-          borderRadius: '8px',
+          borderRadius: 'var(--radius-sm)',
           border: '1px solid var(--border)',
           display: 'flex',
           flexDirection: 'column',
@@ -331,7 +331,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
               padding: '8px 16px',
               backgroundColor: 'var(--bg)',
               border: '1px solid var(--border)',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '13px',
               fontWeight: 600,
               cursor: 'pointer',
@@ -345,9 +345,9 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
           <div
             style={{
               padding: '14px 18px',
-              borderRadius: '6px',
-              backgroundColor: hasilIntegritas.apakah_seimbang ? '#EAF7ED' : '#FDEDEC',
-              border: `1px solid ${hasilIntegritas.apakah_seimbang ? '#C3E6CB' : '#FADBD8'}`,
+              borderRadius: 'var(--radius-sm)',
+              backgroundColor: hasilIntegritas.apakah_seimbang ? 'var(--ok-bg)' : 'var(--danger-bg)',
+              border: `1px solid ${hasilIntegritas.apakah_seimbang ? 'var(--ok-border)' : 'var(--danger-border)'}`,
               fontSize: '13px',
             }}
           >

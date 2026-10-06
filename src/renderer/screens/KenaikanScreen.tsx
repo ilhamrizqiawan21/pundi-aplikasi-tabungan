@@ -3,7 +3,7 @@ import type { TahunAjaran, Kelas, ItemKenaikan, PerubahanKenaikan } from '../../
 import { formatRupiah } from '../../shared/rupiah.js';
 import { Modal } from '../components/Modal.js';
 import { IconKenaikan, IconSiswa, IconCheck, IconAkademik } from '../components/Icons.js';
-import { tombol, tombolUtama, kolom, labelStyle, kartu, kartuKepala, sel } from '../styles/ui.js';
+import { tombol, tombolUtama, kolom, labelStyle, kartu, kartuKepala } from '../styles/ui.js';
 
 type Tindakan = 'pindah' | 'lulus' | 'keluar';
 
@@ -77,7 +77,7 @@ function KeadaanKosong({ ikon, judul, children }: { ikon: ReactNode; judul: stri
       >
         {ikon}
       </div>
-      <h3 style={{ fontSize: '15px', fontWeight: 700 }}>{judul}</h3>
+      <h3 style={{ fontSize: '16px', fontWeight: 700 }}>{judul}</h3>
       <div style={{ fontSize: '13px', color: 'var(--muted)', maxWidth: '460px', lineHeight: 1.6 }}>{children}</div>
     </div>
   );
@@ -288,12 +288,12 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
       </p>
 
       {pesan && (
-        <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: '6px', fontSize: '13px', fontWeight: 500 }}>
+        <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px', fontWeight: 500 }}>
           {pesan}
         </div>
       )}
       {galat && (
-        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '6px', fontSize: '13px' }}>
+        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
           {galat}
         </div>
       )}
@@ -358,10 +358,10 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
               Tinjau Perubahan
             </button>
           </div>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+          <table className="tabel">
             <thead>
-              <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-                <th style={sel}>
+              <tr>
+                <th>
                   <input
                     type="checkbox"
                     aria-label="Pilih semua siswa"
@@ -369,16 +369,16 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
                     onChange={(e) => setDipilih(e.target.checked ? new Set(items.map((s) => s.siswa_id)) : new Set())}
                   />
                 </th>
-                <th style={sel}>Siswa</th>
-                <th style={{ ...sel, textAlign: 'right' }}>Saldo</th>
-                <th style={sel}>Tindakan</th>
-                <th style={sel}>Kelas tujuan</th>
+                <th>Siswa</th>
+                <th className="angka">Saldo</th>
+                <th>Tindakan</th>
+                <th>Kelas tujuan</th>
               </tr>
             </thead>
             <tbody>
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={5} style={{ ...sel, padding: 0 }}>
+                  <td colSpan={5} style={{ padding: 0 }}>
                     <KeadaanKosong ikon={<IconAkademik width={30} height={30} />} judul="Tidak ada siswa pada kelas ini">
                       Pilih kelas lain, atau tambahkan siswa lewat menu <strong>Siswa</strong> atau <strong>Impor</strong>.
                     </KeadaanKosong>
@@ -388,8 +388,8 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
                 items.map((s) => {
                   const t = tindakanDari(s.siswa_id);
                   return (
-                    <tr key={s.siswa_id} style={{ borderBottom: '1px solid var(--border)' }}>
-                      <td style={sel}>
+                    <tr key={s.siswa_id}>
+                      <td>
                         <input
                           type="checkbox"
                           aria-label={`Pilih ${s.nama}`}
@@ -402,7 +402,7 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
                           }}
                         />
                       </td>
-                      <td style={sel}>
+                      <td>
                         <div style={{ fontWeight: 600 }}>{s.nama}</div>
                         <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
                           {s.nomor}
@@ -410,8 +410,8 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
                           {s.kelas_tujuan_nama && ` • Sudah di kelas ${s.kelas_tujuan_nama}`}
                         </div>
                       </td>
-                      <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>{formatRupiah(s.saldo)}</td>
-                      <td style={sel}>
+                      <td className="angka">{formatRupiah(s.saldo)}</td>
+                      <td>
                         <select
                           aria-label={`Tindakan untuk ${s.nama}`}
                           style={{ ...kolom, padding: '6px 8px' }}
@@ -423,7 +423,7 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
                           <option value="keluar">Keluar</option>
                         </select>
                       </td>
-                      <td style={sel}>
+                      <td>
                         <select
                           aria-label={`Kelas tujuan untuk ${s.nama}`}
                           style={{ ...kolom, padding: '6px 8px' }}
@@ -467,7 +467,7 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
               )}
             </ul>
             {ringkasan.diganti > 0 && (
-              <p style={{ color: 'var(--warn)' }}>
+              <p style={{ color: 'var(--warn-text)' }}>
                 {ringkasan.diganti} siswa sudah punya kelas di tahun ajaran tujuan; kelas itu akan diganti.
               </p>
             )}

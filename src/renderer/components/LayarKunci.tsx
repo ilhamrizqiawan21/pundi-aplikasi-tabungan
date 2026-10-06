@@ -87,8 +87,8 @@ export function LayarKunci({ onBuka }: LayarKunciProps) {
       aria-label="Kunci aplikasi"
       style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', backgroundColor: 'var(--bg)', color: 'var(--text)' }}
     >
-      <div style={{ width: '100%', maxWidth: '380px', padding: '32px 28px', backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: '20px', boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', gap: '18px', alignItems: 'center' }}>
-        <img src={logoUrl} alt="" width={72} height={72} style={{ borderRadius: '16px' }} />
+      <div style={{ width: '100%', maxWidth: '380px', padding: '32px 28px', backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', gap: '18px', alignItems: 'center' }}>
+        <img src={logoUrl} alt="" width={72} height={72} style={{ borderRadius: 'var(--radius-lg)' }} />
         <h1 style={{ fontSize: '20px', fontWeight: 800 }}>Pundi</h1>
 
         {mode === 'pin' && (
@@ -105,7 +105,7 @@ export function LayarKunci({ onBuka }: LayarKunciProps) {
                 value={pin}
                 disabled={sibuk || tunggu > 0}
                 onChange={(e) => ubahPin(e.target.value)}
-                style={{ ...kolom, textAlign: 'center', fontSize: '26px', letterSpacing: '10px', padding: '12px' }}
+                style={{ ...kolom, textAlign: 'center', fontSize: '24px', letterSpacing: '10px', padding: '12px' }}
               />
             </div>
             <div role="alert" aria-live="assertive" style={{ minHeight: '20px', fontSize: '13px', color: 'var(--danger)', textAlign: 'center' }}>

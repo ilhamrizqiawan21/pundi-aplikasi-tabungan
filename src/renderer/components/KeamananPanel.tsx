@@ -101,7 +101,7 @@ export function KeamananPanel() {
           </p>
         </div>
         <span
-          style={{ fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '9999px', color: aktif ? 'var(--ok)' : 'var(--warn)', border: `1px solid ${aktif ? 'var(--ok)' : 'var(--warn)'}` }}
+          style={{ fontSize: '12px', fontWeight: 700, padding: '3px 10px', borderRadius: '9999px', color: aktif ? 'var(--ok)' : 'var(--warn)', border: `1px solid ${aktif ? 'var(--ok)' : 'var(--warn)'}` }}
         >
           {aktif === null ? '...' : aktif ? 'AKTIF' : 'TIDAK AKTIF'}
         </span>
@@ -109,7 +109,7 @@ export function KeamananPanel() {
 
       <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {pesan && (
-          <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: '6px', fontSize: '13px' }}>{pesan}</div>
+          <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>{pesan}</div>
         )}
 
         {mode === 'diam' && aktif !== null && (
@@ -144,7 +144,7 @@ export function KeamananPanel() {
               </>
             )}
             {galat && (
-              <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '6px', fontSize: '13px' }}>{galat}</div>
+              <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>{galat}</div>
             )}
             <div style={{ display: 'flex', gap: '8px' }}>
               <button type="button" style={tombol} disabled={sibuk} onClick={() => selesai()}>Batal</button>

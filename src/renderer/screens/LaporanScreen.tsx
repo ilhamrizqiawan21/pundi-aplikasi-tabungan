@@ -168,7 +168,7 @@ export function LaporanScreen() {
             display: 'flex',
             backgroundColor: 'var(--surface)',
             border: '1px solid var(--border)',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             padding: '2px',
           }}
         >
@@ -178,7 +178,7 @@ export function LaporanScreen() {
               padding: '6px 14px',
               fontSize: '13px',
               fontWeight: 600,
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               border: 'none',
               backgroundColor: tab === 'kelas' ? 'var(--accent)' : 'transparent',
               color: tab === 'kelas' ? 'var(--accent-text)' : 'var(--text)',
@@ -193,7 +193,7 @@ export function LaporanScreen() {
               padding: '6px 14px',
               fontSize: '13px',
               fontWeight: 600,
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               border: 'none',
               backgroundColor: tab === 'siswa' ? 'var(--accent)' : 'transparent',
               color: tab === 'siswa' ? 'var(--accent-text)' : 'var(--text)',
@@ -208,7 +208,7 @@ export function LaporanScreen() {
               padding: '6px 14px',
               fontSize: '13px',
               fontWeight: 600,
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               border: 'none',
               backgroundColor: tab === 'transaksi' ? 'var(--accent)' : 'transparent',
               color: tab === 'transaksi' ? 'var(--accent-text)' : 'var(--text)',
@@ -223,7 +223,7 @@ export function LaporanScreen() {
               padding: '6px 14px',
               fontSize: '13px',
               fontWeight: 600,
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               border: 'none',
               backgroundColor: tab === 'bulanan' ? 'var(--accent)' : 'transparent',
               color: tab === 'bulanan' ? 'var(--accent-text)' : 'var(--text)',
@@ -238,7 +238,7 @@ export function LaporanScreen() {
               padding: '6px 14px',
               fontSize: '13px',
               fontWeight: 600,
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               border: 'none',
               backgroundColor: tab === 'slip' ? 'var(--accent)' : 'transparent',
               color: tab === 'slip' ? 'var(--accent-text)' : 'var(--text)',
@@ -253,7 +253,7 @@ export function LaporanScreen() {
               padding: '6px 14px',
               fontSize: '13px',
               fontWeight: 600,
-              borderRadius: '4px',
+              borderRadius: 'var(--radius-sm)',
               border: 'none',
               backgroundColor: tab === 'tutupkas' ? 'var(--accent)' : 'transparent',
               color: tab === 'tutupkas' ? 'var(--accent-text)' : 'var(--text)',
@@ -272,7 +272,7 @@ export function LaporanScreen() {
             onChange={(e) => setSelectedTaId(e.target.value === '' ? '' : Number(e.target.value))}
             style={{
               padding: '6px 12px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--surface)',
               fontSize: '13px',
@@ -292,7 +292,7 @@ export function LaporanScreen() {
               onChange={(e) => setSelectedKelasId(e.target.value === '' ? '' : Number(e.target.value))}
               style={{
                 padding: '6px 12px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border)',
                 backgroundColor: 'var(--surface)',
                 fontSize: '13px',
@@ -311,7 +311,7 @@ export function LaporanScreen() {
             onClick={fetchData}
             style={{
               padding: '6px 12px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--surface)',
               fontSize: '13px',
@@ -326,7 +326,7 @@ export function LaporanScreen() {
             disabled={cetakLoading || loading}
             style={{
               padding: '6px 12px',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--surface)',
               fontSize: '13px',
@@ -342,7 +342,7 @@ export function LaporanScreen() {
               onClick={eksporRekapSiswa}
               style={{
                 padding: '6px 12px',
-                borderRadius: '6px',
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--border)',
                 backgroundColor: 'var(--surface)',
                 fontSize: '13px',
@@ -363,7 +363,7 @@ export function LaporanScreen() {
             padding: '10px 14px',
             border: `1px solid ${pesanEkspor.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)'}`,
             color: pesanEkspor.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             fontSize: '13px',
           }}
         >
@@ -382,7 +382,7 @@ export function LaporanScreen() {
         style={{
           backgroundColor: 'var(--bg)',
           border: '1px solid var(--border)',
-          borderRadius: '8px',
+          borderRadius: 'var(--radius-sm)',
           overflow: 'hidden',
         }}
       >
@@ -479,7 +479,7 @@ export function LaporanScreen() {
               <td className="angka" style={{ color: 'var(--danger)' }}>
                 {formatRupiah(totalPenarikan)}
               </td>
-              <td className="angka" style={{ color: 'var(--accent)', fontSize: '15px' }}>
+              <td className="angka" style={{ color: 'var(--accent)', fontSize: '14px' }}>
                 {formatRupiah(totalSaldo)}
               </td>
             </tr>

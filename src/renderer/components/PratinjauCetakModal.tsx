@@ -64,7 +64,7 @@ export function PratinjauCetakModal({
               padding: '8px 12px',
               border: `1px solid ${pesan.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)'}`,
               color: pesan.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)',
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               fontSize: '12px',
             }}
           >
@@ -75,9 +75,9 @@ export function PratinjauCetakModal({
         {/* Iframe Document Preview */}
         <div
           style={{
-            backgroundColor: '#525659',
+            backgroundColor: 'var(--viewer-bg)',
             padding: '20px',
-            borderRadius: '6px',
+            borderRadius: 'var(--radius-sm)',
             display: 'flex',
             justifyContent: 'center',
             maxHeight: '65vh',

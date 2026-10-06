@@ -161,7 +161,7 @@ export function SiswaScreen() {
         className="siswa-daftar"
         style={{
           backgroundColor: 'var(--card-bg)',
-          borderRadius: '16px',
+          borderRadius: 'var(--radius-lg)',
           border: '1px solid var(--border)',
           boxShadow: 'var(--card-shadow)',
           padding: '20px 18px',
@@ -179,7 +179,7 @@ export function SiswaScreen() {
             </h3>
             <span
               style={{
-                fontSize: '11px',
+                fontSize: '12px',
                 fontWeight: 600,
                 color: 'var(--muted)',
                 backgroundColor: 'var(--bg)',
@@ -202,7 +202,7 @@ export function SiswaScreen() {
               backgroundColor: 'var(--accent)',
               color: 'var(--accent-text)',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-sm)',
               fontWeight: 600,
               fontSize: '12px',
               cursor: 'pointer',
@@ -230,10 +230,9 @@ export function SiswaScreen() {
               width: '100%',
               padding: '9px 12px 9px 34px',
               fontSize: '13px',
-              borderRadius: '10px',
+              borderRadius: 'var(--radius-md)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--bg)',
-              outline: 'none',
             }}
           />
         </div>
@@ -246,12 +245,11 @@ export function SiswaScreen() {
             style={{
               flex: 1,
               padding: '6px 10px',
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--bg)',
-              fontSize: '11px',
+              fontSize: '12px',
               color: 'var(--text)',
-              outline: 'none',
             }}
           >
             <option value="">Semua Kelas</option>
@@ -268,12 +266,11 @@ export function SiswaScreen() {
             style={{
               flex: 1,
               padding: '6px 10px',
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-sm)',
               border: '1px solid var(--border)',
               backgroundColor: 'var(--bg)',
-              fontSize: '11px',
+              fontSize: '12px',
               color: 'var(--text)',
-              outline: 'none',
             }}
           >
             <option value="">Semua Status</option>
@@ -301,11 +298,11 @@ export function SiswaScreen() {
                 style={{
                   padding: '4px 10px',
                   borderRadius: '9999px',
-                  fontSize: '11px',
+                  fontSize: '12px',
                   fontWeight: 600,
                   border: isActive ? '1px solid var(--accent)' : '1px solid var(--border)',
                   backgroundColor: isActive ? 'var(--accent)' : 'var(--bg)',
-                  color: isActive ? '#FFFFFF' : 'var(--text)',
+                  color: isActive ? 'var(--accent-text)' : 'var(--text)',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
                   transition: 'all 0.12s ease',
@@ -325,7 +322,7 @@ export function SiswaScreen() {
             paddingRight: '2px',
           }}
         >
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <table className="tabel">
             <tbody>
               {filteredSiswa.map((s) => {
                 const isSelected = detailSiswa?.id === s.id;
@@ -340,18 +337,8 @@ export function SiswaScreen() {
                         requestAnimationFrame(() => detailRef.current?.scrollIntoView({ block: 'start', behavior: 'smooth' }));
                       }
                     }}
-                    style={{
-                      cursor: 'pointer',
-                      borderBottom: '1px solid var(--border)',
-                      backgroundColor: isSelected ? 'rgba(37, 99, 235, 0.08)' : 'transparent',
-                      transition: 'background-color 0.12s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--surface)';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
+                    className={isSelected ? 'baris-dipilih' : undefined}
+                    style={{ cursor: 'pointer' }}
                   >
                     <td style={{ padding: '10px 8px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -361,7 +348,7 @@ export function SiswaScreen() {
                             <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                               {s.nama}
                             </div>
-                            <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '1px' }}>
+                            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '1px' }}>
                               {s.nomor} {s.kelas_nama ? `· ${s.kelas_nama}` : ''}
                             </div>
                           </div>
@@ -372,7 +359,7 @@ export function SiswaScreen() {
                             {formatRupiah(s.saldo ?? 0)}
                           </div>
                           {s.kelas_nama && (
-                            <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--muted)' }}>
+                            <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
                               {s.kelas_nama}
                             </span>
                           )}
@@ -404,10 +391,10 @@ export function SiswaScreen() {
             {/* Kartu siswa terpilih */}
             <div
               style={{
-                background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
-                borderRadius: '18px',
+                background: 'linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%)',
+                borderRadius: 'var(--radius-xl)',
                 padding: '24px 28px',
-                color: '#FFFFFF',
+                color: 'var(--on-color)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -422,11 +409,11 @@ export function SiswaScreen() {
                   </h2>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
                     {detailSiswa.kelas_nama && (
-                      <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: '6px' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
                         Kelas {detailSiswa.kelas_nama}
                       </span>
                     )}
-                    <span style={{ fontSize: '11px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: '6px' }}>
+                    <span style={{ fontSize: '12px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
                       {detailSiswa.nomor} · {detailSiswa.status === 'aktif' ? 'Aktif' : detailSiswa.status}
                     </span>
                     <button
@@ -435,12 +422,12 @@ export function SiswaScreen() {
                         setIsFormOpen(true);
                       }}
                       style={{
-                        fontSize: '11px',
+                        fontSize: '12px',
                         fontWeight: 600,
                         backgroundColor: 'rgba(255, 255, 255, 0.22)',
-                        color: '#FFFFFF',
+                        color: 'var(--on-color)',
                         border: 'none',
-                        borderRadius: '6px',
+                        borderRadius: 'var(--radius-sm)',
                         padding: '2px 8px',
                         cursor: 'pointer',
                       }}
@@ -450,12 +437,12 @@ export function SiswaScreen() {
                     <button
                       onClick={() => handleDelete(detailSiswa)}
                       style={{
-                        fontSize: '11px',
+                        fontSize: '12px',
                         fontWeight: 600,
                         backgroundColor: 'rgba(239, 68, 68, 0.35)',
-                        color: '#FFFFFF',
+                        color: 'var(--on-color)',
                         border: 'none',
-                        borderRadius: '6px',
+                        borderRadius: 'var(--radius-sm)',
                         padding: '2px 8px',
                         cursor: 'pointer',
                       }}
@@ -481,7 +468,7 @@ export function SiswaScreen() {
               style={{
                 backgroundColor: 'var(--card-bg)',
                 border: '1px solid var(--border)',
-                borderRadius: '18px',
+                borderRadius: 'var(--radius-xl)',
                 boxShadow: 'var(--card-shadow)',
                 overflow: 'hidden',
               }}
@@ -514,7 +501,7 @@ export function SiswaScreen() {
                       padding: '7px 14px',
                       backgroundColor: 'var(--surface)',
                       border: '1px solid var(--border)',
-                      borderRadius: '8px',
+                      borderRadius: 'var(--radius-sm)',
                       fontSize: '12px',
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -535,7 +522,7 @@ export function SiswaScreen() {
                       padding: '7px 14px',
                       backgroundColor: 'var(--surface)',
                       border: '1px solid var(--border)',
-                      borderRadius: '8px',
+                      borderRadius: 'var(--radius-sm)',
                       fontSize: '12px',
                       fontWeight: 600,
                       cursor: 'pointer',
@@ -591,10 +578,10 @@ export function SiswaScreen() {
                           <td>
                             <span
                               style={{
-                                fontSize: '11px',
+                                fontSize: '12px',
                                 fontWeight: 700,
                                 padding: '3px 8px',
-                                borderRadius: '6px',
+                                borderRadius: 'var(--radius-sm)',
                                 backgroundColor: isSetor ? 'var(--ok-bg)' : isTarik ? 'var(--danger-bg)' : 'var(--bg)',
                                 color: isSetor ? 'var(--ok-text)' : isTarik ? 'var(--danger-text)' : 'var(--muted)',
                               }}
@@ -623,7 +610,7 @@ export function SiswaScreen() {
                                   padding: '5px 8px',
                                   backgroundColor: 'transparent',
                                   border: '1px solid var(--border)',
-                                  borderRadius: '6px',
+                                  borderRadius: 'var(--radius-sm)',
                                   cursor: 'pointer',
                                   color: 'var(--muted)',
                                 }}
@@ -631,7 +618,7 @@ export function SiswaScreen() {
                                 <IconUndo width={13} height={13} />
                               </button>
                             ) : (
-                              <span style={{ fontSize: '11px', color: 'var(--muted)' }}>-</span>
+                              <span style={{ fontSize: '12px', color: 'var(--muted)' }}>-</span>
                             )}
                           </td>
                         </tr>
@@ -649,7 +636,7 @@ export function SiswaScreen() {
               textAlign: 'center',
               backgroundColor: 'var(--card-bg)',
               border: '1px solid var(--border)',
-              borderRadius: '18px',
+              borderRadius: 'var(--radius-xl)',
               color: 'var(--muted)',
             }}
           >

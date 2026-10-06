@@ -3,7 +3,7 @@ import type { Kelas, Siswa } from '../../shared/types.js';
 import { hariIniLokal } from '../../shared/tanggal.js';
 import { formatRupiah, parseRupiahKetat } from '../../shared/rupiah.js';
 import { Modal } from './Modal.js';
-import { tombol, tombolUtama, kolom, labelStyle, sel } from '../styles/ui.js';
+import { tombol, tombolUtama, kolom, labelStyle } from '../styles/ui.js';
 
 interface SetoranKelasModalProps {
   isOpen: boolean;
@@ -114,12 +114,12 @@ export function SetoranKelasModal({ isOpen, onClose, onSaved }: SetoranKelasModa
         </div>
 
         {pesan && (
-          <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: '6px', fontSize: '13px', fontWeight: 500 }}>
+          <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px', fontWeight: 500 }}>
             {pesan}
           </div>
         )}
         {galat && (
-          <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: '6px', fontSize: '13px' }}>
+          <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
             {galat}
           </div>
         )}
@@ -133,24 +133,24 @@ export function SetoranKelasModal({ isOpen, onClose, onSaved }: SetoranKelasModa
             Tidak ada siswa aktif pada kelas ini.
           </p>
         ) : (
-          <div style={{ maxHeight: '44vh', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '10px' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', textAlign: 'left' }}>
+          <div style={{ maxHeight: '44vh', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)' }}>
+            <table className="tabel">
               <thead>
-                <tr style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)', position: 'sticky', top: 0 }}>
-                  <th style={sel}>Siswa</th>
-                  <th style={{ ...sel, textAlign: 'right' }}>Saldo</th>
-                  <th style={{ ...sel, width: '190px' }}>Setoran (Rp)</th>
+                <tr>
+                  <th>Siswa</th>
+                  <th className="angka">Saldo</th>
+                  <th style={{ width: '190px' }}>Setoran (Rp)</th>
                 </tr>
               </thead>
               <tbody>
                 {siswaList.map((s, idx) => (
-                  <tr key={s.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                    <td style={sel}>
+                  <tr key={s.id}>
+                    <td>
                       <div style={{ fontWeight: 600 }}>{s.nama}</div>
                       <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{s.nomor}</div>
                     </td>
-                    <td className="tabular-nums" style={{ ...sel, textAlign: 'right' }}>{formatRupiah(s.saldo ?? 0)}</td>
-                    <td style={sel}>
+                    <td className="angka">{formatRupiah(s.saldo ?? 0)}</td>
+                    <td>
                       <input
                         ref={(el) => {
                           inputRefs.current[s.id] = el;
@@ -174,7 +174,7 @@ export function SetoranKelasModal({ isOpen, onClose, onSaved }: SetoranKelasModa
                         }}
                       />
                       {hasil.galatBaris[s.id] && (
-                        <div style={{ fontSize: '11px', color: 'var(--danger)', marginTop: '2px' }}>{hasil.galatBaris[s.id]}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '2px' }}>{hasil.galatBaris[s.id]}</div>
                       )}
                     </td>
                   </tr>
