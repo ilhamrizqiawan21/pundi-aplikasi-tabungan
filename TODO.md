@@ -85,6 +85,45 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 
 Pinjaman anggota (D-02), setoran bank (D-03), cetak buku tabungan fisik (D-04), bunga (D-05), peran/multi-operator (D-08), lisensi (D-09).
 
+## F7 — Backend dan keandalan (persiapan komersial)
+
+Rincian dan acceptance criteria: [RENCANA_KOMERSIAL](docs/RENCANA_KOMERSIAL.md) §4. Dikerjakan berurutan.
+
+| ID | Tugas | Bukti | ✓ |
+| --- | --- | --- | --- |
+| F7-1 | Instance tunggal (`requestSingleInstanceLock`) | | [ ] |
+| F7-2 | Log lokal tanpa data sensitif dan penangan crash | | [ ] |
+| F7-3 | Penjadwal backup otomatis harian dan sebelum migrasi (verifikasi dulu apakah sudah ada) | | [ ] |
+| F7-4 | Uji kinerja NFR-04 (5.000 siswa, 200.000 transaksi) dengan angka nyata | | [ ] |
+| F7-5 | Pecah `ipc/index.ts` dan `ledger.ts` tanpa mengubah perilaku | | [ ] |
+| F7-6 | CI Windows (sama dengan F2-5) | | [ ] |
+| F7-7 | Uji installer di komputer bersih (pemilik; daftar periksa disiapkan) | | [ ] |
+
+## F8 — Frontend modern dan responsif
+
+Rincian: [RENCANA_KOMERSIAL](docs/RENCANA_KOMERSIAL.md) §5. F8-4 satu layar per tugas.
+
+| ID | Tugas | Bukti | ✓ |
+| --- | --- | --- | --- |
+| F8-1 | Audit dan perluas token (DESIGN §2) | | [ ] |
+| F8-2 | Komponen dasar bersama (Button, Card, Field, Table, Badge, EmptyState, Toast) | | [ ] |
+| F8-3 | Lima tema (CAP-15), kontras AA | | [ ] |
+| F8-4 | Migrasi layar ke komponen dasar: Beranda, Catat Transaksi, Siswa, Laporan, Akademik, Kenaikan, Impor, Cadangan, Pengaturan | | [ ] |
+| F8-5 | Responsif sungguhan (evaluasi `minWidth`, tabel jadi kartu, skala 125–150%) | | [ ] |
+| F8-6 | Keadaan kosong, skeleton, toast, transisi halus | | [ ] |
+| F8-7 | Audit aksesibilitas | | [ ] |
+
+## F9 — Fitur untuk dijual
+
+Rincian: [RENCANA_KOMERSIAL](docs/RENCANA_KOMERSIAL.md) §6.
+
+| ID | Tugas | Bukti | ✓ |
+| --- | --- | --- | --- |
+| F9-1 | Selesaikan sisa 0.1/0.2: uji dan cetak buku besar (F3-8, CAP-10), uji manual salinan flashdisk (F4-8) | | [ ] |
+| F9-2 | Wizard onboarding instalasi baru | | [ ] |
+| F9-3 | Layar Bantuan dan Tentang (tanpa jaringan) | | [ ] |
+| F9-4 | Lisensi dan aktivasi offline. **Ditunda menunggu D-09; jangan dikerjakan** | | [ ] |
+
 ## Catatan risiko yang sedang dipantau
 
 - Hak atas referensi aplikasi lama belum dipastikan (F0-4).
