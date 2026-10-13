@@ -21,36 +21,53 @@
   overflow: hidden;
 }
 
-/* ---------- Bilah samping ---------- */
+/* ---------- Bilah samping (putih, dapat dibuka-tutup, palet warna per kelompok menu) ----------
+ * Latar memakai --surface (putih; gelap otomatis di tema Grafit). Kelompok menu dipisah garis dan label berwarna
+ * dari palet --nav-* (tokens.css). `.ciut` = rel ikon 76 px: dipasang App.tsx bila pengguna menutup bilah
+ * ATAU jendela < 1100 px (matchMedia). Semua aturan rel hanya bergantung pada kelas `.ciut`.
+ */
 .app-sidebar {
-  background-color: var(--sidebar-bg);
-  color: var(--sidebar-text);
+  width: 240px;
+  background-color: var(--surface);
+  color: var(--text);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  border-right: 1px solid var(--sidebar-border);
+  border-right: 1px solid var(--border);
   user-select: none;
   position: relative;
   z-index: 10000;
+  transition: width var(--dur) var(--ease);
+}
+
+.app-sidebar.ciut {
+  width: 76px;
 }
 
 .brand-header {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 10px;
+  padding: 20px 14px 14px 16px;
+}
+
+.brand-teks {
+  min-width: 0;
+  flex: 1;
 }
 
 .brand-logo {
+  width: 38px;
+  height: 38px;
   border-radius: var(--radius-md);
   flex-shrink: 0;
-  background: var(--on-color);
   object-fit: contain;
 }
 
 .brand-nama {
   font-size: var(--text-xl);
   font-weight: 800;
-  color: var(--on-color);
+  color: var(--text);
   letter-spacing: -0.5px;
   line-height: 1.1;
 }
@@ -58,73 +75,152 @@
 .brand-tagline {
   font-size: var(--text-2xs);
   font-weight: var(--font-bold);
-  color: var(--sidebar-accent-text);
-  letter-spacing: 1.2px;
+  color: var(--accent);
+  letter-spacing: 0.7px;
   text-transform: uppercase;
+  white-space: nowrap;
   margin-top: 2px;
+}
+
+.sidebar-toggle {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition:
+    background-color var(--dur-cepat) ease,
+    color var(--dur-cepat) ease;
+}
+
+.sidebar-toggle:hover {
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.sidebar-toggle svg {
+  transition: transform var(--dur) var(--ease);
+}
+
+.app-sidebar.ciut .sidebar-toggle svg {
+  transform: scaleX(-1);
 }
 
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 10px 14px;
+  padding: var(--space-2) 12px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+}
+
+/* Kelompok menu: tiap kelompok membawa satu warna palet */
+.nav-grup {
+  --grup: var(--accent);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-grup + .nav-grup {
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 2px solid color-mix(in srgb, var(--grup) 30%, transparent);
+}
+
+.nav-grup-harian { --grup: var(--nav-harian); }
+.nav-grup-data { --grup: var(--nav-data); }
+.nav-grup-sistem { --grup: var(--nav-sistem); }
+
+.nav-grup-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px 4px;
+  font-size: var(--text-2xs);
+  font-weight: var(--font-bold);
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  color: var(--grup);
+}
+
+.nav-grup-label::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--grup);
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   width: 100%;
+  padding: 7px 10px;
   border-radius: var(--radius-md);
   border: none;
   background-color: transparent;
-  color: var(--sidebar-text-dim);
+  color: var(--text);
   font-weight: var(--font-medium);
   font-size: var(--text-sm);
   cursor: pointer;
   text-align: left;
   transition:
     background-color var(--dur-cepat) ease,
-    color var(--dur-cepat) ease,
-    transform var(--dur-cepat) var(--ease);
+    color var(--dur-cepat) ease;
 }
 
 .nav-item:hover:not([aria-current='page']) {
-  background-color: color-mix(in srgb, var(--on-color) 6%, transparent);
+  background-color: color-mix(in srgb, var(--grup) 8%, transparent);
 }
 
 .nav-item[aria-current='page'] {
-  background-color: var(--sidebar-active);
-  color: var(--on-color);
+  background-color: color-mix(in srgb, var(--grup) 13%, transparent);
   font-weight: var(--font-semibold);
+  box-shadow: inset 3px 0 0 var(--grup);
 }
 
 .nav-item-inner {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .nav-item-ikon {
-  display: inline-flex;
-  opacity: 0.85;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background-color: color-mix(in srgb, var(--grup) 12%, var(--surface));
+  color: var(--grup);
+  transition:
+    background-color var(--dur-cepat) ease,
+    color var(--dur-cepat) ease;
 }
 
 .nav-item[aria-current='page'] .nav-item-ikon {
-  opacity: 1;
+  background-color: var(--grup);
+  color: var(--surface);
 }
 
 .sidebar-footer {
-  padding: 14px;
-  border-top: 1px solid var(--sidebar-border);
+  padding: 12px;
+  border-top: 1px solid var(--border);
 }
 
 .sidebar-backup-card {
   padding: 12px 14px;
-  background-color: color-mix(in srgb, var(--on-color) 4%, transparent);
-  border: 1px solid var(--sidebar-border);
+  background-color: var(--bg);
+  border: 1px solid var(--border);
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
@@ -153,28 +249,97 @@
 .sidebar-backup-judul {
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
-  color: var(--on-color);
+  color: var(--text);
 }
 
 .sidebar-backup-teks {
   font-size: var(--text-xs);
-  color: var(--sidebar-muted);
+  color: var(--muted);
   line-height: 1.35;
 }
 
 .sidebar-backup-tombol {
   width: 100%;
   padding: 7px 10px;
-  background-color: var(--on-color);
-  color: var(--sidebar-bg);
+  background-color: var(--accent);
+  color: var(--accent-text);
   border: none;
   border-radius: var(--radius-sm);
   font-size: var(--text-xs);
   font-weight: var(--font-semibold);
   cursor: pointer;
-  transition:
-    background-color var(--dur-cepat) ease,
-    transform var(--dur-cepat) var(--ease);
+  transition: background-color var(--dur-cepat) ease;
+}
+
+.sidebar-backup-tombol:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+}
+
+.rail-only { display: none; }
+
+/* ---------- Rel ikon (.ciut) ---------- */
+.app-sidebar.ciut .brand-header {
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 16px 0 10px;
+  justify-content: center;
+}
+
+.app-sidebar.ciut .nav-grup-label { display: none; }
+.app-sidebar.ciut .nav-item { justify-content: center; padding: 6px 0; }
+.app-sidebar.ciut .nav-item-inner { gap: 0; }
+.app-sidebar.ciut .sidebar-nav { padding: var(--space-2) 8px; }
+.app-sidebar.ciut .sidebar-footer { padding: 10px 8px; }
+.app-sidebar.ciut .sidebar-backup-card { padding: 10px 6px; align-items: center; }
+.app-sidebar.ciut .sidebar-backup-tombol { padding: 8px 0; display: flex; justify-content: center; }
+.app-sidebar.ciut .rail-only { display: inline-flex; }
+.app-sidebar.ciut .full-label { display: none; }
+
+/* Disembunyikan secara visual tetapi tetap terbaca pembaca layar */
+.app-sidebar.ciut .rail-hide-visually {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Jendela pendek ----------
+ * Sembilan menu dan kartu cadangan harus tetap muat tanpa menggulir bilah samping pada laptop 768 px
+ * (skala 100-125%). Ditaruh paling akhir; `:is(.ciut, :not(.ciut))` menyamakan spesifisitas dengan aturan rel ikon. */
+@media (max-height: 799px) {
+  .app-sidebar:is(.ciut, :not(.ciut)) .brand-header { padding-top: 12px; padding-bottom: 8px; }
+  .app-sidebar:is(.ciut, :not(.ciut)) .nav-grup + .nav-grup { margin-top: var(--space-2); padding-top: var(--space-2); }
+  .app-sidebar:is(.ciut, :not(.ciut)) .nav-item { padding-top: 3px; padding-bottom: 3px; }
+  .app-sidebar:is(.ciut, :not(.ciut)) .nav-item-ikon { width: 26px; height: 26px; }
+  .app-sidebar:is(.ciut, :not(.ciut)) .sidebar-backup-card { padding-top: 8px; padding-bottom: 8px; gap: 6px; }
+  .app-sidebar:is(.ciut, :not(.ciut)) .sidebar-backup-card > p { display: none; }
+}
+
+@media (max-height: 699px) {
+  .app-sidebar:is(.ciut, :not(.ciut)) .brand-logo { width: 30px; height: 30px; }
+  .app-sidebar:is(.ciut, :not(.ciut)) .sidebar-toggle { width: 26px; height: 26px; }
+  .app-sidebar:is(.ciut, :not(.ciut)) .brand-header { padding-top: 8px; padding-bottom: 4px; }
+  .app-sidebar:is(.ciut, :not(.ciut)) .nav-grup-label { display: none; }
+  .app-sidebar:is(.ciut, :not(.ciut)) .nav-item { padding-top: 2px; padding-bottom: 2px; }
+  .app-sidebar:is(.ciut, :not(.ciut)) .nav-item-ikon { width: 24px; height: 24px; }
+}
+
+@media (max-height: 599px) {
+  .app-sidebar:is(.ciut, :not(.ciut)) .brand-header { padding-top: 4px; padding-bottom: 2px; }
+  .app-sidebar:is(.ciut, :not(.ciut)) .nav-item { padding-top: 1px; padding-bottom: 1px; }
+  .app-sidebar:is(.ciut, :not(.ciut)) .sidebar-backup-card { padding: 4px; gap: 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar,
+  .sidebar-toggle svg {
+    transition: none;
+  }
 }
 
 /* ---------- Bilah atas ---------- */

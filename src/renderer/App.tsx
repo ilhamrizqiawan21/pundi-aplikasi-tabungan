@@ -27,6 +27,7 @@ import {
   IconLaporan,
   IconCadangan,
   IconPengaturan,
+  IconPanelKiri,
   IconCalendar,
   getInitials,
 } from './components/Icons.js';
@@ -50,19 +51,28 @@ interface ItemNav {
   subjudul: string;
   icon: typeof IconBeranda;
   highlight?: boolean;
+  grup: GrupNav;
 }
+
+type GrupNav = 'harian' | 'data' | 'sistem';
+
+// Kelompok menu (palet warna di tokens.css). Urutan NAV tetap = Alt+1..9, kelompok selalu berurutan
+const LABEL_GRUP: Record<GrupNav, string> = { harian: 'Harian', data: 'Data & Laporan', sistem: 'Sistem' };
+const KUNCI_BILAH_SAMPING = 'pundi.bilahSamping';
+/** Di bawah lebar ini bilah samping selalu menjadi rel ikon (sama dengan titik henti layout.css). */
+const LEBAR_REL_PAKSA = '(max-width: 1099px)';
 
 // Urutan di sini = urutan menu = nomor Alt+1 sampai Alt+9 (DESIGN §6, NFR-08, dan uji alur)
 const NAV: ItemNav[] = [
-  { id: 'beranda', label: 'Beranda', judul: 'Beranda (Kas Harian)', subjudul: 'Ringkasan tabungan sekolah hari ini.', icon: IconBeranda },
-  { id: 'catat', label: 'Catat Transaksi', judul: 'Catat Transaksi', subjudul: 'Pilih siswa, isi nominal, tekan Enter.', icon: IconCatat, highlight: true },
-  { id: 'siswa', label: 'Siswa', judul: 'Data Siswa & Buku Besar', subjudul: 'Data siswa dan buku besar tabungan.', icon: IconSiswa },
-  { id: 'laporan', label: 'Laporan', judul: 'Laporan Tabungan', subjudul: 'Rekapitulasi tabungan dan riwayat kas sekolah.', icon: IconLaporan },
-  { id: 'akademik', label: 'Tahun Ajaran & Kelas', judul: 'Tahun Ajaran & Kelas', subjudul: 'Kelola periode akademik dan pengelompokan kelas.', icon: IconAkademik },
-  { id: 'kenaikan', label: 'Kenaikan Kelas', judul: 'Kenaikan Kelas & Kelulusan', subjudul: 'Kenaikan kelas dan kelulusan siswa.', icon: IconKenaikan },
-  { id: 'impor', label: 'Impor Data', judul: 'Impor Data Excel / CSV', subjudul: 'Impor data siswa dari Excel atau CSV.', icon: IconImpor },
-  { id: 'cadangan', label: 'Cadangan', judul: 'Cadangan & Pemulihan', subjudul: 'Pencadangan dan pemulihan basis data.', icon: IconCadangan },
-  { id: 'pengaturan', label: 'Pengaturan', judul: 'Pengaturan Aplikasi', subjudul: 'Konfigurasi profil sekolah, cetak, dan tampilan.', icon: IconPengaturan },
+  { id: 'beranda', label: 'Beranda', judul: 'Beranda (Kas Harian)', subjudul: 'Ringkasan tabungan sekolah hari ini.', icon: IconBeranda, grup: 'harian' },
+  { id: 'catat', label: 'Catat Transaksi', judul: 'Catat Transaksi', subjudul: 'Pilih siswa, isi nominal, tekan Enter.', icon: IconCatat, highlight: true, grup: 'harian' },
+  { id: 'siswa', label: 'Siswa', judul: 'Data Siswa & Buku Besar', subjudul: 'Data siswa dan buku besar tabungan.', icon: IconSiswa, grup: 'data' },
+  { id: 'laporan', label: 'Laporan', judul: 'Laporan Tabungan', subjudul: 'Rekapitulasi tabungan dan riwayat kas sekolah.', icon: IconLaporan, grup: 'data' },
+  { id: 'akademik', label: 'Tahun Ajaran & Kelas', judul: 'Tahun Ajaran & Kelas', subjudul: 'Kelola periode akademik dan pengelompokan kelas.', icon: IconAkademik, grup: 'data' },
+  { id: 'kenaikan', label: 'Kenaikan Kelas', judul: 'Kenaikan Kelas & Kelulusan', subjudul: 'Kenaikan kelas dan kelulusan siswa.', icon: IconKenaikan, grup: 'data' },
+  { id: 'impor', label: 'Impor Data', judul: 'Impor Data Excel / CSV', subjudul: 'Impor data siswa dari Excel atau CSV.', icon: IconImpor, grup: 'data' },
+  { id: 'cadangan', label: 'Cadangan', judul: 'Cadangan & Pemulihan', subjudul: 'Pencadangan dan pemulihan basis data.', icon: IconCadangan, grup: 'sistem' },
+  { id: 'pengaturan', label: 'Pengaturan', judul: 'Pengaturan Aplikasi', subjudul: 'Konfigurasi profil sekolah, cetak, dan tampilan.', icon: IconPengaturan, grup: 'sistem' },
 ];
 
 // Bantuan bukan bagian menu utama (menu tetap sembilan = Alt+1..9); dibuka lewat tombol di bilah atas atau F1
@@ -105,6 +115,34 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
   const [backingUp, setBackingUp] = useState(false);
   const kontenRef = useRef<HTMLElement>(null);
   const { showToast } = useToast();
+  const [bilahCiut, setBilahCiut] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(KUNCI_BILAH_SAMPING) === 'ciut';
+    } catch {
+      return false;
+    }
+  });
+  const [layarSempit, setLayarSempit] = useState<boolean>(() => window.matchMedia(LEBAR_REL_PAKSA).matches);
+  const rel = bilahCiut || layarSempit;
+
+  const ubahBilah = useCallback(() => {
+    setBilahCiut((sekarang) => {
+      const baru = !sekarang;
+      try {
+        localStorage.setItem(KUNCI_BILAH_SAMPING, baru ? 'ciut' : 'lebar');
+      } catch {
+        // penyimpanan tidak tersedia: pilihan hanya berlaku selama sesi ini
+      }
+      return baru;
+    });
+  }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia(LEBAR_REL_PAKSA);
+    const onChange = (e: MediaQueryListEvent) => setLayarSempit(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', tema);
@@ -115,6 +153,12 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
     const onKeyDown = (e: KeyboardEvent) => {
       if (document.querySelector('[role="dialog"]')) return;
       const mod = e.ctrlKey || e.metaKey;
+
+      if (mod && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        ubahBilah();
+        return;
+      }
 
       if (e.key === 'F1' && !mod && !e.altKey && !e.shiftKey) {
         e.preventDefault();
@@ -139,7 +183,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, []);
+  }, [ubahBilah]);
 
   // Setelah berpindah layar, fokus ke konten agar Tab berikutnya langsung ke isi layar (Catat Transaksi memfokuskan pencarian sendiri)
   useEffect(() => {
@@ -236,37 +280,57 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
   return (
     <div className="app-shell">
       {/* Bilah samping: navigasi utama */}
-      <aside className="app-sidebar">
+      <aside className={rel ? 'app-sidebar ciut' : 'app-sidebar'} id="bilah-samping">
         {/* Logo & Brand Header */}
         <div className="brand-header">
           <img src={logoUrl} alt="" width={44} height={44} className="brand-logo" />
-          <div className="rail-hide-visually">
+          <div className="rail-hide-visually brand-teks">
             <h1 className="brand-nama">Pundi</h1>
             <p className="brand-tagline">Tabungan Siswa</p>
           </div>
+          {!layarSempit && (
+            <button
+              type="button"
+              className="sidebar-toggle"
+              onClick={ubahBilah}
+              aria-expanded={!bilahCiut}
+              aria-controls="bilah-samping"
+              aria-label={bilahCiut ? 'Bentangkan bilah samping' : 'Ciutkan bilah samping'}
+              title={bilahCiut ? 'Bentangkan bilah samping (Ctrl+B)' : 'Ciutkan bilah samping (Ctrl+B)'}
+            >
+              <IconPanelKiri width={16} height={16} />
+            </button>
+          )}
         </div>
 
         {/* Menu utama: sembilan tombol, urutannya sama dengan pintasan Alt+1 sampai Alt+9 */}
         <nav aria-label="Menu utama" className="sidebar-nav">
-          {NAV.map((n) => {
-            const Icon = n.icon;
-            return (
-              <button
-                key={n.id}
-                onClick={() => setScreen(n.id)}
-                aria-current={screen === n.id ? 'page' : undefined}
-                className="nav-item"
-                title={n.label}
-              >
-                <div className="nav-item-inner">
-                  <span className="nav-item-ikon">
-                    <Icon width={16} height={16} />
-                  </span>
-                  <span className="rail-hide-visually">{n.label}</span>
-                </div>
-              </button>
-            );
-          })}
+          {(['harian', 'data', 'sistem'] as GrupNav[]).map((g) => (
+            <div key={g} role="group" aria-label={LABEL_GRUP[g]} className={`nav-grup nav-grup-${g}`}>
+              <div className="nav-grup-label" aria-hidden="true">
+                {LABEL_GRUP[g]}
+              </div>
+              {NAV.filter((n) => n.grup === g).map((n) => {
+                const Icon = n.icon;
+                return (
+                  <button
+                    key={n.id}
+                    onClick={() => setScreen(n.id)}
+                    aria-current={screen === n.id ? 'page' : undefined}
+                    className="nav-item"
+                    title={n.label}
+                  >
+                    <div className="nav-item-inner">
+                      <span className="nav-item-ikon">
+                        <Icon width={16} height={16} />
+                      </span>
+                      <span className="rail-hide-visually">{n.label}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         {/* Status cadangan nyata (bukan teks tetap) + tombol cadangan cepat */}

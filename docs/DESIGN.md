@@ -70,7 +70,7 @@ Jendela minimum 800 × 560 (F8-5, ramah laptop 1366 × 768 skala 125%–150% dan
 
 | Bagian | Isi |
 | --- | --- |
-| Bilah samping | Beranda, **Catat Transaksi**, Siswa, Laporan, Tahun Ajaran & Kelas, Kenaikan Kelas, Impor, Cadangan, Pengaturan; di bawahnya status cadangan nyata dan tombol Cadangkan sekarang |
+| Bilah samping | Latar putih (`--surface`; gelap otomatis di tema Grafit), dapat dibuka-tutup. Sembilan menu tetap berurutan (Alt+1..9) dan dikelompokkan dengan palet warna `--nav-harian` (biru: Beranda, Catat Transaksi), `--nav-data` (hijau: Siswa, Laporan, Tahun Ajaran & Kelas, Kenaikan Kelas, Impor Data), `--nav-sistem` (ungu: Cadangan, Pengaturan). Tiap kelompok: label kecil berwarna, garis pemisah berwarna, ikon dalam kotak tinta warna kelompok; menu aktif bertinta warna kelompok dengan penanda kiri dan ikon terisi. Tombol **Ciutkan/Bentangkan bilah samping** di header bilah (juga **Ctrl+B**) beralih antara 240 px dan rel ikon 76 px; pilihan diingat (`localStorage`, bukan pengaturan basis data). Di bawah 1100 px selalu rel ikon dan tombolnya disembunyikan. Di bawahnya status cadangan nyata dan tombol Cadangkan sekarang |
 | Bilah atas | Nama sekolah, tahun ajaran aktif, tombol Cadangkan cepat |
 | Konten | Layar aktif |
 

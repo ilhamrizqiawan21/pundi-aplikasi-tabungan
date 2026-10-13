@@ -199,3 +199,11 @@ export const IconTutup: SvgIcon = (props) => (
     <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
 );
+
+export const IconPanelKiri: SvgIcon = (props) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <line x1="9" y1="3" x2="9" y2="21" />
+    <polyline points="15 9 12 12 15 15" />
+  </svg>
+);
