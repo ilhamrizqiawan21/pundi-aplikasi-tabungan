@@ -3,7 +3,8 @@ import type { Kelas } from '../../shared/types.js';
 import { hariIniLokal } from '../../shared/tanggal.js';
 import { formatRupiah, parseRupiahKetat } from '../../shared/rupiah.js';
 import { Modal } from './Modal.js';
-import { tombol, tombolUtama, kolom, labelStyle } from '../styles/ui.js';
+import { Button, Field } from './ui/index.js';
+import './panel-bersama.css';
 
 interface BiayaAdminModalProps {
   isOpen: boolean;
@@ -80,60 +81,56 @@ export function BiayaAdminModal({ isOpen, onClose, onSaved }: BiayaAdminModalPro
 
   return (
     <Modal isOpen={isOpen} onClose={() => (sibuk ? undefined : onClose())} title="Biaya Administrasi per Kelas" width="720px">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <p style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.6 }}>
+      <div className="pb-kolom">
+        <p className="pb-teks-kecil">
           Potongan dicatat sebagai transaksi biaya administrasi dan mengurangi saldo siswa. Uang tidak keluar dari laci,
           jadi tidak memengaruhi hitungan kas. Siswa yang saldonya kurang dari biaya dilewati (tidak dipotong sebagian).
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
-          <div>
-            <label htmlFor="ba-kelas" style={labelStyle}>Kelas</label>
-            <select id="ba-kelas" style={kolom} value={kelasId} onChange={(e) => ubah(() => setKelasId(e.target.value === '' ? '' : Number(e.target.value)))}>
+        <div className="pb-grid">
+          <Field label="Kelas" htmlFor="ba-kelas">
+            <select id="ba-kelas" className="ui-input" value={kelasId} onChange={(e) => ubah(() => setKelasId(e.target.value === '' ? '' : Number(e.target.value)))}>
               <option value="">-- Pilih --</option>
               {kelasList.map((k) => (
                 <option key={k.id} value={k.id}>{k.nama}</option>
               ))}
             </select>
-          </div>
-          <div>
-            <label htmlFor="ba-periode" style={labelStyle}>Periode</label>
-            <input id="ba-periode" type="text" style={kolom} value={periode} maxLength={40} placeholder="mis. Semester 1 2025/2026" onChange={(e) => ubah(() => setPeriode(e.target.value))} />
-          </div>
-          <div>
-            <label htmlFor="ba-nominal" style={labelStyle}>Biaya per siswa (Rp)</label>
-            <input id="ba-nominal" type="text" inputMode="numeric" autoComplete="off" style={kolom} value={nominalTeks} onChange={(e) => ubah(() => setNominalTeks(e.target.value))} />
+          </Field>
+          <Field label="Periode" htmlFor="ba-periode">
+            <input id="ba-periode" type="text" className="ui-input" value={periode} maxLength={40} placeholder="mis. Semester 1 2025/2026" onChange={(e) => ubah(() => setPeriode(e.target.value))} />
+          </Field>
+          <Field label="Biaya per siswa (Rp)" htmlFor="ba-nominal">
+            <input id="ba-nominal" type="text" inputMode="numeric" autoComplete="off" className="ui-input" value={nominalTeks} onChange={(e) => ubah(() => setNominalTeks(e.target.value))} />
             {nominalTeks.trim() !== '' && !nominalSah && (
-              <div style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '2px' }}>
+              <div className="pb-galat-baris">
                 {nominal.ok ? 'Nominal harus lebih dari 0' : nominal.alasan}
               </div>
             )}
-          </div>
-          <div>
-            <label htmlFor="ba-tanggal" style={labelStyle}>Tanggal</label>
-            <input id="ba-tanggal" type="date" style={kolom} value={tanggal} max={hariIniLokal()} onChange={(e) => ubah(() => setTanggal(e.target.value))} />
-          </div>
+          </Field>
+          <Field label="Tanggal" htmlFor="ba-tanggal">
+            <input id="ba-tanggal" type="date" className="ui-input" value={tanggal} max={hariIniLokal()} onChange={(e) => ubah(() => setTanggal(e.target.value))} />
+          </Field>
         </div>
 
         {pesan && (
-          <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px', fontWeight: 500 }}>
+          <div role="status" className="pb-pesan pb-pesan-ok pb-pesan-ok-tebal">
             {pesan}
           </div>
         )}
         {galat && (
-          <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+          <div role="alert" className="pb-pesan pb-pesan-galat">
             {galat}
           </div>
         )}
 
         {rencana && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }} aria-label="Hasil tinjauan">
-            <div style={{ fontSize: '13px' }}>
+          <div className="pb-kolom" aria-label="Hasil tinjauan">
+            <div className="pb-teks-sedang">
               <strong>{rencana.dipotong.length}</strong> siswa akan dipotong
               {nominal.ok && <>, total <strong className="tabular-nums">{formatRupiah(rencana.dipotong.length * nominal.nilai)}</strong></>}.{' '}
               <strong>{rencana.dilewati.length}</strong> dilewati.
             </div>
             {rencana.dilewati.length > 0 && (
-              <div style={{ maxHeight: '26vh', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)' }}>
+              <div className="pb-gulir pb-gulir-26">
                 <table className="tabel">
                   <thead>
                     <tr>
@@ -144,8 +141,8 @@ export function BiayaAdminModal({ isOpen, onClose, onSaved }: BiayaAdminModalPro
                   <tbody>
                     {rencana.dilewati.map((s) => (
                       <tr key={s.siswa_id}>
-                        <td>{s.nama} <span style={{ color: 'var(--muted)', fontSize: '12px' }}>{s.nomor}</span></td>
-                        <td style={{ color: 'var(--warn-text)' }}>{s.alasan}</td>
+                        <td>{s.nama} <span className="pb-nomor">{s.nomor}</span></td>
+                        <td className="pb-warn">{s.alasan}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -155,19 +152,19 @@ export function BiayaAdminModal({ isOpen, onClose, onSaved }: BiayaAdminModalPro
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-          <button type="button" style={tombol} disabled={sibuk} onClick={onClose}>Tutup</button>
-          <button type="button" style={{ ...tombol, opacity: formSah ? 1 : 0.5 }} disabled={!formSah || sibuk} onClick={tinjau}>
+        <div className="pb-aksi">
+          <Button type="button" disabled={sibuk} onClick={onClose}>Tutup</Button>
+          <Button type="button" disabled={!formSah || sibuk} onClick={tinjau}>
             Tinjau
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            style={{ ...tombolUtama, opacity: rencana && rencana.dipotong.length > 0 && !sibuk ? 1 : 0.5 }}
+            variant="primary"
             disabled={!rencana || rencana.dipotong.length === 0 || sibuk}
             onClick={terapkan}
           >
             {sibuk ? 'Memproses...' : 'Terapkan Potongan'}
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>

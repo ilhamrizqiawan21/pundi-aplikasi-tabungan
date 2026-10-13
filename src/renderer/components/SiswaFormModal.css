@@ -1,0 +1,79 @@
+/* Gaya SiswaFormModal (F8-4) */
+
+.sfm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sfm-galat {
+  padding: 10px 14px;
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  border: 1px solid var(--danger-border);
+}
+
+.sfm-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  margin-bottom: 6px;
+}
+
+.sfm-wajib {
+  color: var(--danger);
+}
+
+.sfm-kontrol {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+}
+
+.sfm-kontrol.sfm-textarea {
+  resize: vertical;
+}
+
+.sfm-grid-dua {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.sfm-bantuan {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.sfm-aksi {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.sfm-btn-batal,
+.sfm-btn-simpan {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.sfm-btn-batal {
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  font-weight: var(--font-medium);
+}
+
+.sfm-btn-simpan {
+  padding: var(--space-2) 18px;
+  border: none;
+  background-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: var(--font-semibold);
+}

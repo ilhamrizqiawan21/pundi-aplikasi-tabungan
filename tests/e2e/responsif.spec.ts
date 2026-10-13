@@ -1,13 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { jalankanApp, type AppSesi } from './launch';
 
-// Tata letak harus tetap utuh saat jendela diubah ukurannya (jendela minimum 1024 px, lihat DESIGN §5a).
+// Tata letak harus tetap utuh saat jendela diubah ukurannya (jendela minimum 800 px, F8-5).
 const MENU = ['Beranda', 'Catat Transaksi', 'Siswa', 'Laporan', 'Tahun Ajaran & Kelas', 'Kenaikan Kelas', 'Impor Data', 'Cadangan', 'Pengaturan'];
 const UKURAN: Array<[number, number]> = [
+  [800, 600],
   [1024, 680],
-  [1180, 720],
+  [1280, 720],
   [1366, 768],
-  [1600, 900],
+  [1920, 1080],
 ];
 
 test.describe.serial('responsivitas', () => {
@@ -53,7 +54,10 @@ test.describe.serial('responsivitas', () => {
     });
   }
 
-  test('bilah samping menciut menjadi rel ikon di bawah 1100 px dan nama menu tetap terbaca pembaca layar', async () => {
+  test('bilah samping menciut menjadi rel ikon di bawah 1100 px (termasuk 800 px) dan nama menu tetap terbaca pembaca layar', async () => {
+    await ukur(800, 600);
+    const sangatSempit = await s.page.locator('aside').evaluate((e) => e.getBoundingClientRect().width);
+    expect(sangatSempit).toBeLessThan(100);
     await ukur(1024, 680);
     const sempit = await s.page.locator('aside').evaluate((e) => e.getBoundingClientRect().width);
     expect(sempit).toBeLessThan(100);
@@ -115,5 +119,17 @@ test.describe.serial('responsivitas', () => {
     await s.page.getByRole('button', { name: 'Cadangkan cepat' }).click();
     await expect(kartu).toContainText('Data aman');
     await expect(kartu).toContainText('Cadangan terakhir:');
+  });
+
+  test('tabel bertransformasi menjadi kartu pada layar sempit (800 px) (F8-5)', async () => {
+    await s.page.locator('nav').getByRole('button', { name: 'Cadangan' }).click();
+    await ukur(800, 600);
+    const theadTinggi = await s.page.locator('.tabel-kartu thead').first().evaluate((e) => e.getBoundingClientRect().height);
+    expect(theadTinggi).toBeLessThanOrEqual(1);
+    const hasDataLabel = await s.page.evaluate(() => {
+      const td = document.querySelector('.tabel-kartu td[data-label]');
+      return td !== null;
+    });
+    expect(hasDataLabel).toBe(true);
   });
 });

@@ -6,9 +6,13 @@ import { fileURLToPath } from 'node:url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+/** Jumlah cadangan otomatis yang dipertahankan (NFR-06). */
+export const BATAS_CADANGAN_OTOMATIS = 7;
+
 export interface DbConfig {
   dbPath: string;
   migrationsDir?: string;
+  backupDir?: string;
 }
 
 let dbInstance: Database.Database | null = null;
@@ -51,13 +55,20 @@ export function initDb(config: DbConfig): Database.Database {
 
   const db = new Database(config.dbPath);
 
-  // Aturan Integritas ERD §4
-  db.pragma('foreign_keys = ON');
-  db.pragma('journal_mode = WAL');
-  db.pragma('synchronous = FULL');
+  try {
+    // Aturan Integritas ERD §4
+    db.pragma('foreign_keys = ON');
+    db.pragma('journal_mode = WAL');
+    db.pragma('synchronous = FULL');
 
-  // Jalankan migrasi
-  runMigrations(db, config.migrationsDir);
+    // Jalankan migrasi (dengan cadangan otomatis sebelum migrasi jika ada backupDir)
+    runMigrations(db, config.migrationsDir, config.backupDir);
+  } catch (err) {
+    // Migrasi dibatalkan (mis. cadangan pra-migrasi gagal): lepas berkas agar tidak terkunci
+    db.close();
+    lastConfig = null;
+    throw err;
+  }
 
   dbInstance = db;
   return db;
@@ -192,7 +203,45 @@ INSERT OR IGNORE INTO sekuens (nama, nilai) VALUES
   ('nomor_bukti_transaksi', 0);
 `;
 
-function runMigrations(db: Database.Database, migrationsDir?: string): void {
+/**
+ * Menjaga paling banyak `batas` cadangan otomatis (terbaru dipertahankan). Cadangan manual
+ * dan pengaman pemulihan tidak pernah dihapus di sini.
+ */
+export function pangkasCadanganOtomatis(dir: string, batas: number): void {
+  try {
+    const files = fs
+      .readdirSync(dir)
+      .filter((f) => f.startsWith('pundi_otomatis_') && f.endsWith('.sqlite'))
+      .map((f) => ({ path: path.join(dir, f), time: fs.statSync(path.join(dir, f)).mtimeMs }))
+      .sort((a, b) => b.time - a.time);
+
+    for (const f of files.slice(batas)) {
+      try {
+        fs.unlinkSync(f.path);
+      } catch {
+        // Abaikan kegagalan menghapus cadangan lama
+      }
+    }
+  } catch {
+    // Abaikan jika folder belum ada
+  }
+}
+
+/**
+ * Cadangan sebelum menerapkan migrasi baru (AGENTS: cadangkan sebelum migrasi). Satu-satunya jalur
+ * produksi. Bila gagal, melempar galat sehingga migrasi tidak dijalankan dan data tetap utuh.
+ */
+function cadangkanSebelumMigrasi(db: Database.Database, backupDir: string, version: number): void {
+  fs.mkdirSync(backupDir, { recursive: true });
+  const d = new Date();
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  const ts = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+  const targetPath = path.join(backupDir, `pundi_otomatis_${ts}_pre_migrasi_v${version}.sqlite`);
+  db.exec(`VACUUM INTO '${targetPath.replace(/'/g, "''")}';`);
+  pangkasCadanganOtomatis(backupDir, BATAS_CADANGAN_OTOMATIS);
+}
+
+function runMigrations(db: Database.Database, migrationsDir?: string, backupDir?: string): void {
   // Buat tabel schema_migrations jika belum ada
   db.exec(`
     CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -239,6 +288,9 @@ function runMigrations(db: Database.Database, migrationsDir?: string): void {
       const name = match[2];
 
       if (!appliedVersions.has(version)) {
+        if (appliedVersions.size > 0 && backupDir) {
+          cadangkanSebelumMigrasi(db, backupDir, version);
+        }
         const sqlContent = fs.readFileSync(path.join(resolvedDir, file), 'utf-8');
         const applyTx = db.transaction(() => {
           db.exec(sqlContent);

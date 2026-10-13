@@ -72,3 +72,60 @@ describe('Database & Migrations', () => {
     }).toThrow(/transaksi_tidak_boleh_dihapus/);
   });
 });
+
+describe('Cadangan sebelum migrasi (F7-3)', () => {
+  let tmpDir: string;
+  let migrasiDir: string;
+  let backupDir: string;
+  let dbPath: string;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pundi-premigrasi-'));
+    migrasiDir = path.join(tmpDir, 'migrations');
+    backupDir = path.join(tmpDir, 'backups');
+    dbPath = path.join(tmpDir, 'pundi.sqlite');
+    fs.mkdirSync(migrasiDir);
+    fs.copyFileSync(path.join(process.cwd(), 'migrations', '0001_awal.sql'), path.join(migrasiDir, '0001_awal.sql'));
+  });
+
+  afterEach(() => {
+    closeDb();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  const tambahMigrasiBaru = () =>
+    fs.writeFileSync(path.join(migrasiDir, '0002_uji.sql'), 'CREATE TABLE uji_premigrasi (id INTEGER PRIMARY KEY);');
+
+  it('instalasi baru tidak membuat cadangan; migrasi berikutnya membuat cadangan sebelum diterapkan', () => {
+    initDb({ dbPath, migrationsDir: migrasiDir, backupDir });
+    expect(fs.existsSync(backupDir) ? fs.readdirSync(backupDir) : []).toEqual([]);
+    closeDb();
+
+    tambahMigrasiBaru();
+    initDb({ dbPath, migrationsDir: migrasiDir, backupDir });
+
+    const berkas = fs.readdirSync(backupDir);
+    expect(berkas).toHaveLength(1);
+    expect(berkas[0]).toMatch(/^pundi_otomatis_.*_pre_migrasi_v2\.sqlite$/);
+    const ada = getDb().prepare(`SELECT name FROM sqlite_master WHERE name = 'uji_premigrasi'`).get();
+    expect(ada).toBeTruthy();
+  });
+
+  it('migrasi dibatalkan bila cadangan gagal: skema tidak berubah dan berkas basis data tidak terkunci', () => {
+    initDb({ dbPath, migrationsDir: migrasiDir, backupDir });
+    closeDb();
+
+    tambahMigrasiBaru();
+    // Folder cadangan diganti berkas biasa sehingga cadangan mustahil dibuat
+    const backupRusak = path.join(tmpDir, 'bukan-folder');
+    fs.writeFileSync(backupRusak, 'x');
+
+    expect(() => initDb({ dbPath, migrationsDir: migrasiDir, backupDir: backupRusak })).toThrow();
+
+    // Tanpa cadangan: migrasi 0002 tidak boleh sempat diterapkan (dibuka ulang tanpa 0002 untuk memeriksa)
+    fs.rmSync(path.join(migrasiDir, '0002_uji.sql'));
+    initDb({ dbPath, migrationsDir: migrasiDir });
+    const versi = getDb().prepare('SELECT version FROM schema_migrations ORDER BY version').all();
+    expect(versi).toEqual([{ version: 1 }]);
+  });
+});

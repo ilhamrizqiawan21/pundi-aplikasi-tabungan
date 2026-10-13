@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import logoUrl from '../assets/logo.png';
 import { galatPin, PANJANG_PIN } from '../../shared/pin.js';
-import { tombolUtama, kolom, labelStyle } from '../styles/ui.js';
+import { Button, Field, Input } from './ui/index.js';
+import './LayarKunci.css';
 import { KodePemulihan } from './KodePemulihan.js';
 
 interface LayarKunciProps {
@@ -83,21 +84,22 @@ export function LayarKunci({ onBuka }: LayarKunciProps) {
   };
 
   return (
-    <main
-      aria-label="Kunci aplikasi"
-      style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', backgroundColor: 'var(--bg)', color: 'var(--text)' }}
-    >
-      <div style={{ width: '100%', maxWidth: '380px', padding: '32px 28px', backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)', borderRadius: 'var(--radius-xl)', boxShadow: 'var(--card-shadow)', display: 'flex', flexDirection: 'column', gap: '18px', alignItems: 'center' }}>
-        <img src={logoUrl} alt="" width={72} height={72} style={{ borderRadius: 'var(--radius-lg)' }} />
-        <h1 style={{ fontSize: '20px', fontWeight: 800 }}>Pundi</h1>
+    <main aria-label="Kunci aplikasi" className="kunci-halaman">
+      <div className="kunci-kartu">
+        <img src={logoUrl} alt="" width={72} height={72} className="kunci-logo" />
+        <h1 className="kunci-judul">Pundi</h1>
 
         {mode === 'pin' && (
           <>
-            <div style={{ width: '100%' }}>
-              <label htmlFor="pin-masuk" style={{ ...labelStyle, textAlign: 'center' }}>Masukkan PIN ({PANJANG_PIN} angka)</label>
-              <input
+            <Field
+              className="kunci-blok kunci-label-tengah"
+              label={`Masukkan PIN (${PANJANG_PIN} angka)`}
+              htmlFor="pin-masuk"
+            >
+              <Input
                 id="pin-masuk"
                 ref={inputRef}
+                className="kunci-pin-input"
                 type="password"
                 inputMode="numeric"
                 autoComplete="off"
@@ -105,50 +107,50 @@ export function LayarKunci({ onBuka }: LayarKunciProps) {
                 value={pin}
                 disabled={sibuk || tunggu > 0}
                 onChange={(e) => ubahPin(e.target.value)}
-                style={{ ...kolom, textAlign: 'center', fontSize: '24px', letterSpacing: '10px', padding: '12px' }}
               />
-            </div>
-            <div role="alert" aria-live="assertive" style={{ minHeight: '20px', fontSize: '13px', color: 'var(--danger)', textAlign: 'center' }}>
+            </Field>
+            <div role="alert" aria-live="assertive" className="kunci-pesan kunci-pesan-tengah">
               {tunggu > 0 ? `Terlalu banyak percobaan salah. Coba lagi dalam ${tunggu} detik.` : galat}
             </div>
-            <button type="button" onClick={() => { setMode('lupa'); setGalat(null); }} style={{ background: 'none', border: 'none', color: 'var(--accent)', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+            <button
+              type="button"
+              onClick={() => { setMode('lupa'); setGalat(null); }}
+              className="kunci-tautan kunci-tautan-aksen"
+            >
               Lupa PIN?
             </button>
           </>
         )}
 
         {mode === 'lupa' && (
-          <form onSubmit={kirimPemulihan} style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6 }}>
+          <form onSubmit={kirimPemulihan} className="kunci-form">
+            <p className="kunci-info">
               Masukkan kode pemulihan yang Anda simpan saat PIN dibuat, lalu tetapkan PIN baru.
             </p>
-            <div>
-              <label htmlFor="kode-pemulihan" style={labelStyle}>Kode pemulihan</label>
-              <input id="kode-pemulihan" type="text" autoComplete="off" autoCapitalize="characters" value={kode} onChange={(e) => setKode(e.target.value)} style={kolom} placeholder="XXXX-XXXX-XXXX-XXXX" />
-            </div>
-            <div>
-              <label htmlFor="pin-baru" style={labelStyle}>PIN baru</label>
-              <input id="pin-baru" type="password" inputMode="numeric" autoComplete="off" maxLength={PANJANG_PIN} value={pinBaru} onChange={(e) => setPinBaru(hanyaAngka(e.target.value))} style={kolom} />
-            </div>
-            <div>
-              <label htmlFor="pin-ulang" style={labelStyle}>Ulangi PIN baru</label>
-              <input id="pin-ulang" type="password" inputMode="numeric" autoComplete="off" maxLength={PANJANG_PIN} value={ulangPin} onChange={(e) => setUlangPin(hanyaAngka(e.target.value))} style={kolom} />
-            </div>
-            <div role="alert" style={{ minHeight: '18px', fontSize: '13px', color: 'var(--danger)' }}>
+            <Field label="Kode pemulihan" htmlFor="kode-pemulihan">
+              <Input id="kode-pemulihan" type="text" autoComplete="off" autoCapitalize="characters" value={kode} onChange={(e) => setKode(e.target.value)} placeholder="XXXX-XXXX-XXXX-XXXX" />
+            </Field>
+            <Field label="PIN baru" htmlFor="pin-baru">
+              <Input id="pin-baru" type="password" inputMode="numeric" autoComplete="off" maxLength={PANJANG_PIN} value={pinBaru} onChange={(e) => setPinBaru(hanyaAngka(e.target.value))} />
+            </Field>
+            <Field label="Ulangi PIN baru" htmlFor="pin-ulang">
+              <Input id="pin-ulang" type="password" inputMode="numeric" autoComplete="off" maxLength={PANJANG_PIN} value={ulangPin} onChange={(e) => setUlangPin(hanyaAngka(e.target.value))} />
+            </Field>
+            <div role="alert" className="kunci-pesan">
               {tunggu > 0 ? `Coba lagi dalam ${tunggu} detik.` : galat}
             </div>
-            <button type="submit" style={tombolUtama} disabled={sibuk || tunggu > 0 || kode.trim() === ''}>
+            <Button type="submit" variant="primary" disabled={sibuk || tunggu > 0 || kode.trim() === ''}>
               {sibuk ? 'Memproses...' : 'Pulihkan dan Masuk'}
-            </button>
-            <button type="button" onClick={() => { setMode('pin'); setGalat(null); }} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: '13px' }}>
+            </Button>
+            <button type="button" onClick={() => { setMode('pin'); setGalat(null); }} className="kunci-tautan">
               Kembali
             </button>
           </form>
         )}
 
         {mode === 'kodeBaru' && (
-          <div style={{ width: '100%' }}>
-            <p style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px' }}>PIN baru sudah aktif. Kode pemulihan lama tidak berlaku lagi.</p>
+          <div className="kunci-blok">
+            <p className="kunci-info-tebal">PIN baru sudah aktif. Kode pemulihan lama tidak berlaku lagi.</p>
             <KodePemulihan kode={kodeBaruTampil} onSelesai={onBuka} />
           </div>
         )}

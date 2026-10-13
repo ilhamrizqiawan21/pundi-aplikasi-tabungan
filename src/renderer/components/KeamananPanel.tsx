@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { galatPin, PANJANG_PIN } from '../../shared/pin.js';
-import { tombol, tombolUtama, kolom, labelStyle, kartu, kartuKepala } from '../styles/ui.js';
+import { Button, Field } from './ui/index.js';
 import { KodePemulihan } from './KodePemulihan.js';
+import './panel-bersama.css';
 
 type Mode = 'diam' | 'aktifkan' | 'ubah' | 'matikan' | 'kode';
 
@@ -9,10 +10,9 @@ const hanyaAngka = (teks: string) => teks.replace(/\D/g, '').slice(0, PANJANG_PI
 
 function BarisPin({ id, label, nilai, onUbah }: { id: string; label: string; nilai: string; onUbah: (v: string) => void }) {
   return (
-    <div>
-      <label htmlFor={id} style={labelStyle}>{label}</label>
-      <input id={id} type="password" inputMode="numeric" autoComplete="off" maxLength={PANJANG_PIN} value={nilai} onChange={(e) => onUbah(hanyaAngka(e.target.value))} style={{ ...kolom, maxWidth: '220px' }} />
-    </div>
+    <Field label={label} htmlFor={id} className="pb-input-pin">
+      <input id={id} type="password" inputMode="numeric" autoComplete="off" maxLength={PANJANG_PIN} value={nilai} onChange={(e) => onUbah(hanyaAngka(e.target.value))} className="ui-input" />
+    </Field>
   );
 }
 
@@ -92,44 +92,42 @@ export function KeamananPanel() {
   };
 
   return (
-    <section style={kartu} aria-labelledby="kk-judul">
-      <div style={kartuKepala}>
+    <section className="ui-card" aria-labelledby="kk-judul">
+      <div className="ui-card-header">
         <div>
-          <h3 id="kk-judul" style={{ fontSize: '14px', fontWeight: 600 }}>Keamanan: PIN aplikasi</h3>
-          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
+          <h3 id="kk-judul" className="pb-judul">Keamanan: PIN aplikasi</h3>
+          <p className="pb-sub">
             {aktif ? 'PIN aktif. Aplikasi meminta PIN setiap dibuka.' : 'PIN belum aktif. Siapa pun yang membuka komputer ini dapat melihat data tabungan.'}
           </p>
         </div>
-        <span
-          style={{ fontSize: '12px', fontWeight: 700, padding: '3px 10px', borderRadius: '9999px', color: aktif ? 'var(--ok)' : 'var(--warn)', border: `1px solid ${aktif ? 'var(--ok)' : 'var(--warn)'}` }}
-        >
+        <span className={aktif ? 'pb-lencana pb-lencana-aktif' : 'pb-lencana'}>
           {aktif === null ? '...' : aktif ? 'AKTIF' : 'TIDAK AKTIF'}
         </span>
       </div>
 
-      <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <div className="pb-panel-isi">
         {pesan && (
-          <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>{pesan}</div>
+          <div role="status" className="pb-pesan pb-pesan-ok">{pesan}</div>
         )}
 
         {mode === 'diam' && aktif !== null && (
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          <div className="pb-baris-bungkus">
             {!aktif ? (
-              <button type="button" style={tombolUtama} onClick={() => mulai('aktifkan')}>Aktifkan PIN</button>
+              <Button type="button" variant="primary" onClick={() => mulai('aktifkan')}>Aktifkan PIN</Button>
             ) : (
               <>
-                <button type="button" style={tombol} onClick={() => mulai('ubah')}>Ubah PIN</button>
-                <button type="button" style={tombol} onClick={() => mulai('matikan')}>Matikan PIN</button>
-                <button type="button" style={tombolUtama} onClick={kunciSekarang}>Kunci sekarang</button>
+                <Button type="button" onClick={() => mulai('ubah')}>Ubah PIN</Button>
+                <Button type="button" onClick={() => mulai('matikan')}>Matikan PIN</Button>
+                <Button type="button" variant="primary" onClick={kunciSekarang}>Kunci sekarang</Button>
               </>
             )}
           </div>
         )}
 
         {(mode === 'aktifkan' || mode === 'ubah' || mode === 'matikan') && (
-          <form onSubmit={kirim} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <form onSubmit={kirim} className="pb-kolom">
             {mode === 'aktifkan' && (
-              <p style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.6 }}>
+              <p className="pb-teks-kecil">
                 Pilih {PANJANG_PIN} angka yang mudah Anda ingat tetapi tidak mudah ditebak (bukan 123456 atau angka sama).
                 Setelah itu Anda akan diberi kode pemulihan untuk berjaga-jaga bila PIN lupa.
               </p>
@@ -144,13 +142,13 @@ export function KeamananPanel() {
               </>
             )}
             {galat && (
-              <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>{galat}</div>
+              <div role="alert" className="pb-pesan pb-pesan-galat">{galat}</div>
             )}
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button type="button" style={tombol} disabled={sibuk} onClick={() => selesai()}>Batal</button>
-              <button type="submit" style={tombolUtama} disabled={sibuk}>
+            <div className="pb-baris">
+              <Button type="button" disabled={sibuk} onClick={() => selesai()}>Batal</Button>
+              <Button type="submit" variant="primary" disabled={sibuk}>
                 {sibuk ? 'Memproses...' : mode === 'aktifkan' ? 'Aktifkan' : mode === 'ubah' ? 'Simpan PIN Baru' : 'Matikan PIN'}
-              </button>
+              </Button>
             </div>
           </form>
         )}

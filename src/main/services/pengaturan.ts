@@ -2,7 +2,7 @@ import { getDb } from '../db/index.js';
 import type { ProfilSekolah, ProfilSekolahInput, Pengaturan, Result } from '../../shared/types.js';
 import { ERROR_MESSAGES } from '../../shared/errors.js';
 
-const KUNCI_PENGATURAN_RENDERER: ReadonlySet<string> = new Set(['tema', 'backup_otomatis', 'ukuran_struk']);
+const KUNCI_PENGATURAN_RENDERER: ReadonlySet<string> = new Set(['tema', 'backup_otomatis', 'ukuran_struk', 'onboarding_selesai']);
 
 export class PengaturanService {
   public profilBaca(): Result<ProfilSekolah> {
@@ -82,6 +82,7 @@ export class PengaturanService {
         tema: (map['tema'] as Pengaturan['tema']) || 'putih',
         backup_otomatis: map['backup_otomatis'] !== undefined ? Boolean(map['backup_otomatis']) : true,
         ukuran_struk: (map['ukuran_struk'] as Pengaturan['ukuran_struk']) || '80',
+        onboarding_selesai: map['onboarding_selesai'] !== undefined ? Boolean(map['onboarding_selesai']) : false,
       };
 
       return { ok: true, data: pengaturan };

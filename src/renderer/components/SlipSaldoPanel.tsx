@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type { Kelas } from '../../shared/types.js';
 import { PratinjauCetakModal } from './PratinjauCetakModal.js';
-import { tombolUtama, kolom, labelStyle, kartu } from '../styles/ui.js';
+import { Button, Field } from './ui/index.js';
+import './panel-bersama.css';
 
 interface SlipSaldoPanelProps {
   kelasList: Kelas[];
@@ -26,34 +27,33 @@ export function SlipSaldoPanel({ kelasList }: SlipSaldoPanelProps) {
   };
 
   return (
-    <section style={{ ...kartu, padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '620px' }} aria-label="Slip saldo">
-      <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6 }}>
+    <section className="ui-card pb-panel" aria-label="Slip saldo">
+      <p className="pb-teks-redup">
         Cetak satu slip per siswa berisi saldo dan lima transaksi terakhir. Dua slip per baris di kertas A4, siap
         digunting dan dibagikan lewat wali kelas. Saldo dihitung saat dicetak.
       </p>
-      <div>
-        <label htmlFor="slip-kelas" style={labelStyle}>Kelas</label>
-        <select id="slip-kelas" style={kolom} value={kelasId} onChange={(e) => setKelasId(e.target.value === '' ? '' : Number(e.target.value))}>
+      <Field label="Kelas" htmlFor="slip-kelas">
+        <select id="slip-kelas" className="ui-input" value={kelasId} onChange={(e) => setKelasId(e.target.value === '' ? '' : Number(e.target.value))}>
           <option value="">-- Pilih kelas --</option>
           {kelasList.map((k) => (
             <option key={k.id} value={k.id}>{k.nama}</option>
           ))}
         </select>
-      </div>
+      </Field>
       {galat && (
-        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+        <div role="alert" className="pb-pesan pb-pesan-galat">
           {galat}
         </div>
       )}
       {pesan && (
-        <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+        <div role="status" className="pb-pesan pb-pesan-ok">
           {pesan}
         </div>
       )}
       <div>
-        <button type="button" style={{ ...tombolUtama, opacity: kelasId === '' || sibuk ? 0.5 : 1 }} disabled={kelasId === '' || sibuk} onClick={siapkan}>
+        <Button type="button" variant="primary" disabled={kelasId === '' || sibuk} onClick={siapkan}>
           {sibuk ? 'Menyiapkan...' : 'Pratinjau Slip'}
-        </button>
+        </Button>
       </div>
 
       {pratinjau && (

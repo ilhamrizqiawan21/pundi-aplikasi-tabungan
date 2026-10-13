@@ -1,0 +1,125 @@
+/* Gaya LaporanScreen (F8-4) */
+
+.laporan-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.laporan-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.laporan-tabs {
+  display: flex;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 2px;
+}
+
+.laporan-tab-btn {
+  padding: 6px 14px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  border-radius: var(--radius-sm);
+  border: none;
+  background-color: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--dur-cepat) ease;
+}
+
+.laporan-tab-btn:hover {
+  background-color: color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.laporan-tab-btn.active {
+  background-color: var(--accent);
+  color: var(--accent-text);
+}
+
+.laporan-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.laporan-select {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  font-size: var(--text-xs);
+  color: var(--text);
+  outline: none;
+}
+
+.laporan-select:focus {
+  border-color: var(--accent);
+}
+
+.laporan-notif-ekspor {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+}
+
+.laporan-notif-ekspor.ok {
+  border: 1px solid color-mix(in srgb, var(--ok) 35%, transparent);
+  background-color: var(--ok-bg);
+  color: var(--ok-text);
+}
+
+.laporan-notif-ekspor.err {
+  border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent);
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+
+/* --- Tabel rekap kelas / siswa --- */
+.ui-card.laporan-tabel-kartu {
+  overflow: hidden;
+}
+
+.tabel td.lap-semibold {
+  font-weight: var(--font-semibold);
+}
+
+.tabel td.lap-medium {
+  font-weight: var(--font-medium);
+}
+
+.tabel td.lap-bold {
+  font-weight: var(--font-bold);
+}
+
+.tabel td.lap-muted {
+  color: var(--muted);
+}
+
+.tabel td.lap-nomor {
+  font-weight: var(--font-semibold);
+  color: var(--accent);
+}
+
+.tabel td.lap-ok {
+  color: var(--ok);
+}
+
+.tabel td.lap-danger {
+  color: var(--danger);
+}
+
+.tabel tfoot td.lap-total-saldo {
+  color: var(--accent);
+  font-size: var(--text-sm);
+}

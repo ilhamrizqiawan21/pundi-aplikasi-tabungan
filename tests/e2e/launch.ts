@@ -15,8 +15,9 @@ export interface AppSesi {
 }
 
 /** Menjalankan Pundi dengan folder data sementara, sehingga tidak menyentuh data pengguna sungguhan. */
-export async function jalankanApp(): Promise<AppSesi> {
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pundi-e2e-'));
+export async function jalankanApp(existingDataDir?: string): Promise<AppSesi> {
+  const isTemporary = !existingDataDir;
+  const dataDir = existingDataDir ?? fs.mkdtempSync(path.join(os.tmpdir(), 'pundi-e2e-'));
   const env = { ...process.env } as Record<string, string>;
   delete env.VITE_DEV_SERVER_URL;
   delete env.ELECTRON_RUN_AS_NODE;
@@ -44,7 +45,9 @@ export async function jalankanApp(): Promise<AppSesi> {
     dataDir,
     tutup: async () => {
       await app.close();
-      fs.rmSync(dataDir, { recursive: true, force: true });
+      if (isTemporary) {
+        fs.rmSync(dataDir, { recursive: true, force: true });
+      }
     },
   };
 }

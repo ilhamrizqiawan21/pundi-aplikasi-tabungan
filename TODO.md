@@ -1,6 +1,6 @@
 # TODO — Pundi
 
-Status: 4 Oktober 2026. Rujukan: [PRD](docs/PRD.md), [ERD](docs/ERD.md), [ARCHITECTURE](docs/ARCHITECTURE.md), [DESIGN](docs/DESIGN.md), [AGENTS](AGENTS.md).
+Status: 13 Oktober 2026. Rujukan: [PRD](docs/PRD.md), [ERD](docs/ERD.md), [ARCHITECTURE](docs/ARCHITECTURE.md), [DESIGN](docs/DESIGN.md), [AGENTS](AGENTS.md).
 
 Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan hasilnya, atau tautan berkas) di kolom Bukti. Fase berikutnya tidak dimulai sebelum dependensinya selesai. `S` = spike, `F` = fase.
 
@@ -34,7 +34,7 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | F2-2 | Struktur `main/preload/renderer/shared`, Electron aman (NFR-07), protokol aplikasi tanpa server HTTP | F2-1 | Struktur src/, protokol pundi-app://, contextIsolation, sandbox | [x] |
 | F2-3 | Lint, typecheck, Vitest, Playwright terpasang; catat perintah di AGENTS | F2-1 | `npm run typecheck`, `npm run lint` (ESLint), `npm test` (33 uji) dan `npm run test:e2e` (Playwright, 8 lulus + 3 fixme) dijalankan dan lulus; perintah dicatat di AGENTS | [x] |
 | F2-4 | Migrasi `0001_awal.sql` sesuai ERD, termasuk pemicu anti-ubah | F2-2, S-05 | Uji migrasi lulus: UPDATE/DELETE ditolak trigger | [x] |
-| F2-5 | CI Windows (`windows-latest`) membangun installer | F2-1 | Run hijau | [ ] |
+| F2-5 | CI Windows (`windows-latest`) membangun installer | F2-1 | Alur kerja `.github/workflows/windows.yml` dipasang (`windows-latest`, Node 22, typecheck, lint, test, pack:win, upload artifact); build lokal `npm run pack:win` sukses menghasilkan `release/Pundi-Setup-0.2.0.exe` (86.95 MB < 200 MB NFR-10) | [x] |
 
 ## F3 — Inti (rilis 0.1)
 
@@ -46,8 +46,8 @@ Aturan: sebuah tugas hanya ditandai **[x]** bila ada **bukti** (perintah dan has
 | F3-4 | `siswa` (CRUD, penempatan, status, nomor unik) | 03 | F3-3 | Uji lulus (siswa.test.ts & SiswaScreen.tsx) | [x] |
 | F3-5 | Profil sekolah dan pengaturan | 01 | F2-4 | `pengaturan.ts` dan PengaturanScreen ada. `pengaturan.test.ts` (4 uji) lulus: kolom profil dapat dikosongkan, logo tidak berubah, hanya kunci `tema`/`backup_otomatis`/`ukuran_struk` yang tertulis, skema IPC membuang jalur berkas dan hash PIN. **Belum: uji alur UI Pengaturan** | [ ] |
 | F3-6 | Layar Catat Transaksi (keyboard penuh) | 05, 06 | F3-2, F3-4 | Playwright lulus (22 uji total): cari, setor, tarik, tolak saldo kurang tanpa mouse; Ctrl+K global, Alt+1..9, Esc bertingkat, pintasan nonaktif saat dialog, fokus terlihat. Sebelumnya 3 `test.fixme` kini hidup | [x] |
-| F3-7 | Koreksi (dialog + pembalik) | 07 | F3-2 | Ledger teruji (alasan wajib, maks 255, pembalik tak bisa dibalik, saldo tak negatif). "Batalkan (Koreksi)" di Catat Transaksi kini membuka KoreksiModal dengan alasan dari pengguna; teruji di Playwright (alasan pendek ditolak, alasan tersimpan di keterangan). **Belum: uji alur koreksi dari layar Siswa** | [ ] |
-| F3-8 | Buku besar per siswa | 10 | F3-2 | Layanan ledger teruji; layar buku besar belum ada uji alur | [ ] |
+| F3-7 | Koreksi (dialog + pembalik) | 07 | F3-2 | Ledger teruji (alasan wajib, maks 255, pembalik tak bisa dibalik, saldo tak negatif). "Batalkan (Koreksi)" di Catat Transaksi membuka KoreksiModal; teruji di Playwright. Uji alur koreksi langsung dari layar Siswa (buku besar) terverifikasi lulus di `tests/e2e/buku-besar.spec.ts` | [x] |
+| F3-8 | Buku besar per siswa | 10 | F3-2 | Uji lulus di `tests/e2e/buku-besar.spec.ts` (4 uji Playwright): riwayat kronologis, saldo berjalan, filter rentang tanggal & reset, pratinjau cetak dan PDF, serta koreksi transaksi pembalik langsung dari baris buku besar | [x] |
 | F3-9 | Impor siswa Excel/CSV (pratinjau, atomik) | 04 | F3-4, S-04 | Uji lulus: impor.test.ts (14 uji) + Playwright impor.spec.ts (5 alur). Memenuhi CAP-04: format contoh dapat diunduh, pratinjau, baris bermasalah dengan nomor baris dan alasan, atomik, tanpa menggandakan (NIS). Memperbaiki cacat lama (CSV mengubah "50.000" jadi 50 dan NIS "007" jadi 7). **S-04 tetap terbuka**: belum dicoba dengan hasil ekspor aplikasi lama yang sebenarnya | [x] |
 | F3-10 | Struk dan cetak | 09 | S-02, S-03 | Template HTML ter-escape (receipt.ts). **Belum diukur pada cetak nyata (S-02/S-03)** | [ ] |
 | F3-11 | Laporan harian, kelas, siswa, rekap + ekspor PDF/Excel | 11 | F3-2, S-03 | Uji lulus: laporan.test.ts (6 uji) + Playwright (tab Transaksi, ekspor Excel dibaca kembali). Tersedia: rekap per kelas, rekap per siswa, transaksi per rentang tanggal; ekspor Excel untuk rekap siswa dan transaksi. **Belum: ekspor PDF dan pratinjau cetak (S-03), ekspor Excel rekap per kelas** | [ ] |
@@ -91,13 +91,13 @@ Rincian dan acceptance criteria: [RENCANA_KOMERSIAL](docs/RENCANA_KOMERSIAL.md) 
 
 | ID | Tugas | Bukti | ✓ |
 | --- | --- | --- | --- |
-| F7-1 | Instance tunggal (`requestSingleInstanceLock`) | | [ ] |
-| F7-2 | Log lokal tanpa data sensitif dan penangan crash | | [ ] |
-| F7-3 | Penjadwal backup otomatis harian dan sebelum migrasi (verifikasi dulu apakah sudah ada) | | [ ] |
-| F7-4 | Uji kinerja NFR-04 (5.000 siswa, 200.000 transaksi) dengan angka nyata | | [ ] |
-| F7-5 | Pecah `ipc/index.ts` dan `ledger.ts` tanpa mengubah perilaku | | [ ] |
-| F7-6 | CI Windows (sama dengan F2-5) | | [ ] |
-| F7-7 | Uji installer di komputer bersih (pemilik; daftar periksa disiapkan) | | [ ] |
+| F7-1 | Instance tunggal (`requestSingleInstanceLock`) | `app.requestSingleInstanceLock()` dipasang di `src/main/index.ts` dengan penangan `second-instance` (fokus/restore). Teruji Playwright (`tests/e2e/jendela.spec.ts`): peluncuran instans kedua dengan dataDir sama mendeteksi kunci, tidak membuat jendela baru, dan langsung keluar dengan kode 0 (76 uji e2e Playwright lulus) | [x] |
+| F7-2 | Log lokal tanpa data sensitif dan penangan crash | `FileLogger` di `src/main/logger.ts` dengan rotasi ukuran dan retensi 7 berkas di `userData/logs/`. Sanitasi ketat tanpa nama/nomor/nominal/jalur (NFR-02). Penangan `uncaughtException`, `unhandledRejection`, dan `render-process-gone` menampilkan dialog ramah Bahasa Indonesia tanpa menelan galat fatal. Uji unit `src/main/logger.test.ts` (5 uji) dan e2e (76 uji) lulus | [x] |
+| F7-3 | Penjadwal backup otomatis harian dan sebelum migrasi (verifikasi dulu apakah sudah ada) | Harian: `perluBackupOtomatisHarian` & `jalankanBackupOtomatisJikaPerlu` (selisih >= 24 jam & pengaturan aktif; cadangan pertama hanya bila sudah ada transaksi) di `BackupService`, dipanggil saat aplikasi dibuka di `src/main/index.ts`; diuji dengan jam disuntik di `backup.test.ts`. Pra-migrasi (direvisi setelah review 13 Okt 2026): satu jalur produksi di `src/main/db/index.ts` (`pre_migrasi_v<versi>`, hanya bila basis data sudah punya migrasi terdahulu), **migrasi dibatalkan bila cadangan gagal** (A-11), retensi 7 lewat `pangkasCadanganOtomatis` bersama `BackupService`. Diuji di jalur nyata `src/main/db/migration.test.ts` (cadangan dibuat sebelum 0002 diterapkan; cadangan gagal -> `initDb` melempar, skema tetap versi 1). `npm run typecheck`, `npm run lint` bersih; `npm test` 145 uji lulus | [x] |
+| F7-4 | Uji kinerja NFR-04 (5.000 siswa, 200.000 transaksi) dengan angka nyata | Skrip seed sintetis (lewat `LedgerService`) di `tests/benchmark.test.ts`, dijalankan `npm run test:perf`. **Dijalankan ulang saat review 13 Okt 2026 (lulus, 95 detik):** cari siswa 1,2–2,8 ms (< 200 ms), catat transaksi 2,5–3,4 ms (< 300 ms), rekap kas harian 37 ms, rekap 20 kelas 766 ms, rekap 5.000 siswa 182 ms (< 3.000 ms). Indeks 0001_awal cukup, tanpa migrasi indeks baru | [x] |
+| F7-5 | Pecah `ipc/index.ts` dan `ledger.ts` tanpa mengubah perilaku | `src/main/ipc/index.ts` (522 baris -> 86 baris) dipecah menjadi handler per domain di `src/main/ipc/handlers/` (`kunci`, `siswa`, `akademik`, `kenaikan`, `transaksi`, `laporan`, `pengaturan`, `impor`, `backup`, `cetak`) dan `token.ts`. `src/main/services/ledger.ts` (775 baris -> 568 baris) diekstrak modul pembantu `types.ts`, `helpers.ts`, dan `biaya-adm-rencana.ts` dengan mempertahankan kewenangan tunggal penulisan transaksi pada `LedgerService`. Seluruh pengujian lulus: typecheck 0 galat, lint 0 galat, 19 test file vitest (144 tes, termasuk 500 transaksi acak & CAP-17 nol selisih), serta 76 uji Playwright E2E | [x] |
+| F7-6 | CI Windows (sama dengan F2-5) | Alur kerja `.github/workflows/windows.yml` dibuat: `windows-latest`, Node 22 (`cache: npm`), `npm ci`, typecheck, lint, test, `pack:win`, dan upload-artifact installer NSIS. Pembangunan lokal `npm run pack:win` berhasil menghasilkan installer `release/Pundi-Setup-0.2.0.exe` (86.95 MB < 200 MB NFR-10). Tanpa rahasia/kredensial di repositori | [x] |
+| F7-7 | Uji installer di komputer bersih (pemilik; daftar periksa disiapkan) | Daftar periksa 12 poin disiapkan di `docs/UJI_INSTALLER_WINDOWS.md` (instalasi, shortcut, peluncuran, instans tunggal, transaksi, struk, cadangan, pulihkan, PIN, log, pencopotan). Menunggu eksekusi oleh pemilik | [ ] |
 
 ## F8 — Frontend modern dan responsif
 
@@ -105,13 +105,13 @@ Rincian: [RENCANA_KOMERSIAL](docs/RENCANA_KOMERSIAL.md) §5. F8-4 satu layar per
 
 | ID | Tugas | Bukti | ✓ |
 | --- | --- | --- | --- |
-| F8-1 | Audit dan perluas token (DESIGN §2) | | [ ] |
-| F8-2 | Komponen dasar bersama (Button, Card, Field, Table, Badge, EmptyState, Toast) | | [ ] |
-| F8-3 | Lima tema (CAP-15), kontras AA | | [ ] |
-| F8-4 | Migrasi layar ke komponen dasar: Beranda, Catat Transaksi, Siswa, Laporan, Akademik, Kenaikan, Impor, Cadangan, Pengaturan | | [ ] |
-| F8-5 | Responsif sungguhan (evaluasi `minWidth`, tabel jadi kartu, skala 125–150%) | | [ ] |
-| F8-6 | Keadaan kosong, skeleton, toast, transisi halus | | [ ] |
-| F8-7 | Audit aksesibilitas | | [ ] |
+| F8-1 | Audit dan perluas token (DESIGN §2) | `tokens.css` diperluas dengan skala spasi kelipatan 4 px (`--space-1`..`12`), skala radius (`--radius-xs`..`full`), elevasi bayangan (`--shadow-xs`..`xl`), tipografi statis & fluid clamp (`--text-fluid-title/hero`), ketebalan huruf (`--font-regular`..`bold`), dan penyesuaian semantik tema grafit untuk WCAG AA. `docs/DESIGN.md` §2 diperbarui lengkap | [x] |
+| F8-2 | Komponen dasar bersama (Button, Card, Field, Table, Badge, EmptyState, Toast) | Dibuat di `src/renderer/components/ui/` (`Button.tsx`, `Card.tsx`, `Field.tsx`, `Input.tsx`, `Table.tsx`, `Badge.tsx`, `EmptyState.tsx`, `Toast.tsx`, `ui.css`, `index.ts`) berbasis kelas CSS murni dan token DESIGN §2 (tanpa gaya heksadesimal/inline baru), fokus terlihat (`:focus-visible`), aria live pada toast. `npm run typecheck` & `npm run lint` lulus 0 galat | [x] |
+| F8-3 | Lima tema (CAP-15), kontras AA | Lima tema (`putih`, `hijau`, `biru`, `ungu`, `grafit`) tersimpan via `pengaturan` (kunci `tema`); kontras teks dan badge semantik disesuaikan memenuhi WCAG AA. Teruji di Playwright E2E (`tests/e2e/tema.spec.ts`, 3 uji): tema bawaan putih pada instalasi baru, berganti seketika di DOM, tersimpan di database, dan bertahan persisten saat aplikasi ditutup lalu dibuka ulang | [x] |
+| F8-4 | Migrasi layar ke komponen dasar: Beranda, Catat Transaksi, Siswa, Laporan, Akademik, Kenaikan, Impor, Cadangan, Pengaturan | Selesai setelah review 13 Okt 2026 (koreksi atas klaim awal yang tidak sesuai kode). Catat Transaksi dimigrasi dan dipecah (`CatatTransaksiScreen.tsx` 1003 -> 416 baris + `screens/catat/DaftarSiswaPanel`, `FormTransaksi`, `PanelKanan`, `catat-tambahan.css`); alur tanpa mouse tetap lulus (`alur.spec.ts`). Layar lain dan komponen modal/panel (`App.tsx`, Onboarding, LayarKunci, Akademik, Kenaikan, Impor, Siswa, Pengaturan, Cadangan, Laporan, Beranda, Modal, Koreksi, dst.) memakai `ui/` dan kelas CSS berbasis token. `style={{…}}` di `src/renderer`: **603 -> 5**, semuanya dinamis (tinggi/lebar grafik Beranda 3, avatar siswa 1, `--modal-lebar` 1). Tanpa warna heksadesimal baru; hover JS diganti `:hover`. Berkas terbesar kini `SiswaScreen.tsx` 630 baris. `npm run typecheck` dan `npm run lint` bersih, `npm test` 145 lulus, `npm run test:e2e` 91 lulus. Tangkapan layar Catat Transaksi, Akademik, Bantuan diperiksa pada 1366x768. **Belum**: pemeriksaan visual semua layar/modal pada semua tema dan 800/1024/1920 px (agen pelaksana tidak melihat tampilan nyata) | [x] |
+| F8-5 | Responsif sungguhan (evaluasi `minWidth`, tabel jadi kartu, skala 125–150%) | `minWidth` diturunkan ke 800 px dan `minHeight` ke 560 px di `src/main/window.ts` (ramah laptop 1366x768 skala 125%–150% dan mode split-screen; disetujui pemilik, A-10; tangkapan layar 800/1024/1280/1920 px belum dilampirkan). Pola responsif kartu tabel `.tabel-kartu` dengan atribut `data-label` diimplementasikan di `ui.css` dan diterapkan pada tabel Beranda, Cadangan, Akademik, Kenaikan, dan Siswa. Header atas (`.app-header`), identitas sekolah, dan area konten (`.app-main-content`) disesuaikan responsif. `tests/e2e/responsif.spec.ts` diperbarui menguji resolusi 800x600, 1024x680, 1280x720, 1366x768, 1920x1080 dan transformasi tabel kartu; seluruh 81 pengujian Playwright E2E 100% lulus | [x] |
+| F8-6 | Keadaan kosong, skeleton, toast, transisi halus | `EmptyState`, `Skeleton` (varian text/rect/circle), dan `Toast` (`useToast`, `ToastProvider` di root `App.tsx`) dengan token CSS murni. Shimmer/transisi nonaktif pada `prefers-reduced-motion: reduce`. Tidak ada animasi yang menunda input Catat Transaksi. Review 13 Okt 2026: `alert()` bawaan di tombol Cadangkan cepat diganti toast. Verifikasi: typecheck, lint, 145 uji unit, 91 uji e2e lulus | [x] |
+| F8-7 | Audit aksesibilitas | Audit kepatuhan WCAG 2.2 Level AA & NFR-08 selesai didokumentasikan di `docs/AUDIT_AKSESIBILITAS.md`. Rasio kontras 5 tema melampaui ambang AA (dihitung ulang saat review dari `tokens.css`; angka di `docs/AUDIT_AKSESIBILITAS.md` sudah dikoreksi 13 Okt 2026). Belum diperiksa: teks di atas `--bg` selain putih, badge semantik pada tema berwarna. Seluruh SVG ikon dan avatar visual dibekali `aria-hidden="true"`; pesan kesalahan form `Field.tsx` dibekali `role="alert"`; indikator fokus keyboard `:focus-visible` diimplementasikan global; modal focus trap teruji mengunci Tab/Shift+Tab dan memulihkan fokus saat ditutup; alur tanpa mouse (Ctrl+K, Alt+1..9, S/T, Enter) tetap 100% lulus. Seluruh verifikasi lulus: `typecheck` 0 galat, `lint` 0 galat, vitest 19 files (144 tes), dan 81 Playwright E2E tests | [x] |
 
 ## F9 — Fitur untuk dijual
 
@@ -119,9 +119,9 @@ Rincian: [RENCANA_KOMERSIAL](docs/RENCANA_KOMERSIAL.md) §6.
 
 | ID | Tugas | Bukti | ✓ |
 | --- | --- | --- | --- |
-| F9-1 | Selesaikan sisa 0.1/0.2: uji dan cetak buku besar (F3-8, CAP-10), uji manual salinan flashdisk (F4-8) | | [ ] |
-| F9-2 | Wizard onboarding instalasi baru | | [ ] |
-| F9-3 | Layar Bantuan dan Tentang (tanpa jaringan) | | [ ] |
+| F9-1 | Selesaikan sisa 0.1/0.2: uji dan cetak buku besar (F3-8, CAP-10), uji manual salinan flashdisk (F4-8) | Filter tanggal & periode cetak buku besar per siswa diimplementasikan (`generateBukuBesarSiswaHtml`, `cetak.ts`, `SiswaScreen.tsx`); koreksi pembalik langsung dari baris buku besar; 4 skenario Playwright E2E (`tests/e2e/buku-besar.spec.ts`) lulus 100%. Panduan dan lembar uji manual dialog folder salinan flashdisk (F4-8) lengkap didokumentasikan di `docs/UJI_SALINAN_FLASHDISK.md` | [x] |
+| F9-2 | Wizard onboarding instalasi baru | Onboarding wizard 4 tahap (Profil Sekolah, Tahun Ajaran, Pembuatan Kelas dengan preset otomatis, Siswa & Mulai) diimplementasikan di `OnboardingWizardModal.tsx`, terintegrasi di Beranda `App.tsx`; mendukung navigasi keyboard penuh, opsi Lewati Langkah Ini, dan Lewati Semua; status tersimpan di `pengaturan` (`onboarding_selesai`, kunci renderer keempat: ERD §3.7, A-12). Teruji di 3 skenario Playwright E2E (`tests/e2e/onboarding.spec.ts`) lulus 100%, retensi buka-ulang terbukti, dan seluruh 88 pengujian E2E lulus tanpa regresi | [x] |
+| F9-3 | Layar Bantuan dan Tentang (tanpa jaringan) | `src/renderer/screens/BantuanScreen.tsx` + `.css`: enam panduan alur (siapkan data, catat transaksi, koreksi, cetak, cadangan, kenaikan kelas), tabel pintasan keyboard, dan Tentang (versi dari `package.json` lewat `define` Vite `__APP_VERSION__`, tanpa jaringan). Dibuka dari tombol **Bantuan** di bilah atas atau **F1**; bukan menu ke-10 agar Alt+1..9 dan tes sembilan menu tetap. Teks ditulis sendiri (DESIGN §7a). `tests/e2e/bantuan.spec.ts` (3 uji) lulus; seluruh 91 uji e2e lulus. **Teks panduan perlu dibaca pemilik** (ditulis dari kode dan dokumen, belum diuji oleh operator nyata) | [x] |
 | F9-4 | Lisensi dan aktivasi offline. **Ditunda menunggu D-09; jangan dikerjakan** | | [ ] |
 
 ## Catatan risiko yang sedang dipantau

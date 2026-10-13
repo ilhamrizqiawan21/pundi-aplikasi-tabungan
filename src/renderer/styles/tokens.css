@@ -17,6 +17,18 @@
   unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
 :root,
 [data-theme="putih"] {
   --bg: #F1F5F9;
@@ -85,24 +97,48 @@
   --border: #334155;
   --card-bg: #1E293B;
   --card-border: #334155;
-  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  --card-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+
+  /* Penyesuaian kontras semantik tema grafit (WCAG AA) */
+  --ok-bg: #064E3B;
+  --ok-text: #6EE7B7;
+  --ok-border: #047857;
+
+  --warn-bg: #78350F;
+  --warn-text: #FCD34D;
+  --warn-border: #B45309;
+
+  --danger-bg: #7F1D1D;
+  --danger-text: #FCA5A5;
+  --danger-border: #B91C1C;
+
+  --info-bg: #1E3A8A;
+  --info-text: #93C5FD;
+  --info-border: #2563EB;
 }
 
-/* Status colors (universal across all themes) */
+/* Status colors & Universal Tokens across themes */
 :root {
+  /* Warna semantik status */
   --ok: #15803D;
   --ok-bg: #DCFCE7;
   --ok-text: #166534;
+  --ok-border: #BBF7D0;
 
   --warn: #D97706;
   --warn-bg: #FEF3C7;
   --warn-text: #B45309;
+  --warn-border: #FDE68A;
 
   --danger: #DC2626;
   --danger-bg: #FEE2E2;
   --danger-text: #B91C1C;
-  --ok-border: #BBF7D0;
   --danger-border: #FECACA;
+
+  --info: #2563EB;
+  --info-bg: #EFF6FF;
+  --info-text: #1D4ED8;
+  --info-border: #BFDBFE;
 
   /* Teks putih pada latar jenuh yang tetap di semua tema (kartu utama, tombol status) */
   --on-color: #FFFFFF;
@@ -122,11 +158,52 @@
   --font-sans: 'Inter Variable', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Skala huruf: 11 (hanya label kapital), 12, 13, 14, 16, 20, 24, 28 (angka utama). Radius: sm/md/lg/xl; 9999px untuk pil. */
+  /* Skala Spasi (kelipatan 4 px sesuai DESIGN §2) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Skala Radius Sudut */
+  --radius-xs: 4px;
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 18px;
+  --radius-full: 9999px;
+
+  /* Skala Elevasi & Bayangan */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+
+  /* Skala Tipografi Statis */
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 28px;
+
+  /* Skala Tipografi Fluid Responsif (clamp) */
+  --text-fluid-title: clamp(18px, 1.5vw + 10px, 24px);
+  --text-fluid-hero: clamp(22px, 2vw + 12px, 32px);
+
+  /* Ketebalan Huruf */
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
 
   /* Motion: pendek dan halus; hanya opacity/transform agar ringan */
   --dur-cepat: 120ms;

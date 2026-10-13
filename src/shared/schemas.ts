@@ -209,6 +209,7 @@ export const PengaturanSimpanSchema = z.object({
   tema: TemaAplikasiSchema.optional(),
   backup_otomatis: z.boolean().optional(),
   ukuran_struk: UkuranStrukSchema.optional(),
+  onboarding_selesai: z.boolean().optional(),
 });
 
 // Cetak & PDF

@@ -3,7 +3,8 @@ import type { RingkasanKasHarian } from '../../shared/types.js';
 import { hariIniLokal } from '../../shared/tanggal.js';
 import { formatRupiah, parseRupiahKetat } from '../../shared/rupiah.js';
 import { PratinjauCetakModal } from './PratinjauCetakModal.js';
-import { tombolUtama, kolom, labelStyle, kartu } from '../styles/ui.js';
+import { Button, Field } from './ui/index.js';
+import './panel-bersama.css';
 
 /** CAP-20: hitung kas yang seharusnya di laci dan bandingkan dengan uang fisik, lalu cetak berita acara. */
 export function TutupKasPanel() {
@@ -48,54 +49,51 @@ export function TutupKasPanel() {
     else setGalat(res.pesan);
   };
 
-  const warna = !selisih ? 'var(--muted)' : selisih.selisih === 0 ? 'var(--ok)' : 'var(--danger)';
+  const kelasSelisih = !selisih ? '' : selisih.selisih === 0 ? 'pb-selisih-nol' : 'pb-selisih-beda';
   const ketSelisih = !selisih ? '' : selisih.selisih > 0 ? 'Lebih' : 'Kurang';
 
   return (
-    <section style={{ ...kartu, padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px', maxWidth: '620px' }} aria-label="Tutup kas harian">
-      <p style={{ fontSize: '13px', color: 'var(--muted)', lineHeight: 1.6 }}>
+    <section className="ui-card pb-panel" aria-label="Tutup kas harian">
+      <p className="pb-teks-redup">
         Di akhir hari, hitung uang tunai di laci lalu bandingkan dengan catatan. Kas yang seharusnya adalah kas awal
         ditambah setoran dan dikurangi penarikan pada tanggal itu.
       </p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px' }}>
-        <div>
-          <label htmlFor="tk-tanggal" style={labelStyle}>Tanggal</label>
-          <input id="tk-tanggal" type="date" style={kolom} value={tanggal} max={hariIniLokal()} onChange={(e) => e.target.value && setTanggal(e.target.value)} />
-        </div>
-        <div>
-          <label htmlFor="tk-awal" style={labelStyle}>Kas awal di laci (Rp)</label>
-          <input id="tk-awal" type="text" inputMode="numeric" autoComplete="off" style={kolom} value={kasAwalTeks} placeholder="0" onChange={(e) => setKasAwalTeks(e.target.value)} />
-          {!kasAwal.ok && <div style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '2px' }}>{kasAwal.alasan}</div>}
-        </div>
-        <div>
-          <label htmlFor="tk-fisik" style={labelStyle}>Uang fisik hasil hitung (Rp)</label>
-          <input id="tk-fisik" type="text" inputMode="numeric" autoComplete="off" style={kolom} value={fisikTeks} onChange={(e) => setFisikTeks(e.target.value)} />
-          {!fisik.ok && <div style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '2px' }}>{fisik.alasan}</div>}
-        </div>
+      <div className="pb-grid pb-grid-170">
+        <Field label="Tanggal" htmlFor="tk-tanggal">
+          <input id="tk-tanggal" type="date" className="ui-input" value={tanggal} max={hariIniLokal()} onChange={(e) => e.target.value && setTanggal(e.target.value)} />
+        </Field>
+        <Field label="Kas awal di laci (Rp)" htmlFor="tk-awal">
+          <input id="tk-awal" type="text" inputMode="numeric" autoComplete="off" className="ui-input" value={kasAwalTeks} placeholder="0" onChange={(e) => setKasAwalTeks(e.target.value)} />
+          {!kasAwal.ok && <div className="pb-galat-baris">{kasAwal.alasan}</div>}
+        </Field>
+        <Field label="Uang fisik hasil hitung (Rp)" htmlFor="tk-fisik">
+          <input id="tk-fisik" type="text" inputMode="numeric" autoComplete="off" className="ui-input" value={fisikTeks} onChange={(e) => setFisikTeks(e.target.value)} />
+          {!fisik.ok && <div className="pb-galat-baris">{fisik.alasan}</div>}
+        </Field>
       </div>
 
       {kas && (
-        <dl style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '6px 16px', fontSize: '13px', margin: 0 }}>
+        <dl className="pb-dl">
           <dt>Setoran</dt>
-          <dd className="tabular-nums" style={{ margin: 0, textAlign: 'right', color: 'var(--ok)' }}>{formatRupiah(kas.total_setoran)}</dd>
+          <dd className="tabular-nums pb-ok">{formatRupiah(kas.total_setoran)}</dd>
           <dt>Penarikan</dt>
-          <dd className="tabular-nums" style={{ margin: 0, textAlign: 'right', color: 'var(--danger)' }}>{formatRupiah(kas.total_penarikan)}</dd>
+          <dd className="tabular-nums pb-danger">{formatRupiah(kas.total_penarikan)}</dd>
           {kas.total_biaya_adm !== 0 && (
             <>
-              <dt style={{ color: 'var(--muted)' }}>Biaya administrasi (tidak memengaruhi kas)</dt>
-              <dd className="tabular-nums" style={{ margin: 0, textAlign: 'right', color: 'var(--muted)' }}>{formatRupiah(kas.total_biaya_adm)}</dd>
+              <dt className="pb-muted">Biaya administrasi (tidak memengaruhi kas)</dt>
+              <dd className="tabular-nums pb-muted">{formatRupiah(kas.total_biaya_adm)}</dd>
             </>
           )}
           <dt>Jumlah transaksi</dt>
-          <dd className="tabular-nums" style={{ margin: 0, textAlign: 'right' }}>{kas.jumlah_transaksi}</dd>
-          <dt style={{ fontWeight: 700 }}>Kas seharusnya</dt>
-          <dd className="tabular-nums" style={{ margin: 0, textAlign: 'right', fontWeight: 700 }}>
+          <dd className="tabular-nums">{kas.jumlah_transaksi}</dd>
+          <dt className="pb-tebal-besar">Kas seharusnya</dt>
+          <dd className="tabular-nums pb-tebal-besar">
             {kasAwal.ok ? formatRupiah(kasAwal.nilai + kas.total_setoran - kas.total_penarikan) : '-'}
           </dd>
         </dl>
       )}
 
-      <div role="status" style={{ padding: '12px 14px', borderRadius: 'var(--radius-md)', border: `1px solid ${warna}`, color: warna, fontSize: '14px', fontWeight: 700 }}>
+      <div role="status" className={`pb-selisih ${kelasSelisih}`}>
         {selisih
           ? selisih.selisih === 0
             ? 'Kas sesuai. Tidak ada selisih.'
@@ -104,14 +102,14 @@ export function TutupKasPanel() {
       </div>
 
       {galat && (
-        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+        <div role="alert" className="pb-pesan pb-pesan-galat">
           {galat}
         </div>
       )}
       <div>
-        <button type="button" style={{ ...tombolUtama, opacity: bisaCetak ? 1 : 0.5 }} disabled={!bisaCetak} onClick={siapkan}>
+        <Button type="button" variant="primary" disabled={!bisaCetak} onClick={siapkan}>
           {sibuk ? 'Menyiapkan...' : 'Cetak Berita Acara'}
-        </button>
+        </Button>
       </div>
 
       {pratinjau && (

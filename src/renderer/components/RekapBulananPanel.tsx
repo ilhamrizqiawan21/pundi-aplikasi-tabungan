@@ -3,7 +3,8 @@ import type { HasilRekapBulanan, ItemSiswaPasif, TahunAjaran } from '../../share
 import { formatRupiah } from '../../shared/rupiah.js';
 import { formatTanggalIndonesia } from '../../shared/tanggal.js';
 import { PratinjauCetakModal } from './PratinjauCetakModal.js';
-import { tombol, kolom, labelStyle, kartu, kartuKepala } from '../styles/ui.js';
+import { Button, Field } from './ui/index.js';
+import './panel-bersama.css';
 
 interface RekapBulananPanelProps {
   tahunAjaranList: TahunAjaran[];
@@ -38,7 +39,7 @@ function GrafikBulanan({ baris }: { baris: HasilRekapBulanan['baris'] }) {
   const lebarBatang = Math.min(22, lebarGrup / 2.6);
   const skala = (v: number) => ((tinggi - bawah - atas) * v) / maks;
   return (
-    <svg viewBox={`0 0 ${lebar} ${tinggi}`} role="img" aria-label="Grafik setoran dan penarikan per bulan" style={{ width: '100%', height: 'auto', display: 'block' }}>
+    <svg viewBox={`0 0 ${lebar} ${tinggi}`} role="img" aria-label="Grafik setoran dan penarikan per bulan" className="pb-grafik">
       <line x1={kiri} x2={lebar - kiri} y1={tinggi - bawah} y2={tinggi - bawah} stroke="var(--border)" />
       {baris.map((b, i) => {
         const x = kiri + i * lebarGrup + lebarGrup / 2;
@@ -119,47 +120,46 @@ export function RekapBulananPanel({ tahunAjaranList }: RekapBulananPanelProps) {
   const adaTransaksi = (hasil?.baris.some((b) => b.jumlah_transaksi > 0)) ?? false;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <section style={{ ...kartu, padding: '16px 18px', display: 'flex', gap: '14px', alignItems: 'flex-end', flexWrap: 'wrap' }} aria-label="Pilih periode">
-        <div style={{ minWidth: '220px' }}>
-          <label htmlFor="rb-rentang" style={labelStyle}>Periode</label>
-          <select id="rb-rentang" style={kolom} value={rentang} onChange={(e) => setRentang(e.target.value)}>
+    <div className="pb-kolom-lebar">
+      <section className="ui-card pb-periode" aria-label="Pilih periode">
+        <Field label="Periode" htmlFor="rb-rentang">
+          <select id="rb-rentang" className="ui-input" value={rentang} onChange={(e) => setRentang(e.target.value)}>
             <option value="12bulan">12 bulan terakhir</option>
             {tahunAjaranList.map((t) => (
               <option key={t.id} value={String(t.id)}>T.A. {t.nama}{t.aktif ? ' (Aktif)' : ''}</option>
             ))}
           </select>
-        </div>
-        <button type="button" style={tombol} onClick={cetak} disabled={!hasil}>Cetak / PDF</button>
-        <button type="button" style={tombol} onClick={ekspor} disabled={!hasil}>Ekspor Excel</button>
+        </Field>
+        <Button type="button" onClick={cetak} disabled={!hasil}>Cetak / PDF</Button>
+        <Button type="button" onClick={ekspor} disabled={!hasil}>Ekspor Excel</Button>
       </section>
 
       {galat && (
-        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+        <div role="alert" className="pb-pesan pb-pesan-galat">
           {galat}
         </div>
       )}
       {pesan && (
-        <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+        <div role="status" className="pb-pesan pb-pesan-ok">
           {pesan}
         </div>
       )}
 
       {hasil && (
-        <section style={kartu} aria-labelledby="rb-judul">
-          <div style={kartuKepala}>
-            <h3 id="rb-judul" style={{ fontSize: '14px', fontWeight: 600 }}>Setoran dan penarikan per bulan</h3>
-            <span style={{ fontSize: '12px', color: 'var(--muted)', display: 'flex', gap: '12px' }}>
-              <span><span aria-hidden="true" style={{ color: 'var(--ok)' }}>■</span> Setoran</span>
-              <span><span aria-hidden="true" style={{ color: 'var(--danger)' }}>■</span> Penarikan</span>
+        <section className="ui-card" aria-labelledby="rb-judul">
+          <div className="ui-card-header">
+            <h3 id="rb-judul" className="pb-judul">Setoran dan penarikan per bulan</h3>
+            <span className="pb-legenda">
+              <span><span aria-hidden="true" className="pb-ok">■</span> Setoran</span>
+              <span><span aria-hidden="true" className="pb-danger">■</span> Penarikan</span>
             </span>
           </div>
           {adaTransaksi ? (
-            <div style={{ padding: '14px 18px' }}>
+            <div className="pb-kartu-isi">
               <GrafikBulanan baris={hasil.baris} />
             </div>
           ) : (
-            <p style={{ padding: '32px 18px', textAlign: 'center', fontSize: '13px', color: 'var(--muted)' }}>
+            <p className="pb-kosong">
               Belum ada setoran atau penarikan pada periode ini.
             </p>
           )}
@@ -175,23 +175,23 @@ export function RekapBulananPanel({ tahunAjaranList }: RekapBulananPanelProps) {
               </tr>
             </thead>
             <tbody>
-              <tr style={{ color: 'var(--muted)' }}>
+              <tr className="pb-muted">
                 <td colSpan={5}>Saldo awal periode</td>
                 <td className="angka">{formatRupiah(hasil.saldo_awal)}</td>
               </tr>
               {hasil.baris.map((b) => (
                 <tr key={b.bulan}>
                   <td>{labelBulan(b.bulan)}</td>
-                  <td className="angka" style={{ color: 'var(--ok)' }}>{formatRupiah(b.setoran)}</td>
-                  <td className="angka" style={{ color: 'var(--danger)' }}>{formatRupiah(b.penarikan)}</td>
+                  <td className="angka pb-ok">{formatRupiah(b.setoran)}</td>
+                  <td className="angka pb-danger">{formatRupiah(b.penarikan)}</td>
                   <td className="angka">{formatRupiah(b.biaya_adm)}</td>
                   <td className="angka">{b.jumlah_transaksi}</td>
-                  <td className="angka" style={{ fontWeight: 600 }}>{formatRupiah(b.saldo_akhir)}</td>
+                  <td className="angka pb-tebal">{formatRupiah(b.saldo_akhir)}</td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr style={{ fontWeight: 700 }}>
+              <tr className="pb-tebal-besar">
                 <td>Total</td>
                 <td className="angka">{formatRupiah(totalSetoran)}</td>
                 <td className="angka">{formatRupiah(totalPenarikan)}</td>
@@ -204,22 +204,22 @@ export function RekapBulananPanel({ tahunAjaranList }: RekapBulananPanelProps) {
         </section>
       )}
 
-      <section style={kartu} aria-labelledby="rb-pasif-judul">
-        <div style={kartuKepala}>
+      <section className="ui-card" aria-labelledby="rb-pasif-judul">
+        <div className="ui-card-header">
           <div>
-            <h3 id="rb-pasif-judul" style={{ fontSize: '14px', fontWeight: 600 }}>Saldo mengendap</h3>
-            <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
+            <h3 id="rb-pasif-judul" className="pb-judul">Saldo mengendap</h3>
+            <p className="pb-sub">
               Siswa aktif yang masih bersaldo tetapi tidak bertransaksi selama:
             </p>
           </div>
-          <select aria-label="Lama tidak bertransaksi" style={{ ...kolom, width: 'auto' }} value={bulanPasif} onChange={(e) => setBulanPasif(Number(e.target.value))}>
+          <select aria-label="Lama tidak bertransaksi" className="ui-input pb-select-auto" value={bulanPasif} onChange={(e) => setBulanPasif(Number(e.target.value))}>
             {[1, 3, 6, 12].map((n) => (
               <option key={n} value={n}>{n} bulan</option>
             ))}
           </select>
         </div>
         {pasif.length === 0 ? (
-          <p style={{ padding: '28px 18px', textAlign: 'center', fontSize: '13px', color: 'var(--muted)' }}>
+          <p className="pb-kosong">
             Tidak ada siswa bersaldo yang diam selama {bulanPasif} bulan atau lebih.
           </p>
         ) : (
@@ -236,12 +236,12 @@ export function RekapBulananPanel({ tahunAjaranList }: RekapBulananPanelProps) {
               {pasif.map((s) => (
                 <tr key={s.siswa_id}>
                   <td>
-                    <div style={{ fontWeight: 600 }}>{s.nama}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{s.nomor}</div>
+                    <div className="pb-nama">{s.nama}</div>
+                    <div className="pb-nomor">{s.nomor}</div>
                   </td>
                   <td>{s.kelas_nama ?? '-'}</td>
                   <td>{s.transaksi_terakhir ? formatTanggalIndonesia(s.transaksi_terakhir) : '-'}</td>
-                  <td className="angka" style={{ fontWeight: 600 }}>{formatRupiah(s.saldo)}</td>
+                  <td className="angka pb-tebal">{formatRupiah(s.saldo)}</td>
                 </tr>
               ))}
             </tbody>

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { ProfilSekolah, StatusKunci, TahunAjaran, TemaAplikasi } from '../shared/types.js';
 import { LayarKunci } from './components/LayarKunci.js';
+import { Button, ToastProvider, useToast } from './components/ui/index.js';
 
 import logoUrl from './assets/logo.png';
-import { tombol, tombolUtama } from './styles/ui.js';
+import './styles/app-shell.css';
 import { formatWaktuWib } from '../shared/tanggal.js';
 import { BerandaScreen } from './screens/BerandaScreen.js';
 import { CatatTransaksiScreen } from './screens/CatatTransaksiScreen.js';
@@ -14,6 +15,8 @@ import { CadanganScreen } from './screens/CadanganScreen.js';
 import { AkademikScreen } from './screens/AkademikScreen.js';
 import { KenaikanScreen } from './screens/KenaikanScreen.js';
 import { PengaturanScreen } from './screens/PengaturanScreen.js';
+import { BantuanScreen } from './screens/BantuanScreen.js';
+import { OnboardingWizardModal } from './components/OnboardingWizardModal.js';
 import {
   IconBeranda,
   IconCatat,
@@ -37,7 +40,8 @@ export type ScreenId =
   | 'kenaikan'
   | 'impor'
   | 'cadangan'
-  | 'pengaturan';
+  | 'pengaturan'
+  | 'bantuan';
 
 interface ItemNav {
   id: ScreenId;
@@ -60,6 +64,9 @@ const NAV: ItemNav[] = [
   { id: 'cadangan', label: 'Cadangan', judul: 'Cadangan & Pemulihan', subjudul: 'Pencadangan dan pemulihan basis data.', icon: IconCadangan },
   { id: 'pengaturan', label: 'Pengaturan', judul: 'Pengaturan Aplikasi', subjudul: 'Konfigurasi profil sekolah, cetak, dan tampilan.', icon: IconPengaturan },
 ];
+
+// Bantuan bukan bagian menu utama (menu tetap sembilan = Alt+1..9); dibuka lewat tombol di bilah atas atau F1
+const NAV_BANTUAN = { judul: 'Bantuan', subjudul: 'Panduan singkat, pintasan keyboard, dan keterangan aplikasi.' };
 
 /** Cadangan lebih lama dari ini dianggap perlu diperbarui. */
 const BATAS_HARI_CADANGAN = 7;
@@ -89,6 +96,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
   const [profil, setProfil] = useState<ProfilSekolah | null>(null);
   const [tahunAjaranAktif, setTahunAjaranAktif] = useState<TahunAjaran | null>(null);
   const [tema, setTema] = useState<TemaAplikasi>('putih');
+  const [showOnboarding, setShowOnboarding] = useState(false);
   // undefined = belum diketahui; null = belum pernah ada cadangan; string = waktu ISO cadangan terakhir
   const [cadanganTerakhir, setCadanganTerakhir] = useState<string | null | undefined>(undefined);
   // Waktu salinan luar terakhir; undefined = belum diketahui. Pengingat dapat ditutup selama sesi ini.
@@ -96,6 +104,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
   const [pengingatDitutup, setPengingatDitutup] = useState(false);
   const [backingUp, setBackingUp] = useState(false);
   const kontenRef = useRef<HTMLElement>(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', tema);
@@ -106,6 +115,12 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
     const onKeyDown = (e: KeyboardEvent) => {
       if (document.querySelector('[role="dialog"]')) return;
       const mod = e.ctrlKey || e.metaKey;
+
+      if (e.key === 'F1' && !mod && !e.altKey && !e.shiftKey) {
+        e.preventDefault();
+        setScreen('bantuan');
+        return;
+      }
 
       if (mod && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -143,11 +158,31 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
         if (res.ok) setProfil(res.data);
       });
       muatTahunAjaranAktif();
-      window.pundi.pengaturanBaca().then((res) => {
-        if (res.ok && res.data.tema) {
-          setTema(res.data.tema);
+      window.pundi.pengaturanBaca().then(async (res) => {
+        if (res.ok) {
+          if (res.data.tema) {
+            setTema(res.data.tema);
+          }
+          if (!res.data.onboarding_selesai) {
+            const taRes = await window.pundi.tahunAjaranDaftar();
+            if (taRes.ok && taRes.data.length === 0) {
+              setShowOnboarding(true);
+            }
+          }
         }
       });
+    }
+  }, [muatTahunAjaranAktif]);
+
+  const handleOnboardingSelesai = useCallback(async (tujuanMenu?: ScreenId) => {
+    setShowOnboarding(false);
+    if (window.pundi) {
+      const profRes = await window.pundi.profilSekolahBaca();
+      if (profRes.ok) setProfil(profRes.data);
+      muatTahunAjaranAktif();
+    }
+    if (tujuanMenu) {
+      setScreen(tujuanMenu);
     }
   }, [muatTahunAjaranAktif]);
 
@@ -171,9 +206,9 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
       const res = await window.pundi.backupBuat('Cadangan cepat bilah samping');
       if (res.ok) {
         await muatCadanganTerakhir();
-        alert('Cadangan berhasil dibuat.');
+        showToast('Cadangan berhasil dibuat.');
       } else {
-        alert(`Gagal membuat cadangan: ${res.pesan}`);
+        showToast(`Gagal membuat cadangan: ${res.pesan}`, 'danger');
       }
     } finally {
       setBackingUp(false);
@@ -188,7 +223,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
         ? Infinity
         : Math.floor((Date.now() - new Date(salinanLuarTerakhir).getTime()) / 86_400_000);
   const perluSalinanLuar = screen === 'beranda' && !pengingatDitutup && umurSalinanLuar !== null && umurSalinanLuar > BATAS_HARI_SALINAN_LUAR;
-  const activeNav = NAV.find((n) => n.id === screen) || NAV[0];
+  const activeNav = screen === 'bantuan' ? NAV_BANTUAN : NAV.find((n) => n.id === screen) || NAV[0];
 
   // Format Tanggal Hari Ini (Misal: "Kamis, 1 Oktober 2026")
   const formattedToday = new Intl.DateTimeFormat('id-ID', {
@@ -199,74 +234,32 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
   }).format(new Date());
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', backgroundColor: 'var(--bg)' }}>
+    <div className="app-shell">
       {/* Bilah samping: navigasi utama */}
-      <aside
-        className="app-sidebar"
-        style={{
-          backgroundColor: 'var(--sidebar-bg)',
-          color: 'var(--sidebar-text)',
-          display: 'flex',
-          flexDirection: 'column',
-          flexShrink: 0,
-          borderRight: '1px solid var(--sidebar-border)',
-          userSelect: 'none',
-        }}
-      >
+      <aside className="app-sidebar">
         {/* Logo & Brand Header */}
-        <div className="brand-header" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img
-            src={logoUrl}
-            alt=""
-            width={44}
-            height={44}
-            style={{ borderRadius: 'var(--radius-md)', flexShrink: 0, background: 'var(--on-color)', objectFit: 'contain' }}
-          />
+        <div className="brand-header">
+          <img src={logoUrl} alt="" width={44} height={44} className="brand-logo" />
           <div className="rail-hide-visually">
-            <h1 style={{ fontSize: '20px', fontWeight: 800, color: 'var(--on-color)', letterSpacing: '-0.5px', lineHeight: 1.1 }}>
-              Pundi
-            </h1>
-            <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--sidebar-accent-text)', letterSpacing: '1.2px', textTransform: 'uppercase', marginTop: '2px' }}>
-              Tabungan Siswa
-            </p>
+            <h1 className="brand-nama">Pundi</h1>
+            <p className="brand-tagline">Tabungan Siswa</p>
           </div>
         </div>
 
         {/* Menu utama: sembilan tombol, urutannya sama dengan pintasan Alt+1 sampai Alt+9 */}
-        <nav aria-label="Menu utama" style={{ flex: 1, overflowY: 'auto', padding: '10px 14px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <nav aria-label="Menu utama" className="sidebar-nav">
           {NAV.map((n) => {
             const Icon = n.icon;
-            const isActive = screen === n.id;
             return (
               <button
                 key={n.id}
                 onClick={() => setScreen(n.id)}
-                aria-current={isActive ? 'page' : undefined}
+                aria-current={screen === n.id ? 'page' : undefined}
                 className="nav-item"
                 title={n.label}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  width: '100%',
-                  borderRadius: 'var(--radius-md)',
-                  border: 'none',
-                  backgroundColor: isActive ? 'var(--sidebar-active)' : 'transparent',
-                  color: isActive ? 'var(--on-color)' : 'var(--sidebar-text-dim)',
-                  fontWeight: isActive ? 600 : 500,
-                  fontSize: '13px',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
-                }}
               >
-                <div className="nav-item-inner" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <span style={{ display: 'inline-flex', opacity: isActive ? 1 : 0.85 }}>
+                <div className="nav-item-inner">
+                  <span className="nav-item-ikon">
                     <Icon width={16} height={16} />
                   </span>
                   <span className="rail-hide-visually">{n.label}</span>
@@ -277,57 +270,18 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
         </nav>
 
         {/* Status cadangan nyata (bukan teks tetap) + tombol cadangan cepat */}
-        <div style={{ padding: '14px', borderTop: '1px solid var(--sidebar-border)' }}>
-          <div
-            className="sidebar-backup-card"
-            title={`${cadangan.judul}. ${cadangan.teks}`}
-            style={{
-              padding: '12px 14px',
-              backgroundColor: 'rgba(255, 255, 255, 0.04)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              borderRadius: 'var(--radius-md)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span
-                aria-hidden="true"
-                style={{
-                  width: '7px',
-                  height: '7px',
-                  borderRadius: '9999px',
-                  backgroundColor: cadangan.aman ? 'var(--ok)' : 'var(--warn)',
-                  display: 'inline-block',
-                  flexShrink: 0,
-                }}
-              />
-              <span className="rail-hide-visually" style={{ fontSize: '12px', fontWeight: 700, color: 'var(--on-color)' }}>
-                {cadangan.judul}
-              </span>
+        <div className="sidebar-footer">
+          <div className="sidebar-backup-card" title={`${cadangan.judul}. ${cadangan.teks}`}>
+            <div className="sidebar-backup-status">
+              <span aria-hidden="true" className={cadangan.aman ? 'sidebar-backup-titik aman' : 'sidebar-backup-titik'} />
+              <span className="rail-hide-visually sidebar-backup-judul">{cadangan.judul}</span>
             </div>
-            {cadangan.teks && (
-              <p className="rail-hide-visually" style={{ fontSize: '12px', color: 'var(--sidebar-muted)', lineHeight: 1.35 }}>
-                {cadangan.teks}
-              </p>
-            )}
+            {cadangan.teks && <p className="rail-hide-visually sidebar-backup-teks">{cadangan.teks}</p>}
             <button
               aria-label="Cadangkan cepat"
               onClick={handleQuickBackup}
               disabled={backingUp}
-              style={{
-                width: '100%',
-                padding: '7px 10px',
-                backgroundColor: 'var(--on-color)',
-                color: 'var(--sidebar-bg)',
-                border: 'none',
-                borderRadius: 'var(--radius-sm)',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background-color 0.15s ease',
-              }}
+              className="sidebar-backup-tombol"
             >
               <span className="rail-only" aria-hidden="true">
                 <IconCadangan width={16} height={16} />
@@ -339,181 +293,92 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
       </aside>
 
       {/* Area Konten Utama */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, overflow: 'hidden' }}>
+      <div className="app-shell-isi">
         {/* Bilah atas: sekolah, tanggal, tahun ajaran, operator */}
-        <header
-          style={{
-            height: '68px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 28px',
-            backgroundColor: 'var(--bg)',
-            flexShrink: 0,
-            borderBottom: '1px solid var(--border)',
-          }}
-        >
+        <header className="app-header">
           {/* Identitas Sekolah */}
-          <div>
-            <span style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text)' }}>
-              {profil?.nama || 'Madrasah / Sekolah'}
-            </span>
+          <div className="header-sekolah-wrap">
+            <span className="header-sekolah-text">{profil?.nama || 'Madrasah / Sekolah'}</span>
           </div>
 
           {/* Badges Kanan: Tanggal, Tahun Ajaran, Operator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="header-badges-container">
             {/* Pill Tanggal */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '7px',
-                padding: '7px 12px',
-                backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                fontSize: '12px',
-                fontWeight: 500,
-                color: 'var(--text)',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
-              }}
-            >
-              <IconCalendar width={14} height={14} style={{ color: 'var(--muted)' }} />
+            <div className="header-pill">
+              <IconCalendar width={14} height={14} className="header-pill-ikon" />
               <span>{formattedToday}</span>
             </div>
 
             {/* Pill Tahun Ajaran (wajib menyertakan teks 'T.A.' untuk uji) */}
-            {tahunAjaranAktif && (
-              <div
-                style={{
-                  padding: '7px 12px',
-                  backgroundColor: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: 'var(--text)',
-                  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
-                }}
-              >
-                T.A. {tahunAjaranAktif.nama}
-              </div>
-            )}
+            {tahunAjaranAktif && <div className="header-pill header-pill-ta">T.A. {tahunAjaranAktif.nama}</div>}
+
+            <Button
+              type="button"
+              size="sm"
+              className="header-bantuan"
+              onClick={() => setScreen('bantuan')}
+              aria-current={screen === 'bantuan' ? 'page' : undefined}
+              title="Bantuan (F1)"
+            >
+              Bantuan
+            </Button>
 
             {pinAktif && (
-              <button
-                type="button"
-                onClick={onKunci}
-                title="Kunci aplikasi sekarang"
-                style={{ ...tombol, padding: '7px 12px', fontSize: '12px', borderRadius: 'var(--radius-md)' }}
-              >
+              <Button type="button" size="sm" onClick={onKunci} title="Kunci aplikasi sekarang">
                 Kunci
-              </button>
+              </Button>
             )}
 
             {/* Operator Pill */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '9px',
-                padding: '4px 10px 4px 6px',
-                backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.03)',
-              }}
-            >
-              <div
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: 'var(--radius-sm)',
-                  backgroundColor: 'var(--accent)',
-                  color: 'var(--on-color)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}
-              >
-                {getInitials(profil?.bendahara || 'Bendahara')}
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', lineHeight: 1.2 }}>
-                  {profil?.bendahara || 'Bendahara'}
-                </span>
-                <span style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.2 }}>
-                  Operator
-                </span>
+            <div className="header-pill header-pill-operator">
+              <div className="header-avatar">{getInitials(profil?.bendahara || 'Bendahara')}</div>
+              <div className="header-operator-teks">
+                <span className="header-operator-nama">{profil?.bendahara || 'Bendahara'}</span>
+                <span className="header-operator-peran">Operator</span>
               </div>
             </div>
           </div>
         </header>
 
         {/* Layar Aktif */}
-        <main
-          ref={kontenRef}
-          tabIndex={-1}
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '24px 28px',
-            backgroundColor: 'var(--bg)',
-            outline: 'none',
-          }}
-        >
-          <div style={{ width: '100%', maxWidth: '1440px', margin: '0 auto' }}>
+        <main ref={kontenRef} tabIndex={-1} className="app-main-content">
+          <div className="app-konten-lebar">
             {/* Judul layar aktif */}
-            <div style={{ marginBottom: '20px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--text)', letterSpacing: '-0.3px', margin: 0 }}>
-                {activeNav.judul}
-              </h2>
-              <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px', margin: 0 }}>
-                {activeNav.subjudul}
-              </p>
+            <div className="app-judul-layar">
+              <h2>{activeNav.judul}</h2>
+              <p>{activeNav.subjudul}</p>
             </div>
 
             {perluSalinanLuar && (
-              <div
-                role="region"
-                aria-label="Pengingat salinan cadangan"
-                style={{
-                  marginBottom: '16px',
-                  padding: '12px 16px',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--warn)',
-                  backgroundColor: 'var(--surface)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: '12px',
-                  flexWrap: 'wrap',
-                  fontSize: '13px',
-                }}
-              >
+              <div role="region" aria-label="Pengingat salinan cadangan" className="pengingat-salinan">
                 <span>
                   <strong>Simpan salinan data di flashdisk.</strong>{' '}
                   {umurSalinanLuar === Infinity
                     ? 'Belum pernah ada salinan di luar komputer ini. Bila komputer rusak, data tabungan bisa hilang.'
                     : `Salinan terakhir di luar komputer ini ${umurSalinanLuar} hari lalu.`}
                 </span>
-                <span style={{ display: 'flex', gap: '8px' }}>
-                  <button type="button" style={{ ...tombol, padding: '6px 12px' }} onClick={() => setPengingatDitutup(true)}>
+                <span className="pengingat-salinan-aksi">
+                  <Button type="button" size="sm" onClick={() => setPengingatDitutup(true)}>
                     Nanti saja
-                  </button>
-                  <button type="button" style={{ ...tombolUtama, padding: '6px 14px' }} onClick={() => setScreen('cadangan')}>
+                  </Button>
+                  <Button type="button" size="sm" variant="primary" onClick={() => setScreen('cadangan')}>
                     Salin sekarang
-                  </button>
+                  </Button>
                 </span>
               </div>
             )}
 
             <div key={screen} className="animate-fade-in">
               {screen === 'beranda' && (
-                <BerandaScreen onGoToCatat={() => setScreen('catat')} />
+                <>
+                  {showOnboarding && (
+                    <OnboardingWizardModal
+                      terbuka={showOnboarding}
+                      onSelesai={handleOnboardingSelesai}
+                    />
+                  )}
+                  <BerandaScreen onGoToCatat={() => setScreen('catat')} />
+                </>
               )}
               {screen === 'catat' && <CatatTransaksiScreen />}
               {screen === 'siswa' && <SiswaScreen />}
@@ -525,6 +390,7 @@ function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
                 <PengaturanScreen onThemeChange={(newTheme) => setTema(newTheme)} />
               )}
               {screen === 'kenaikan' && <KenaikanScreen />}
+              {screen === 'bantuan' && <BantuanScreen />}
             </div>
           </div>
         </main>
@@ -552,16 +418,18 @@ export default function App() {
     return () => window.removeEventListener('pundi:kunci-berubah', muatStatus);
   }, [muatStatus]);
 
-  if (!window.pundi) return <AplikasiUtama pinAktif={false} onKunci={() => undefined} />;
+  if (!window.pundi) return <ToastProvider><AplikasiUtama pinAktif={false} onKunci={() => undefined} /></ToastProvider>;
   if (!status) return null;
   if (status.aktif && !status.terbuka) return <LayarKunci onBuka={muatStatus} />;
   return (
-    <AplikasiUtama
-      pinAktif={status.aktif}
-      onKunci={async () => {
-        await window.pundi.kunciKunciSekarang();
-        await muatStatus();
-      }}
-    />
+    <ToastProvider>
+      <AplikasiUtama
+        pinAktif={status.aktif}
+        onKunci={async () => {
+          await window.pundi.kunciKunciSekarang();
+          await muatStatus();
+        }}
+      />
+    </ToastProvider>
   );
 }

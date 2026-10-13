@@ -1,0 +1,12 @@
+/* Avatar inisial (StudentAvatar). Ukuran dan warna dinamis tetap lewat style inline di komponen. */
+.avatar-inisial {
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-bold);
+  flex-shrink: 0;
+  border: none;
+  user-select: none;
+  letter-spacing: 0.5px;
+}

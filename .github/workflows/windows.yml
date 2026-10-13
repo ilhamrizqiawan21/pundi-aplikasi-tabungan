@@ -1,0 +1,48 @@
+name: Build & Test Windows
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    name: Windows CI & Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repositori
+        uses: actions/checkout@v4
+
+      - name: Pasang Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Pasang dependensi
+        run: npm ci
+
+      - name: Pemeriksaan tipe (typecheck)
+        run: npm run typecheck
+
+      - name: Pemeriksaan gaya kode (lint)
+        run: npm run lint
+
+      - name: Uji unit & properti buku besar
+        run: npm test
+
+      - name: Bangun installer Windows (.exe)
+        run: npm run pack:win
+
+      - name: Unggah artefak installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: pundi-windows-installer
+          path: |
+            release/*.exe
+            release/*.blockmap
+          if-no-files-found: error
+

@@ -3,7 +3,14 @@ import type { TahunAjaran, Kelas, ItemKenaikan, PerubahanKenaikan } from '../../
 import { formatRupiah } from '../../shared/rupiah.js';
 import { Modal } from '../components/Modal.js';
 import { IconKenaikan, IconSiswa, IconCheck, IconAkademik } from '../components/Icons.js';
-import { tombol, tombolUtama, kolom, labelStyle, kartu, kartuKepala } from '../styles/ui.js';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  Button,
+  Select,
+} from '../components/ui/index.js';
+import './KenaikanScreen.css';
 
 type Tindakan = 'pindah' | 'lulus' | 'keluar';
 
@@ -20,37 +27,26 @@ const LANGKAH = [
 
 function Langkah({ aktif }: { aktif: number }) {
   return (
-    <ol
-      aria-label="Tahapan kenaikan kelas"
-      style={{ ...kartu, listStyle: 'none', margin: 0, padding: '14px 18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }}
-    >
+    <ol aria-label="Tahapan kenaikan kelas" className="ui-card kn-langkah">
       {LANGKAH.map((l, i) => {
         const selesai = i < aktif;
         const sekarang = i === aktif;
+        const tandaAktif = selesai || sekarang;
         return (
-          <li key={l.judul} aria-current={sekarang ? 'step' : undefined} style={{ display: 'flex', alignItems: 'center', gap: '12px', opacity: selesai || sekarang ? 1 : 0.55 }}>
+          <li
+            key={l.judul}
+            aria-current={sekarang ? 'step' : undefined}
+            className={tandaAktif ? 'kn-langkah-item' : 'kn-langkah-item kn-langkah-belum'}
+          >
             <span
               aria-hidden="true"
-              style={{
-                width: '30px',
-                height: '30px',
-                borderRadius: '50%',
-                flexShrink: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '13px',
-                fontWeight: 700,
-                backgroundColor: selesai || sekarang ? 'var(--accent)' : 'transparent',
-                color: selesai || sekarang ? 'var(--accent-text)' : 'var(--muted)',
-                border: selesai || sekarang ? 'none' : '1.5px solid var(--border)',
-              }}
+              className={tandaAktif ? 'kn-langkah-nomor kn-langkah-nomor-aktif' : 'kn-langkah-nomor'}
             >
               {selesai ? <IconCheck width={15} height={15} /> : i + 1}
             </span>
             <span>
-              <span style={{ display: 'block', fontSize: '13px', fontWeight: 600 }}>{l.judul}</span>
-              <span style={{ display: 'block', fontSize: '12px', color: 'var(--muted)' }}>{l.ket}</span>
+              <span className="kn-langkah-judul">{l.judul}</span>
+              <span className="kn-langkah-ket">{l.ket}</span>
             </span>
           </li>
         );
@@ -61,24 +57,12 @@ function Langkah({ aktif }: { aktif: number }) {
 
 function KeadaanKosong({ ikon, judul, children }: { ikon: ReactNode; judul: string; children?: ReactNode }) {
   return (
-    <div style={{ padding: '44px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '10px' }}>
-      <div
-        aria-hidden="true"
-        style={{
-          width: '64px',
-          height: '64px',
-          borderRadius: '50%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'var(--accent)',
-          backgroundColor: 'color-mix(in srgb, var(--accent) 12%, transparent)',
-        }}
-      >
+    <div className="kn-kosong">
+      <div aria-hidden="true" className="kn-kosong-ikon">
         {ikon}
       </div>
-      <h3 style={{ fontSize: '16px', fontWeight: 700 }}>{judul}</h3>
-      <div style={{ fontSize: '13px', color: 'var(--muted)', maxWidth: '460px', lineHeight: 1.6 }}>{children}</div>
+      <h3 className="kn-kosong-judul">{judul}</h3>
+      <div className="kn-kosong-isi">{children}</div>
     </div>
   );
 }
@@ -184,7 +168,7 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
   const tindakanDari = (id: number): Tindakan => tindakan[id] ?? 'pindah';
   const kelasDari = (id: number): number | '' => kelasPerSiswa[id] ?? kelasDefaultId;
 
-  const perubahan = useMemo((): PerubahanKenaikan[] | string => {
+  const perubahan = useMemo<PerubahanKenaikan[] | string>(() => {
     const hasil: PerubahanKenaikan[] = [];
     for (const s of items) {
       if (!dipilih.has(s.siswa_id)) continue;
@@ -257,199 +241,225 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
 
   if (tahunList.length < 2) {
     return (
-      <section style={kartu} aria-label="Belum bisa naik kelas">
+      <Card aria-label="Belum bisa naik kelas">
         <KeadaanKosong ikon={<IconKenaikan width={30} height={30} />} judul="Belum ada tahun ajaran baru">
           <p>
             Kenaikan kelas memindahkan siswa dari tahun ajaran lama ke tahun ajaran baru. Siapkan dulu tahun ajaran
             tujuannya.
           </p>
-          <ol style={{ margin: '14px auto 0', padding: 0, listStyle: 'none', textAlign: 'left', display: 'inline-flex', flexDirection: 'column', gap: '8px' }}>
+          <ol className="kn-panduan">
             {[
               <>Buka menu <strong>Tahun Ajaran &amp; Kelas</strong>.</>,
               <>Buat tahun ajaran baru beserta kelasnya (kelas dapat disalin dari tahun sebelumnya).</>,
               <>Kembali ke sini untuk memindahkan siswa.</>,
             ].map((t, i) => (
-              <li key={i} style={{ display: 'flex', gap: '10px', alignItems: 'baseline' }}>
-                <strong style={{ color: 'var(--accent)' }}>{i + 1}.</strong>
+              <li key={i} className="kn-panduan-item">
+                <strong className="kn-panduan-nomor">{i + 1}.</strong>
                 <span>{t}</span>
               </li>
             ))}
           </ol>
         </KeadaanKosong>
-      </section>
+      </Card>
     );
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <p style={{ fontSize: '13px', color: 'var(--muted)' }}>
+    <div className="kn-halaman">
+      <p className="kn-intro">
         Pindahkan siswa ke kelas pada tahun ajaran yang lebih baru, atau tandai lulus/keluar. Saldo dan riwayat
         transaksi ikut tanpa berubah, dan kelas tahun lama tetap tersimpan sebagai riwayat.
       </p>
 
       {pesan && (
-        <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px', fontWeight: 500 }}>
+        <div role="status" className="kn-pesan">
           {pesan}
         </div>
       )}
       {galat && (
-        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+        <div role="alert" className="kn-galat">
           {galat}
         </div>
       )}
 
       <Langkah aktif={kelasAsalId === '' || tahunTujuanId === '' ? 0 : items.length === 0 ? 1 : dipilih.size === 0 ? 1 : 2} />
 
-      <section style={{ ...kartu, padding: '18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '14px' }} aria-label="Pilih asal dan tujuan">
+      <Card className="kn-asal-tujuan" aria-label="Pilih asal dan tujuan">
         <div>
-          <label htmlFor="kn-ta-asal" style={labelStyle}>Tahun ajaran asal</label>
-          <select id="kn-ta-asal" style={kolom} value={tahunAsalId} onChange={(e) => setTahunAsalId(e.target.value === '' ? '' : Number(e.target.value))}>
+          <label htmlFor="kn-ta-asal" className="kn-label">
+            Tahun ajaran asal
+          </label>
+          <Select
+            id="kn-ta-asal"
+            value={tahunAsalId}
+            onChange={(e) => setTahunAsalId(e.target.value === '' ? '' : Number(e.target.value))}
+          >
             <option value="">-- Pilih --</option>
             {tahunList.map((t) => (
               <option key={t.id} value={t.id}>{t.nama}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
-          <label htmlFor="kn-kelas-asal" style={labelStyle}>Kelas asal</label>
-          <select id="kn-kelas-asal" style={kolom} value={kelasAsalId} onChange={(e) => setKelasAsalId(e.target.value === '' ? '' : Number(e.target.value))}>
+          <label htmlFor="kn-kelas-asal" className="kn-label">
+            Kelas asal
+          </label>
+          <Select
+            id="kn-kelas-asal"
+            value={kelasAsalId}
+            onChange={(e) => setKelasAsalId(e.target.value === '' ? '' : Number(e.target.value))}
+          >
             <option value="">-- Pilih --</option>
             {kelasAsalList.map((k) => (
               <option key={k.id} value={k.id}>{k.nama} ({k.jumlah_siswa ?? 0} siswa)</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
-          <label htmlFor="kn-ta-tujuan" style={labelStyle}>Tahun ajaran tujuan</label>
-          <select id="kn-ta-tujuan" style={kolom} value={tahunTujuanId} onChange={(e) => setTahunTujuanId(e.target.value === '' ? '' : Number(e.target.value))}>
+          <label htmlFor="kn-ta-tujuan" className="kn-label">
+            Tahun ajaran tujuan
+          </label>
+          <Select
+            id="kn-ta-tujuan"
+            value={tahunTujuanId}
+            onChange={(e) => setTahunTujuanId(e.target.value === '' ? '' : Number(e.target.value))}
+          >
             <option value="">-- Pilih --</option>
             {tujuanTersedia.map((t) => (
               <option key={t.id} value={t.id}>{t.nama}</option>
             ))}
-          </select>
+          </Select>
         </div>
         <div>
-          <label htmlFor="kn-kelas-tujuan" style={labelStyle}>Kelas tujuan</label>
-          <select id="kn-kelas-tujuan" style={kolom} value={kelasDefaultId} onChange={(e) => setKelasDefaultId(e.target.value === '' ? '' : Number(e.target.value))}>
+          <label htmlFor="kn-kelas-tujuan" className="kn-label">
+            Kelas tujuan
+          </label>
+          <Select
+            id="kn-kelas-tujuan"
+            value={kelasDefaultId}
+            onChange={(e) => setKelasDefaultId(e.target.value === '' ? '' : Number(e.target.value))}
+          >
             <option value="">-- Pilih --</option>
             {kelasTujuanList.map((k) => (
               <option key={k.id} value={k.id}>{k.nama}</option>
             ))}
-          </select>
+          </Select>
         </div>
-      </section>
+      </Card>
 
       {kelasAsalId === '' && (
-        <section style={kartu} aria-label="Daftar siswa">
+        <Card aria-label="Daftar siswa">
           <KeadaanKosong ikon={<IconSiswa width={30} height={30} />} judul="Pilih kelas asal">
             Pilih tahun ajaran dan kelas asal di atas. Daftar siswa kelas itu akan muncul di sini, lengkap dengan
             saldonya.
           </KeadaanKosong>
-        </section>
+        </Card>
       )}
 
       {kelasAsalId !== '' && (
-        <section style={kartu} aria-labelledby="kn-judul-daftar">
-          <div style={kartuKepala}>
-            <h3 id="kn-judul-daftar" style={{ fontSize: '14px', fontWeight: 600 }}>
+        <Card>
+          <CardHeader>
+            <CardTitle id="kn-judul-daftar">
               Siswa pada kelas asal ({items.length})
-            </h3>
-            <button type="button" style={tombolUtama} onClick={bukaTinjau} disabled={items.length === 0}>
+            </CardTitle>
+            <Button variant="primary" size="sm" onClick={bukaTinjau} disabled={items.length === 0}>
               Tinjau Perubahan
-            </button>
-          </div>
-          <table className="tabel">
-            <thead>
-              <tr>
-                <th>
-                  <input
-                    type="checkbox"
-                    aria-label="Pilih semua siswa"
-                    checked={semuaDipilih}
-                    onChange={(e) => setDipilih(e.target.checked ? new Set(items.map((s) => s.siswa_id)) : new Set())}
-                  />
-                </th>
-                <th>Siswa</th>
-                <th className="angka">Saldo</th>
-                <th>Tindakan</th>
-                <th>Kelas tujuan</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.length === 0 ? (
+            </Button>
+          </CardHeader>
+          <div className="ui-table-container kn-tabel">
+            <table className="tabel tabel-kartu">
+              <thead>
                 <tr>
-                  <td colSpan={5} style={{ padding: 0 }}>
-                    <KeadaanKosong ikon={<IconAkademik width={30} height={30} />} judul="Tidak ada siswa pada kelas ini">
-                      Pilih kelas lain, atau tambahkan siswa lewat menu <strong>Siswa</strong> atau <strong>Impor</strong>.
-                    </KeadaanKosong>
-                  </td>
+                  <th>
+                    <input
+                      type="checkbox"
+                      aria-label="Pilih semua siswa"
+                      checked={semuaDipilih}
+                      onChange={(e) => setDipilih(e.target.checked ? new Set(items.map((s) => s.siswa_id)) : new Set())}
+                    />
+                  </th>
+                  <th>Siswa</th>
+                  <th className="angka">Saldo</th>
+                  <th>Tindakan</th>
+                  <th>Kelas tujuan</th>
                 </tr>
-              ) : (
-                items.map((s) => {
-                  const t = tindakanDari(s.siswa_id);
-                  return (
-                    <tr key={s.siswa_id}>
-                      <td>
-                        <input
-                          type="checkbox"
-                          aria-label={`Pilih ${s.nama}`}
-                          checked={dipilih.has(s.siswa_id)}
-                          onChange={(e) => {
-                            const baru = new Set(dipilih);
-                            if (e.target.checked) baru.add(s.siswa_id);
-                            else baru.delete(s.siswa_id);
-                            setDipilih(baru);
-                          }}
-                        />
-                      </td>
-                      <td>
-                        <div style={{ fontWeight: 600 }}>{s.nama}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                          {s.nomor}
-                          {s.status !== 'aktif' && ` • ${s.status === 'lulus' ? 'Sudah lulus' : 'Sudah keluar'}`}
-                          {s.kelas_tujuan_nama && ` • Sudah di kelas ${s.kelas_tujuan_nama}`}
-                        </div>
-                      </td>
-                      <td className="angka">{formatRupiah(s.saldo)}</td>
-                      <td>
-                        <select
-                          aria-label={`Tindakan untuk ${s.nama}`}
-                          style={{ ...kolom, padding: '6px 8px' }}
-                          value={t}
-                          onChange={(e) => setTindakan({ ...tindakan, [s.siswa_id]: e.target.value as Tindakan })}
-                        >
-                          <option value="pindah">Naik kelas</option>
-                          <option value="lulus">Lulus</option>
-                          <option value="keluar">Keluar</option>
-                        </select>
-                      </td>
-                      <td>
-                        <select
-                          aria-label={`Kelas tujuan untuk ${s.nama}`}
-                          style={{ ...kolom, padding: '6px 8px' }}
-                          disabled={t !== 'pindah'}
-                          value={t === 'pindah' ? kelasDari(s.siswa_id) : ''}
-                          onChange={(e) => setKelasPerSiswa({ ...kelasPerSiswa, [s.siswa_id]: Number(e.target.value) })}
-                        >
-                          <option value="">-- Pilih --</option>
-                          {kelasTujuanList.map((k) => (
-                            <option key={k.id} value={k.id}>{k.nama}</option>
-                          ))}
-                        </select>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </section>
+              </thead>
+              <tbody>
+                {items.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="kn-sel-kosong">
+                      <KeadaanKosong ikon={<IconAkademik width={30} height={30} />} judul="Tidak ada siswa pada kelas ini">
+                        Pilih kelas lain, atau tambahkan siswa lewat menu <strong>Siswa</strong> atau <strong>Impor</strong>.
+                      </KeadaanKosong>
+                    </td>
+                  </tr>
+                ) : (
+                  items.map((s) => {
+                    const t = tindakanDari(s.siswa_id);
+                    return (
+                      <tr key={s.siswa_id}>
+                        <td data-label="Pilih">
+                          <input
+                            type="checkbox"
+                            aria-label={`Pilih ${s.nama}`}
+                            checked={dipilih.has(s.siswa_id)}
+                            onChange={(e) => {
+                              const baru = new Set(dipilih);
+                              if (e.target.checked) baru.add(s.siswa_id);
+                              else baru.delete(s.siswa_id);
+                              setDipilih(baru);
+                            }}
+                          />
+                        </td>
+                        <td data-label="Siswa">
+                          <div className="kn-nama">{s.nama}</div>
+                          <div className="kn-sub">
+                            {s.nomor}
+                            {s.status !== 'aktif' && ` • ${s.status === 'lulus' ? 'Sudah lulus' : 'Sudah keluar'}`}
+                            {s.kelas_tujuan_nama && ` • Sudah di kelas ${s.kelas_tujuan_nama}`}
+                          </div>
+                        </td>
+                        <td data-label="Saldo" className="angka">{formatRupiah(s.saldo)}</td>
+                        <td data-label="Tindakan">
+                          <Select
+                            aria-label={`Tindakan untuk ${s.nama}`}
+                            value={t}
+                            onChange={(e) => setTindakan({ ...tindakan, [s.siswa_id]: e.target.value as Tindakan })}
+                            className="kn-select-kecil"
+                          >
+                            <option value="pindah">Naik kelas</option>
+                            <option value="lulus">Lulus</option>
+                            <option value="keluar">Keluar</option>
+                          </Select>
+                        </td>
+                        <td data-label="Kelas tujuan">
+                          <Select
+                            aria-label={`Kelas tujuan untuk ${s.nama}`}
+                            disabled={t !== 'pindah'}
+                            value={t === 'pindah' ? kelasDari(s.siswa_id) : ''}
+                            onChange={(e) => setKelasPerSiswa({ ...kelasPerSiswa, [s.siswa_id]: Number(e.target.value) })}
+                            className="kn-select-kecil"
+                          >
+                            <option value="">-- Pilih --</option>
+                            {kelasTujuanList.map((k) => (
+                              <option key={k.id} value={k.id}>{k.nama}</option>
+                            ))}
+                          </Select>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
 
       <Modal isOpen={tinjau} onClose={() => (sibuk ? undefined : setTinjau(false))} title="Tinjau Kenaikan Kelas" width="520px">
         {ringkasan && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '13px' }}>
-            <ul style={{ paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div className="kn-modal-isi">
+            <ul className="kn-ringkasan">
               {ringkasan.perKelas.map(([nama, n]) => (
                 <li key={nama}>
                   <strong>{n}</strong> siswa naik ke kelas <strong>{nama}</strong>
@@ -467,21 +477,21 @@ export function KenaikanScreen({ onApplied }: KenaikanScreenProps) {
               )}
             </ul>
             {ringkasan.diganti > 0 && (
-              <p style={{ color: 'var(--warn-text)' }}>
+              <p className="kn-peringatan">
                 {ringkasan.diganti} siswa sudah punya kelas di tahun ajaran tujuan; kelas itu akan diganti.
               </p>
             )}
-            <p style={{ color: 'var(--muted)' }}>
+            <p className="kn-muted">
               Saldo seluruh siswa ini ({formatRupiah(ringkasan.saldo)}) tidak berubah. Perubahan tersimpan sekaligus: bila
               ada yang gagal, tidak ada yang berubah.
             </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button type="button" autoFocus disabled={sibuk} style={{ ...tombol, padding: '8px 16px', fontSize: '13px' }} onClick={() => setTinjau(false)}>
+            <div className="kn-tombolan">
+              <Button type="button" variant="secondary" size="md" autoFocus disabled={sibuk} onClick={() => setTinjau(false)}>
                 Kembali
-              </button>
-              <button type="button" disabled={sibuk} style={tombolUtama} onClick={terapkan}>
+              </Button>
+              <Button type="button" variant="primary" size="md" disabled={sibuk} onClick={terapkan}>
                 {sibuk ? 'Menyimpan...' : 'Terapkan'}
-              </button>
+              </Button>
             </div>
           </div>
         )}

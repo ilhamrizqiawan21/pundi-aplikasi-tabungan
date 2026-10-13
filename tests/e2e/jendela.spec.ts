@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import electronPath from 'electron';
 import http from 'node:http';
 import path from 'node:path';
 import fs from 'node:fs';
@@ -98,5 +99,29 @@ test.describe('jendela aplikasi', () => {
     }
     expect(dipanggil.some((u) => u.startsWith('/kontrol'))).toBe(true); // kontrol: jaringan memang bisa dijangkau
     expect(dipanggil.filter((u) => u.startsWith('/cetak'))).toEqual([]);
+  });
+
+  test('instans tunggal: peluncuran kedua dengan dataDir sama tidak membuat jendela baru dan keluar (F7-1)', async () => {
+    const { spawn } = await import('node:child_process');
+    const env = { ...process.env } as Record<string, string>;
+    delete env.VITE_DEV_SERVER_URL;
+    delete env.ELECTRON_RUN_AS_NODE;
+
+    const prosesKedua = spawn(electronPath as unknown as string, ['.', `--user-data-dir=${s.dataDir}`], {
+      cwd: process.cwd(),
+      env,
+      stdio: 'ignore',
+    });
+
+    const kodeKeluar = await new Promise<number | null>((resolve) => {
+      prosesKedua.on('exit', (code) => resolve(code));
+      setTimeout(() => resolve(-1), 10000);
+    });
+
+    // Proses kedua langsung mendeteksi kunci dan keluar dengan exit code 0
+    expect(kodeKeluar).toBe(0);
+
+    // Jendela aplikasi pertama tetap satu-satunya jendela aktif
+    expect(s.app.windows()).toHaveLength(1);
   });
 });

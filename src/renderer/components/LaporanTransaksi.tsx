@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import type { HasilLaporanTransaksi, JenisTransaksi, Kelas } from '../../shared/types.js';
 import { formatRupiah } from '../../shared/rupiah.js';
 import { hariIniLokal } from '../../shared/tanggal.js';
-import { tombol, kolom, labelStyle, kartu } from '../styles/ui.js';
+import { Button, Field } from './ui/index.js';
 import { PratinjauCetakModal } from './PratinjauCetakModal.js';
+import './panel-bersama.css';
 
 const LABEL_JENIS: Record<JenisTransaksi, string> = {
   setoran: 'Setoran',
@@ -109,31 +110,24 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <section
-        aria-label="Saring transaksi"
-        style={{ ...kartu, padding: '16px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px', alignItems: 'end' }}
-      >
-        <div>
-          <label htmlFor="lt-dari" style={labelStyle}>Dari tanggal</label>
-          <input id="lt-dari" type="date" style={kolom} value={dari} onChange={(e) => setDari(e.target.value)} />
-        </div>
-        <div>
-          <label htmlFor="lt-sampai" style={labelStyle}>Sampai tanggal</label>
-          <input id="lt-sampai" type="date" style={kolom} value={sampai} onChange={(e) => setSampai(e.target.value)} />
-        </div>
-        <div>
-          <label htmlFor="lt-jenis" style={labelStyle}>Jenis</label>
-          <select id="lt-jenis" style={kolom} value={jenis} onChange={(e) => setJenis(e.target.value as JenisTransaksi | '')}>
+    <div className="pb-kolom-sedang">
+      <section aria-label="Saring transaksi" className="ui-card pb-grid pb-grid-150 pb-saring">
+        <Field label="Dari tanggal" htmlFor="lt-dari">
+          <input id="lt-dari" type="date" className="ui-input" value={dari} onChange={(e) => setDari(e.target.value)} />
+        </Field>
+        <Field label="Sampai tanggal" htmlFor="lt-sampai">
+          <input id="lt-sampai" type="date" className="ui-input" value={sampai} onChange={(e) => setSampai(e.target.value)} />
+        </Field>
+        <Field label="Jenis" htmlFor="lt-jenis">
+          <select id="lt-jenis" className="ui-input" value={jenis} onChange={(e) => setJenis(e.target.value as JenisTransaksi | '')}>
             <option value="">Semua jenis</option>
             <option value="setoran">Setoran</option>
             <option value="penarikan">Penarikan</option>
             <option value="pembalik">Koreksi</option>
           </select>
-        </div>
-        <div>
-          <label htmlFor="lt-kelas" style={labelStyle}>Kelas</label>
-          <select id="lt-kelas" style={kolom} value={kelasId} onChange={(e) => setKelasId(e.target.value === '' ? '' : Number(e.target.value))}>
+        </Field>
+        <Field label="Kelas" htmlFor="lt-kelas">
+          <select id="lt-kelas" className="ui-input" value={kelasId} onChange={(e) => setKelasId(e.target.value === '' ? '' : Number(e.target.value))}>
             <option value="">Semua kelas</option>
             {kelasList.map((k) => (
               <option key={k.id} value={k.id}>
@@ -141,61 +135,51 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
               </option>
             ))}
           </select>
-        </div>
-        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          <button type="button" style={tombol} onClick={() => { setDari(hariIniLokal()); setSampai(hariIniLokal()); }}>
+        </Field>
+        <div className="pb-baris-bungkus">
+          <Button type="button" onClick={() => { setDari(hariIniLokal()); setSampai(hariIniLokal()); }}>
             Hari ini
-          </button>
-          <button type="button" style={tombol} onClick={() => { setDari(awalBulan()); setSampai(hariIniLokal()); }}>
+          </Button>
+          <Button type="button" onClick={() => { setDari(awalBulan()); setSampai(hariIniLokal()); }}>
             Bulan ini
-          </button>
+          </Button>
         </div>
       </section>
 
       {galat && (
-        <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+        <div role="alert" className="pb-pesan pb-pesan-galat">
           {galat}
         </div>
       )}
       {pesan && (
-        <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+        <div role="status" className="pb-pesan pb-pesan-ok">
           {pesan}
         </div>
       )}
 
       {hasil && (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+          <div className="pb-grid">
             <Ringkas judul="Jumlah transaksi" nilai={`${hasil.jumlah.toLocaleString('id-ID')} transaksi`} />
-            <Ringkas judul="Total masuk" nilai={formatRupiah(hasil.total_masuk)} warna="var(--ok)" />
-            <Ringkas judul="Total keluar" nilai={formatRupiah(hasil.total_keluar)} warna="var(--danger)" />
+            <Ringkas judul="Total masuk" nilai={formatRupiah(hasil.total_masuk)} warna="pb-ok" />
+            <Ringkas judul="Total keluar" nilai={formatRupiah(hasil.total_keluar)} warna="pb-danger" />
             <Ringkas judul="Selisih bersih" nilai={formatRupiah(hasil.total_masuk - hasil.total_keluar)} />
           </div>
 
-          <section style={kartu} aria-label="Daftar transaksi">
-            <div style={{ padding: '10px 16px', backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '13px', color: 'var(--muted)' }}>
+          <section className="ui-card" aria-label="Daftar transaksi">
+            <div className="pb-bar-tabel">
+              <span className="pb-teks-redup">
                 {hasil.terpotong
                   ? `Menampilkan ${hasil.baris.length.toLocaleString('id-ID')} dari ${hasil.jumlah.toLocaleString('id-ID')} transaksi. Ekspor ke Excel untuk semuanya.`
                   : 'Urut dari tanggal terlama.'}
               </span>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  type="button"
-                  style={{ ...tombol, padding: '7px 14px', fontSize: '13px', fontWeight: 600 }}
-                  onClick={handleCetakTransaksi}
-                  disabled={hasil.jumlah === 0 || cetakLoading}
-                >
+              <div className="pb-baris">
+                <Button type="button" onClick={handleCetakTransaksi} disabled={hasil.jumlah === 0 || cetakLoading}>
                   {cetakLoading ? 'Menyiapkan...' : 'Cetak / PDF'}
-                </button>
-                <button
-                  type="button"
-                  style={{ ...tombol, padding: '7px 14px', fontSize: '13px' }}
-                  onClick={ekspor}
-                  disabled={hasil.jumlah === 0}
-                >
+                </Button>
+                <Button type="button" onClick={ekspor} disabled={hasil.jumlah === 0}>
                   Ekspor Excel
-                </button>
+                </Button>
               </div>
             </div>
             <table className="tabel">
@@ -223,15 +207,15 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
                       <td>{t.tanggal}</td>
                       <td>{t.nomor_bukti}</td>
                       <td>
-                        <div style={{ fontWeight: 600 }}>{t.siswa_nama}</div>
-                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
+                        <div className="pb-nama">{t.siswa_nama}</div>
+                        <div className="pb-nomor">
                           {t.siswa_nomor}
                           {t.keterangan ? ` • ${t.keterangan}` : ''}
                         </div>
                       </td>
                       <td>{t.kelas_nama ?? '-'}</td>
                       <td>{LABEL_JENIS[t.jenis]}</td>
-                      <td className="angka" style={{ color: t.nilai >= 0 ? 'var(--ok)' : 'var(--danger)', fontWeight: 600 }}>
+                      <td className={`angka pb-tebal ${t.nilai >= 0 ? 'pb-ok' : 'pb-danger'}`}>
                         {t.nilai > 0 ? '+' : ''}
                         {formatRupiah(t.nilai)}
                       </td>
@@ -259,11 +243,12 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
   );
 }
 
+/** `warna` adalah nama kelas warna (mis. pb-ok); tanpa itu nilai memakai warna teks biasa. */
 function Ringkas({ judul, nilai, warna }: { judul: string; nilai: string; warna?: string }) {
   return (
-    <div style={{ ...kartu, padding: '12px 16px' }}>
-      <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{judul}</div>
-      <div className="tabular-nums" style={{ fontSize: '20px', fontWeight: 700, color: warna ?? 'var(--text)', marginTop: '2px' }}>
+    <div className="ui-card pb-ringkas">
+      <div className="pb-ringkas-judul">{judul}</div>
+      <div className={`tabular-nums pb-ringkas-nilai ${warna ?? ''}`}>
         {nilai}
       </div>
     </div>

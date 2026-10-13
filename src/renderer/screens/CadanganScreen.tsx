@@ -1,6 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../components/Modal.js';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  Button,
+  Skeleton,
+  EmptyState,
+} from '../components/ui/index.js';
 import { formatWaktuWib } from '../../shared/tanggal.js';
+import './CadanganScreen.css';
 
 interface ItemBackup {
   nama: string;
@@ -61,8 +70,11 @@ export function CadanganScreen() {
   const handleSalinKeLuar = async () => {
     setMsg(null);
     const res = await window.pundi.backupSalinKeLuar();
-    if (!res.ok) setMsg({ text: `Gagal menyalin cadangan: ${res.pesan}`, type: 'err' });
-    else if (res.data) setMsg({ text: `Salinan cadangan tersimpan di folder pilihan Anda (${res.data.nama_berkas}).`, type: 'ok' });
+    if (!res.ok) {
+      setMsg({ text: `Gagal menyalin cadangan: ${res.pesan}`, type: 'err' });
+    } else if (res.data) {
+      setMsg({ text: `Salinan cadangan tersimpan di folder pilihan Anda (${res.data.nama_berkas}).`, type: 'ok' });
+    }
   };
 
   const handlePilihBerkas = async () => {
@@ -104,242 +116,163 @@ export function CadanganScreen() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '850px', margin: '0 auto' }}>
+    <div className="cd-halaman">
       {/* Header & Aksi Cadangkan */}
-      <div
-        style={{
-          padding: '20px',
-          backgroundColor: 'var(--surface)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-sm)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '16px',
-        }}
-      >
-        <div>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>
+      <Card className="cd-kepala">
+        <div className="cd-kepala-teks">
+          <h3 className="cd-kepala-judul">
             Cadangan dan pemulihan data
           </h3>
-          <p style={{ fontSize: '13px', color: 'var(--muted)' }}>
+          <p className="cd-kepala-ket">
             Pundi menyimpan cadangan otomatis secara berkala. Sangat disarankan untuk menyalin berkas cadangan ke flashdisk atau media penyimpanan eksternal.
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-        <button
-          onClick={handleSalinKeLuar}
-          style={{
-            padding: '10px 16px',
-            backgroundColor: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
-            fontWeight: 600,
-            fontSize: '13px',
-            cursor: 'pointer',
-          }}
-        >
-          Salin ke flashdisk…
-        </button>
-        <button
-          onClick={handlePilihBerkas}
-          style={{
-            padding: '10px 16px',
-            backgroundColor: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
-            fontWeight: 600,
-            fontSize: '13px',
-            cursor: 'pointer',
-          }}
-        >
-          Pulihkan dari berkas…
-        </button>
-        <button
-          onClick={handleBuatCadangan}
-          disabled={creating}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: 'var(--accent)',
-            color: 'var(--accent-text)',
-            border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            fontWeight: 600,
-            fontSize: '13px',
-            cursor: 'pointer',
-          }}
-        >
-          {creating ? 'Membuat...' : 'Cadangkan Sekarang'}
-        </button>
+        <div className="cd-aksi-atas">
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={handleSalinKeLuar}
+          >
+            Salin ke flashdisk…
+          </Button>
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={handlePilihBerkas}
+          >
+            Pulihkan dari berkas…
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={handleBuatCadangan}
+            disabled={creating}
+          >
+            {creating ? 'Membuat...' : 'Cadangkan Sekarang'}
+          </Button>
         </div>
-      </div>
+      </Card>
 
       {msg && (
         <div
-          style={{
-            padding: '12px 16px',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '13px',
-            fontWeight: 500,
-            backgroundColor: msg.type === 'ok' ? 'var(--ok-bg)' : 'var(--danger-bg)',
-            color: msg.type === 'ok' ? 'var(--ok-text)' : 'var(--danger-text)',
-            border: `1px solid ${msg.type === 'ok' ? 'var(--ok-border)' : 'var(--danger-border)'}`,
-          }}
+          role={msg.type === 'err' ? 'alert' : 'status'}
+          className={`cd-pesan ${msg.type === 'ok' ? 'cd-pesan-ok' : 'cd-pesan-err'}`}
         >
           {msg.text}
         </div>
       )}
 
       {/* Daftar Berkas Cadangan */}
-      <div
-        style={{
-          backgroundColor: 'var(--bg)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-sm)',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            padding: '12px 18px',
-            backgroundColor: 'var(--surface)',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <h4 style={{ fontSize: '14px', fontWeight: 600 }}>Daftar Berkas Cadangan Tersimpan</h4>
-          <button
+      <Card className="cd-daftar">
+        <CardHeader>
+          <CardTitle>Daftar Berkas Cadangan Tersimpan</CardTitle>
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={fetchBackups}
-            style={{
-              padding: '4px 10px',
-              fontSize: '12px',
-              backgroundColor: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              cursor: 'pointer',
-            }}
           >
             Segarkan
-          </button>
-        </div>
+          </Button>
+        </CardHeader>
 
-        <table className="tabel">
-          <thead>
-            <tr>
-              <th>Nama Berkas Cadangan</th>
-              <th>Jenis</th>
-              <th>Waktu Dibuat</th>
-              <th className="angka">Ukuran</th>
-              <th className="angka">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        <div className="ui-table-container cd-tabel">
+          <table className="tabel tabel-kartu">
+            <thead>
               <tr>
-                <td colSpan={5} className="kosong">
-                  Memuat daftar cadangan...
-                </td>
+                <th>Nama Berkas Cadangan</th>
+                <th>Jenis</th>
+                <th>Waktu Dibuat</th>
+                <th className="angka">Ukuran</th>
+                <th className="angka">Aksi</th>
               </tr>
-            ) : backups.length === 0 ? (
-              <tr>
-                <td colSpan={5} className="kosong">
-                  Belum ada berkas cadangan. Klik "Cadangkan Sekarang" untuk membuat cadangan baru.
-                </td>
-              </tr>
-            ) : (
-              backups.map((b) => (
-                <tr key={b.nama}>
-                  <td style={{ fontWeight: 600 }}>{b.nama}</td>
-                  <td>{LABEL_JENIS[b.jenis]}</td>
-                  <td style={{ color: 'var(--muted)' }}>
-                    {formatWaktuWib(b.tanggal)}
-                  </td>
-                  <td className="angka">
-                    {formatUkuran(b.ukuran)}
-                  </td>
-                  <td className="angka">
-                    <button
-                      onClick={() => setTarget({ token: b.token, nama: b.nama })}
-                      aria-label={`Pulihkan dari ${b.nama}`}
-                      style={{
-                        padding: '4px 12px',
-                        fontSize: '12px',
-                        backgroundColor: 'var(--bg)',
-                        border: '1px solid var(--border)',
-                        borderRadius: 'var(--radius-sm)',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      Pulihkan
-                    </button>
+            </thead>
+            <tbody>
+              {loading ? (
+                <>
+                  {[1, 2, 3].map((idx) => (
+                    <tr key={idx}>
+                      <td data-label="Nama Berkas"><Skeleton width="180px" height="18px" /></td>
+                      <td data-label="Jenis"><Skeleton width="80px" height="18px" /></td>
+                      <td data-label="Waktu Dibuat"><Skeleton width="130px" height="18px" /></td>
+                      <td data-label="Ukuran" className="angka"><Skeleton width="60px" height="18px" /></td>
+                      <td data-label="Aksi" className="angka"><Skeleton width="70px" height="28px" variant="rectangular" /></td>
+                    </tr>
+                  ))}
+                </>
+              ) : backups.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="kosong cd-kosong">
+                    <EmptyState
+                      title="Belum ada berkas cadangan"
+                      description="Klik tombol 'Cadangkan Sekarang' untuk membuat cadangan baru."
+                    />
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : (
+                backups.map((b) => (
+                  <tr key={b.nama}>
+                    <td data-label="Nama Berkas" className="cd-nama">{b.nama}</td>
+                    <td data-label="Jenis">{LABEL_JENIS[b.jenis]}</td>
+                    <td data-label="Waktu Dibuat" className="cd-waktu">
+                      {formatWaktuWib(b.tanggal)}
+                    </td>
+                    <td data-label="Ukuran" className="angka">
+                      {formatUkuran(b.ukuran)}
+                    </td>
+                    <td data-label="Aksi" className="angka">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => setTarget({ token: b.token, nama: b.nama })}
+                        aria-label={`Pulihkan dari ${b.nama}`}
+                      >
+                        Pulihkan
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
       <Modal
         isOpen={target !== null}
         onClose={() => (restoring ? undefined : setTarget(null))}
         title="Pulihkan Data dari Cadangan"
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
-          <div
-            role="alert"
-            style={{
-              padding: '12px 14px',
-              border: '1px solid var(--danger)',
-              borderRadius: 'var(--radius-sm)',
-              color: 'var(--danger)',
-              fontWeight: 600,
-            }}
-          >
+        <div className="cd-modal">
+          <div role="alert" className="cd-peringatan">
             Data yang ada sekarang akan diganti dengan isi berkas ini. Transaksi yang dicatat setelah cadangan itu dibuat tidak akan ada lagi.
           </div>
           <p>
             Berkas: <strong>{target?.nama}</strong>
           </p>
-          <p style={{ color: 'var(--muted)' }}>
+          <p className="cd-redup">
             Pundi membuat cadangan pengaman dari data saat ini terlebih dahulu, sehingga pemulihan masih bisa dibatalkan.
           </p>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button
+          <div className="cd-modal-aksi">
+            <Button
               type="button"
+              variant="secondary"
+              size="md"
               autoFocus
               disabled={restoring}
               onClick={() => setTarget(null)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--surface)',
-                cursor: 'pointer',
-                fontWeight: 500,
-              }}
             >
               Batal
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
+              variant="danger"
+              size="md"
               disabled={restoring}
               onClick={handlePulihkan}
-              style={{
-                padding: '8px 18px',
-                borderRadius: 'var(--radius-sm)',
-                border: 'none',
-                backgroundColor: 'var(--danger)',
-                color: 'var(--accent-text)',
-                cursor: 'pointer',
-                fontWeight: 600,
-              }}
             >
               {restoring ? 'Memulihkan...' : 'Pulihkan Sekarang'}
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

@@ -2,7 +2,15 @@ import { useState, useMemo } from 'react';
 import type { HasilPratinjauImpor, OpsiImpor, PemetaanKolom } from '../../shared/types.js';
 import { formatRupiah, parseRupiahKetat } from '../../shared/rupiah.js';
 import { hariIniLokal } from '../../shared/tanggal.js';
-import { tombol, tombolUtama, kolom as gayaKolom, labelStyle, kartu, kartuKepala } from '../styles/ui.js';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  Button,
+  Input,
+  Select,
+} from '../components/ui/index.js';
+import './ImporScreen.css';
 
 const FIELD: Array<{ kunci: keyof PemetaanKolom; label: string; wajib?: boolean; bantuan: string }> = [
   { kunci: 'nama', label: 'Nama siswa', wajib: true, bantuan: 'Wajib' },
@@ -17,29 +25,9 @@ function Langkah({ nomor, judul, aktif, selesai }: { nomor: number; judul: strin
   return (
     <li
       aria-current={aktif ? 'step' : undefined}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '8px',
-        fontSize: '13px',
-        fontWeight: aktif ? 700 : 500,
-        color: aktif ? 'var(--accent)' : selesai ? 'var(--ok)' : 'var(--muted)',
-      }}
+      className={aktif ? 'imp-langkah imp-langkah-aktif' : selesai ? 'imp-langkah imp-langkah-selesai' : 'imp-langkah'}
     >
-      <span
-        style={{
-          width: '22px',
-          height: '22px',
-          borderRadius: '50%',
-          border: '1px solid currentColor',
-          display: 'inline-flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '12px',
-        }}
-      >
-        {selesai ? '✓' : nomor}
-      </span>
+      <span className="imp-langkah-nomor">{selesai ? '✓' : nomor}</span>
       {judul}
     </li>
   );
@@ -178,8 +166,8 @@ export function ImporScreen() {
   }, [hasil, hanyaMasalah]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '960px', margin: '0 auto' }}>
-      <ol aria-label="Langkah impor" style={{ display: 'flex', gap: '24px', listStyle: 'none', padding: 0, flexWrap: 'wrap' }}>
+    <div className="imp-halaman">
+      <ol aria-label="Langkah impor" className="imp-langkah-daftar">
         <Langkah nomor={1} judul="Pilih berkas" aktif={!berkas} selesai={!!berkas} />
         <Langkah nomor={2} judul="Petakan kolom" aktif={!!berkas && !adaPemetaan} selesai={adaPemetaan} />
         <Langkah nomor={3} judul="Pratinjau" aktif={adaPemetaan && !!hasil && hasil.invalid_count > 0} selesai={adaPemetaan && !!hasil && hasil.invalid_count === 0} />
@@ -187,21 +175,23 @@ export function ImporScreen() {
       </ol>
 
       {berhasil && (
-        <div role="status" style={{ padding: '12px 16px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px', fontWeight: 600 }}>
+        <div role="status" className="imp-berhasil">
           {berhasil}
         </div>
       )}
       {galat && (
-        <div role="alert" style={{ padding: '12px 16px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+        <div role="alert" className="imp-galat">
           {galat}
         </div>
       )}
 
       {/* 1. Pilih berkas */}
-      <section style={{ ...kartu, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }} aria-label="Pilih berkas">
-        <div style={{ fontSize: '13px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '4px' }}>Impor siswa dan saldo dari Excel atau CSV</h3>
-          <p style={{ color: 'var(--muted)' }}>
+      <Card className="imp-pilih" aria-label="Pilih berkas">
+        <div className="imp-pilih-teks">
+          <h3 className="imp-pilih-judul">
+            Impor siswa dan saldo dari Excel atau CSV
+          </h3>
+          <p className="imp-muted">
             Cocok untuk daftar siswa baru maupun pindahan dari aplikasi lama: ekspor datanya ke Excel/CSV, lalu pilih berkasnya di sini. Kolom
             dicocokkan otomatis dan dapat Anda ubah.
             {berkas && (
@@ -212,53 +202,57 @@ export function ImporScreen() {
             )}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
-          <button type="button" style={{ ...tombol, padding: '10px 16px', fontSize: '13px' }} onClick={unduhContoh}>
+        <div className="imp-pilih-aksi">
+          <Button variant="secondary" size="md" onClick={unduhContoh}>
             Unduh Format Contoh
-          </button>
-          <button type="button" style={{ ...tombolUtama, padding: '10px 18px' }} onClick={pilihBerkas}>
+          </Button>
+          <Button variant="primary" size="md" onClick={pilihBerkas}>
             {berkas ? 'Ganti Berkas' : 'Pilih Berkas Excel / CSV'}
-          </button>
+          </Button>
         </div>
-      </section>
+      </Card>
 
-      {memuat && <div style={{ textAlign: 'center', padding: '16px', color: 'var(--muted)' }}>Membaca berkas dan memeriksa baris...</div>}
+      {memuat && <div className="imp-memuat">Membaca berkas dan memeriksa baris...</div>}
 
       {hasil && pemetaan && (
         <>
           {/* 2. Petakan kolom */}
-          <section style={kartu} aria-labelledby="im-judul-peta">
-            <div style={kartuKepala}>
-              <h3 id="im-judul-peta" style={{ fontSize: '14px', fontWeight: 600 }}>
-                Petakan kolom <span style={{ fontWeight: 400, color: 'var(--muted)' }}>(judul ada di baris {hasil.baris_header} berkas)</span>
-              </h3>
-            </div>
-            <div style={{ padding: '16px 18px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '14px' }}>
+          <Card aria-labelledby="im-judul-peta">
+            <CardHeader>
+              <CardTitle id="im-judul-peta">
+                Petakan kolom <span className="imp-judul-ket">(judul ada di baris {hasil.baris_header} berkas)</span>
+              </CardTitle>
+            </CardHeader>
+            <div className="imp-peta">
               {FIELD.map((f) => (
                 <div key={f.kunci}>
-                  <label htmlFor={`im-kolom-${f.kunci}`} style={labelStyle}>
+                  <label htmlFor={`im-kolom-${f.kunci}`} className="imp-label">
                     {f.label}
-                    {f.wajib && <span style={{ color: 'var(--danger)' }}> *</span>}
+                    {f.wajib && <span className="imp-danger"> *</span>}
                   </label>
-                  <select id={`im-kolom-${f.kunci}`} style={gayaKolom} value={pemetaan[f.kunci]} onChange={(e) => ubahKolom(f.kunci, e.target.value)}>
+                  <Select
+                    id={`im-kolom-${f.kunci}`}
+                    value={pemetaan[f.kunci]}
+                    onChange={(e) => ubahKolom(f.kunci, e.target.value)}
+                  >
                     <option value={-1}>{f.wajib ? '-- Pilih kolom --' : '(tidak dipakai)'}</option>
                     {hasil.kolom.map((judul, i) => (
                       <option key={i} value={i}>
                         {judul}
                       </option>
                     ))}
-                  </select>
-                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>{f.bantuan}</div>
+                  </Select>
+                  <div className="imp-bantuan">{f.bantuan}</div>
                 </div>
               ))}
             </div>
             {hasil.contoh.length > 0 && (
-              <div style={{ overflowX: 'auto', borderTop: '1px solid var(--border)' }}>
+              <div className="imp-contoh">
                 <table className="tabel" aria-label="Contoh isi berkas">
                   <thead>
                     <tr>
                       {hasil.kolom.map((judul, i) => (
-                        <th key={i} style={{ padding: '6px 12px', fontWeight: 600 }}>{judul}</th>
+                        <th key={i}>{judul}</th>
                       ))}
                     </tr>
                   </thead>
@@ -266,7 +260,7 @@ export function ImporScreen() {
                     {hasil.contoh.map((baris, r) => (
                       <tr key={r}>
                         {baris.map((v, c) => (
-                          <td key={c} style={{ padding: '6px 12px', color: 'var(--muted)' }}>{v}</td>
+                          <td key={c}>{v}</td>
                         ))}
                       </tr>
                     ))}
@@ -274,45 +268,45 @@ export function ImporScreen() {
                 </table>
               </div>
             )}
-          </section>
+          </Card>
 
           {!adaPemetaan ? (
-            <p style={{ fontSize: '13px', color: 'var(--muted)' }}>Pilih kolom yang berisi nama siswa untuk melanjutkan.</p>
+            <p className="imp-petunjuk">Pilih kolom yang berisi nama siswa untuk melanjutkan.</p>
           ) : (
             <>
               {/* 3. Pratinjau */}
-              <section style={kartu} aria-labelledby="im-judul-pratinjau">
-                <div style={kartuKepala}>
-                  <h3 id="im-judul-pratinjau" style={{ fontSize: '14px', fontWeight: 600 }}>
+              <section className="ui-card" aria-labelledby="im-judul-pratinjau">
+                <CardHeader>
+                  <CardTitle id="im-judul-pratinjau">
                     Pratinjau:{' '}
-                    <span style={{ color: 'var(--ok)' }}>{hasil.valid_count} baris baik</span>
+                    <span className="imp-ok">{hasil.valid_count} baris baik</span>
                     {hasil.invalid_count > 0 && (
                       <>
                         {', '}
-                        <span style={{ color: 'var(--danger)' }}>{hasil.invalid_count} bermasalah</span>
+                        <span className="imp-danger">{hasil.invalid_count} bermasalah</span>
                       </>
                     )}
-                  </h3>
-                  <label style={{ fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  </CardTitle>
+                  <label className="imp-centang">
                     <input type="checkbox" checked={hanyaMasalah} onChange={(e) => setHanyaMasalah(e.target.checked)} />
                     Hanya yang bermasalah
                   </label>
-                </div>
+                </CardHeader>
 
                 {hasil.invalid_count > 0 && (
-                  <div role="alert" style={{ padding: '10px 18px', fontSize: '13px', color: 'var(--danger)', borderBottom: '1px solid var(--border)' }}>
+                  <div role="alert" className="imp-peringatan-galat">
                     {hasil.invalid_count} baris belum bisa diimpor. Perbaiki di Excel lalu pilih berkas lagi; impor hanya berjalan bila semua baris baik.
                   </div>
                 )}
                 {hasil.peringatan.length > 0 && (
-                  <ul style={{ padding: '10px 18px 10px 34px', fontSize: '13px', color: 'var(--warn-text)', borderBottom: '1px solid var(--border)' }}>
+                  <ul className="imp-peringatan">
                     {hasil.peringatan.map((p) => (
                       <li key={p}>{p}</li>
                     ))}
                   </ul>
                 )}
 
-                <div style={{ overflowX: 'auto' }}>
+                <div className="imp-gulir">
                   <table className="tabel">
                     <thead>
                       <tr>
@@ -328,11 +322,11 @@ export function ImporScreen() {
                       {barisTampil.map((b) => (
                         <tr key={b.nomor_baris}>
                           <td>{b.nomor_baris}</td>
-                          <td style={{ fontWeight: 600 }}>{b.nama || '—'}</td>
+                          <td className="imp-tebal">{b.nama || '—'}</td>
                           <td>{b.nis ?? '—'}</td>
                           <td>{b.kelas ?? '—'}</td>
                           <td className="angka">{b.saldo ? formatRupiah(b.saldo) : '—'}</td>
-                          <td style={{ color: b.valid ? 'var(--muted)' : 'var(--danger)' }}>
+                          <td className={b.valid ? 'imp-muted' : 'imp-danger'}>
                             {b.valid ? (b.catatan ?? 'Baik') : b.alasan_galat}
                           </td>
                         </tr>
@@ -341,42 +335,58 @@ export function ImporScreen() {
                   </table>
                 </div>
                 {hasil.baris.length > barisTampil.length && !hanyaMasalah && (
-                  <div style={{ padding: '10px 18px', fontSize: '12px', color: 'var(--muted)' }}>
+                  <div className="imp-catatan">
                     Menampilkan {barisTampil.length} dari {hasil.baris.length} baris (yang bermasalah di urutan teratas).
                   </div>
                 )}
               </section>
 
               {/* 4. Cocokkan dan terapkan */}
-              <section style={{ ...kartu, padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }} aria-labelledby="im-judul-cocok">
-                <h3 id="im-judul-cocok" style={{ fontSize: '14px', fontWeight: 600 }}>
+              <Card className="imp-cocok" aria-labelledby="im-judul-cocok">
+                <CardTitle id="im-judul-cocok">
                   Cocokkan dengan aplikasi lama
-                </h3>
-                <p style={{ fontSize: '13px', color: 'var(--muted)' }}>
+                </CardTitle>
+                <p className="imp-petunjuk">
                   Isi angka dari aplikasi lama (opsional, tetapi dianjurkan untuk migrasi). Bila terisi dan tidak sama dengan isi berkas, impor tidak
                   dijalankan.
                 </p>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '14px' }}>
+                <div className="imp-cocok-grid">
                   <div>
-                    <div style={labelStyle}>Jumlah siswa di berkas</div>
-                    <div className="tabular-nums" style={{ fontSize: '20px', fontWeight: 700 }}>{hasil.valid_count}</div>
-                    <label htmlFor="im-kontrol-jumlah" style={{ ...labelStyle, marginTop: '10px' }}>Jumlah siswa di aplikasi lama</label>
-                    <input id="im-kontrol-jumlah" inputMode="numeric" style={gayaKolom} value={kontrolJumlah} onChange={(e) => setKontrolJumlah(e.target.value)} placeholder="Contoh: 250" />
+                    <div className="imp-kecil-judul">Jumlah siswa di berkas</div>
+                    <div className="tabular-nums imp-angka-besar">{hasil.valid_count}</div>
+                    <label htmlFor="im-kontrol-jumlah" className="imp-label imp-label-atas">
+                      Jumlah siswa di aplikasi lama
+                    </label>
+                    <Input
+                      id="im-kontrol-jumlah"
+                      inputMode="numeric"
+                      value={kontrolJumlah}
+                      onChange={(e) => setKontrolJumlah(e.target.value)}
+                      placeholder="Contoh: 250"
+                    />
                     {cocokJumlah !== null && (
-                      <div role="status" style={{ marginTop: '6px', fontSize: '13px', fontWeight: 600, color: cocokJumlah ? 'var(--ok)' : 'var(--danger)' }}>
+                      <div role="status" className={cocokJumlah ? 'imp-status imp-ok' : 'imp-status imp-danger'}>
                         {cocokJumlah ? 'Jumlah siswa cocok' : `Berbeda ${Math.abs((kontrol.opsi.jumlah_siswa ?? 0) - hasil.valid_count)} siswa`}
                       </div>
                     )}
                   </div>
 
                   <div>
-                    <div style={labelStyle}>Total saldo di berkas</div>
-                    <div className="tabular-nums" style={{ fontSize: '20px', fontWeight: 700 }}>{formatRupiah(hasil.total_saldo)}</div>
-                    <label htmlFor="im-kontrol-saldo" style={{ ...labelStyle, marginTop: '10px' }}>Total saldo di aplikasi lama</label>
-                    <input id="im-kontrol-saldo" inputMode="numeric" style={gayaKolom} value={kontrolSaldo} onChange={(e) => setKontrolSaldo(e.target.value)} placeholder="Contoh: Rp 12.500.000" />
+                    <div className="imp-kecil-judul">Total saldo di berkas</div>
+                    <div className="tabular-nums imp-angka-besar">{formatRupiah(hasil.total_saldo)}</div>
+                    <label htmlFor="im-kontrol-saldo" className="imp-label imp-label-atas">
+                      Total saldo di aplikasi lama
+                    </label>
+                    <Input
+                      id="im-kontrol-saldo"
+                      inputMode="numeric"
+                      value={kontrolSaldo}
+                      onChange={(e) => setKontrolSaldo(e.target.value)}
+                      placeholder="Contoh: Rp 12.500.000"
+                    />
                     {cocokSaldo !== null && (
-                      <div role="status" style={{ marginTop: '6px', fontSize: '13px', fontWeight: 600, color: cocokSaldo ? 'var(--ok)' : 'var(--danger)' }}>
+                      <div role="status" className={cocokSaldo ? 'imp-status imp-ok' : 'imp-status imp-danger'}>
                         {cocokSaldo ? 'Total saldo cocok' : `Berbeda ${formatRupiah(Math.abs((kontrol.opsi.total_saldo ?? 0) - hasil.total_saldo))}`}
                       </div>
                     )}
@@ -384,9 +394,16 @@ export function ImporScreen() {
 
                   {hasil.total_saldo > 0 && (
                     <div>
-                      <label htmlFor="im-tanggal-saldo" style={labelStyle}>Tanggal saldo awal</label>
-                      <input id="im-tanggal-saldo" type="date" style={gayaKolom} value={tanggalSaldo} onChange={(e) => setTanggalSaldo(e.target.value)} />
-                      <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
+                      <label htmlFor="im-tanggal-saldo" className="imp-label">
+                        Tanggal saldo awal
+                      </label>
+                      <Input
+                        id="im-tanggal-saldo"
+                        type="date"
+                        value={tanggalSaldo}
+                        onChange={(e) => setTanggalSaldo(e.target.value)}
+                      />
+                      <div className="imp-bantuan">
                         Saldo dicatat sebagai transaksi “Saldo awal” pada tanggal ini.
                       </div>
                     </div>
@@ -394,13 +411,13 @@ export function ImporScreen() {
                 </div>
 
                 {kontrol.galatKontrol && (
-                  <div role="alert" style={{ fontSize: '13px', color: 'var(--danger)' }}>{kontrol.galatKontrol}</div>
+                  <div role="alert" className="imp-galat-kontrol">{kontrol.galatKontrol}</div>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                  <button
-                    type="button"
-                    style={{ ...tombol, padding: '10px 16px', fontSize: '13px' }}
+                <div className="imp-tombolan">
+                  <Button
+                    variant="secondary"
+                    size="md"
                     onClick={() => {
                       setBerkas(null);
                       setHasil(null);
@@ -408,12 +425,17 @@ export function ImporScreen() {
                     }}
                   >
                     Batal
-                  </button>
-                  <button type="button" style={{ ...tombolUtama, padding: '10px 20px', opacity: bisaTerapkan ? 1 : 0.5 }} disabled={!bisaTerapkan} onClick={terapkan}>
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="md"
+                    disabled={!bisaTerapkan}
+                    onClick={terapkan}
+                  >
                     {menerapkan ? 'Menyimpan...' : `Terapkan Impor (${hasil.valid_count} siswa)`}
-                  </button>
+                  </Button>
                 </div>
-              </section>
+              </Card>
             </>
           )}
         </>

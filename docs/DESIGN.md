@@ -13,6 +13,8 @@ Status: Draf 0.1 — 30 September 2026. Antarmuka untuk [PRD](PRD.md). Semua tek
 
 Tema dipilih di Pengaturan (CAP-15), bawaan **Putih**. Komponen hanya memakai token, tidak menulis warna heksadesimal baru.
 
+### 2.1 Tema Warna
+
 | Token | Putih (bawaan) | Hijau | Biru | Ungu | Grafit |
 | --- | --- | --- | --- | --- | --- |
 | `--bg` | #FFFFFF | #F6FAF7 | #F5F8FC | #F8F6FC | #1B1D21 |
@@ -23,13 +25,48 @@ Tema dipilih di Pengaturan (CAP-15), bawaan **Putih**. Komponen hanya memakai to
 | `--accent-text` | #FFFFFF | #FFFFFF | #FFFFFF | #FFFFFF | #0B1220 |
 | `--border` | #E3E4E7 | #D5E4DA | #D2DEEE | #DDD5EE | #363A41 |
 
-Status (semua tema): `--ok` #1E8E5A, `--warn` #B7791F, `--danger` #C0392B. Warna tidak boleh menjadi satu-satunya pembawa arti: setoran diberi tanda **+** dan penarikan **−** selain warna.
+### 2.2 Warna Semantik & Status
+Status: `--ok` (#15803D), `--warn` (#D97706), `--danger` (#DC2626), `--info` (#2563EB).
+Setiap status memiliki variasi `--*-bg`, `--*-text`, dan `--*-border` yang dioptimasi kontrasnya (memenuhi WCAG AA di semua tema, termasuk tema gelap Grafit).
+Warna tidak boleh menjadi satu-satunya pembawa arti: setoran diberi tanda **+** dan penarikan **−** selain warna.
 
-Tipografi: font sistem yang dibundel (tanpa font eksternal); angka memakai `font-variant-numeric: tabular-nums`. Skala: 12 / 14 / 16 / 20 / 28. Jarak kelipatan 4 px.
+### 2.3 Skala Spasi (Spacing)
+Jarak konsisten berbasis kelipatan 4 px:
+- `--space-1`: 4 px
+- `--space-2`: 8 px
+- `--space-3`: 12 px
+- `--space-4`: 16 px
+- `--space-5`: 20 px
+- `--space-6`: 24 px
+- `--space-8`: 32 px
+- `--space-10`: 40 px
+- `--space-12`: 48 px
+
+### 2.4 Skala Radius Sudut (Border Radius)
+- `--radius-xs`: 4 px (tag/elemen mikro)
+- `--radius-sm`: 6 px (tombol kecil, input kompak)
+- `--radius-md`: 10 px (tombol standar, input)
+- `--radius-lg`: 14 px (kartu panel)
+- `--radius-xl`: 18 px (modal/dialog)
+- `--radius-full`: 9999 px (badge pill)
+
+### 2.5 Skala Elevasi & Bayangan (Shadows)
+- `--shadow-xs`: 0 1px 2px rgba(15, 23, 42, 0.04)
+- `--shadow-sm`: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04)
+- `--shadow-md`: 0 4px 6px -1px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.04)
+- `--shadow-lg`: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04)
+- `--shadow-xl`: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04)
+
+### 2.6 Tipografi
+Font: `Inter Variable` dibundel secara lokal (tanpa jaringan eksternal); angka memakai `font-variant-numeric: tabular-nums`.
+- Skala statis: `--text-2xs` (11 px), `--text-xs` (12 px), `--text-sm` (13 px), `--text-base` (14 px), `--text-md` (16 px), `--text-lg` (18 px), `--text-xl` (20 px), `--text-2xl` (24 px), `--text-3xl` (28 px).
+- Skala fluid responsif:
+  - `--text-fluid-title`: `clamp(18px, 1.5vw + 10px, 24px)`
+  - `--text-fluid-hero`: `clamp(22px, 2vw + 12px, 32px)`
 
 ## 3. Tata letak
 
-Jendela minimum 1024 × 680. Sisi kiri navigasi 240 px (menciut menjadi rel ikon 76 px di bawah 1100 px); konten di kanan dengan lebar maksimum 1440 px, terpusat.
+Jendela minimum 800 × 560 (F8-5, ramah laptop 1366 × 768 skala 125%–150% dan mode split-screen). Sisi kiri navigasi 240 px (menciut menjadi rel ikon 76 px di bawah 1100 px); konten di kanan dengan lebar maksimum 1440 px, terpusat.
 
 | Bagian | Isi |
 | --- | --- |
@@ -39,18 +76,22 @@ Jendela minimum 1024 × 680. Sisi kiri navigasi 240 px (menciut menjadi rel ikon
 
 ### 3a. Responsivitas (lebar jendela)
 
-Titik henti memakai lebar jendela; aturannya ada di `src/renderer/styles/layout.css`. Konten = lebar jendela − bilah samping − 56 px padding.
+Titik henti memakai lebar jendela; aturannya ada di `src/renderer/styles/layout.css` dan `src/renderer/components/ui/ui.css`. Konten = lebar jendela − bilah samping − padding (56 px pada desktop, 32 px pada layar sempit).
 
 | Lebar jendela | Perilaku |
 | --- | --- |
-| < 1100 px | Bilah samping menjadi rel ikon (76 px). Nama menu tetap terbaca pembaca layar dan muncul sebagai tooltip; label pintasan disembunyikan. Kartu status cadangan menyisakan titik status dan tombol ikon |
+| < 1100 px | Bilah samping menjadi rel ikon (76 px). Nama menu tetap terbaca pembaca layar dan muncul sebagai tooltip; label pintasan disembunyikan. Kartu status cadangan menyisakan titik status dan tombol ikon. Padding konten dan header dirapatkan |
 | < 1220 px | Data Siswa satu kolom: daftar di atas (maks 420 px, dapat digulir), buku besar di bawah. Memilih siswa menggulir ke buku besar |
 | < 1360 px | Catat Transaksi dua kolom: pilih siswa di kiri, form di tengah, **Ringkasan hari ini** dan **Riwayat siswa** pindah ke bawah form |
+| < 860 px | Catat Transaksi kolom daftar siswa dirapatkan (240 px) agar form tetap lapang |
+| < 850 px | Tabel data (`.tabel-kartu`) bertransformasi menjadi tumpukan kartu vertikal responsif dengan label kolom otomatis dari atribut `data-label` |
 | Kartu angka Beranda | `auto-fit` minimal 200 px; ikon turun ke atas angka bila kartu sempit. Angka rupiah tidak pernah terpecah dua baris. Nominal 14 karakter atau lebih (miliaran) memakai lebar penuh kartu, ikon di atasnya, huruf 18 px |
+| Bantuan | Layar Bantuan (F9-3) bukan menu ke-10 (menu tetap sembilan = Alt+1..9). Dibuka dari tombol **Bantuan** di bilah atas atau **F1**. Isi: panduan singkat per alur (`<details>`, dapat dibuka dengan keyboard), tabel pintasan (jadi kartu < 850 px), dan Tentang (versi dari `package.json`, tanpa jaringan) |
 | Tinggi < 761 px | Catat Transaksi dirapatkan (padding form dan kotak "Belum ada siswa") agar tombol **Simpan transaksi** tetap terlihat tanpa menggulir pada 1024 × 680 |
 | Tinggi < 700 px | Bilah samping dirapatkan (header, jarak menu, kartu cadangan tanpa teks penjelas) agar sembilan menu muat tanpa menggulir. Berlaku untuk laptop 1366 × 768 pada skala Windows 125% |
+| Tinggi < 600 px | Bilah samping dirapatkan lebih lanjut agar muat pada tinggi 560 px (skala 150%) |
 
-Aturan: tidak boleh ada elemen yang keluar dari jendela dan tidak boleh ada gulir horizontal pada lebar mana pun ≥ 1024 px (dijaga uji alur `responsif.spec.ts` dan `layout.spec.ts`).
+Aturan: tidak boleh ada elemen yang keluar dari jendela dan tidak boleh ada gulir horizontal pada lebar mana pun ≥ 800 px (dijaga uji alur `responsif.spec.ts` dan `layout.spec.ts`).
 
 ## 4. Layar dan alur
 

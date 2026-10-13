@@ -110,6 +110,7 @@ export interface Pengaturan {
   tema: TemaAplikasi;
   backup_otomatis: boolean;
   ukuran_struk: UkuranStruk;
+  onboarding_selesai?: boolean;
 }
 
 /** Isian profil dari renderer. Logo dikelola proses utama (jalur berkas tidak diterima dari renderer). */

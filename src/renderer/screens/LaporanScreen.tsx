@@ -6,6 +6,11 @@ import { SlipSaldoPanel } from '../components/SlipSaldoPanel.js';
 import { RekapBulananPanel } from '../components/RekapBulananPanel.js';
 import { TutupKasPanel } from '../components/TutupKasPanel.js';
 import { PratinjauCetakModal } from '../components/PratinjauCetakModal.js';
+import {
+  Card,
+  Button,
+} from '../components/ui/index.js';
+import './LaporanScreen.css';
 
 type TabLaporan = 'kelas' | 'siswa' | 'transaksi' | 'slip' | 'tutupkas' | 'bulanan';
 
@@ -151,114 +156,44 @@ export function LaporanScreen() {
       : rekapSiswa.reduce((sum, r) => sum + r.saldo_akhir, 0);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+    <div className="laporan-container">
       {/* Header, Tab Selector & Filter Bar */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-        }}
-      >
+      <div className="laporan-header-bar">
         {/* Tab Selector */}
-        <div
-          style={{
-            display: 'flex',
-            backgroundColor: 'var(--surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '2px',
-          }}
-        >
+        <div className="laporan-tabs">
           <button
             onClick={() => setTab('kelas')}
-            style={{
-              padding: '6px 14px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              backgroundColor: tab === 'kelas' ? 'var(--accent)' : 'transparent',
-              color: tab === 'kelas' ? 'var(--accent-text)' : 'var(--text)',
-              cursor: 'pointer',
-            }}
+            className={`laporan-tab-btn ${tab === 'kelas' ? 'active' : ''}`}
           >
             Rekap per Kelas
           </button>
           <button
             onClick={() => setTab('siswa')}
-            style={{
-              padding: '6px 14px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              backgroundColor: tab === 'siswa' ? 'var(--accent)' : 'transparent',
-              color: tab === 'siswa' ? 'var(--accent-text)' : 'var(--text)',
-              cursor: 'pointer',
-            }}
+            className={`laporan-tab-btn ${tab === 'siswa' ? 'active' : ''}`}
           >
             Rekap per Siswa
           </button>
           <button
             onClick={() => setTab('transaksi')}
-            style={{
-              padding: '6px 14px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              backgroundColor: tab === 'transaksi' ? 'var(--accent)' : 'transparent',
-              color: tab === 'transaksi' ? 'var(--accent-text)' : 'var(--text)',
-              cursor: 'pointer',
-            }}
+            className={`laporan-tab-btn ${tab === 'transaksi' ? 'active' : ''}`}
           >
             Transaksi
           </button>
           <button
             onClick={() => setTab('bulanan')}
-            style={{
-              padding: '6px 14px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              backgroundColor: tab === 'bulanan' ? 'var(--accent)' : 'transparent',
-              color: tab === 'bulanan' ? 'var(--accent-text)' : 'var(--text)',
-              cursor: 'pointer',
-            }}
+            className={`laporan-tab-btn ${tab === 'bulanan' ? 'active' : ''}`}
           >
             Rekap Bulanan
           </button>
           <button
             onClick={() => setTab('slip')}
-            style={{
-              padding: '6px 14px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              backgroundColor: tab === 'slip' ? 'var(--accent)' : 'transparent',
-              color: tab === 'slip' ? 'var(--accent-text)' : 'var(--text)',
-              cursor: 'pointer',
-            }}
+            className={`laporan-tab-btn ${tab === 'slip' ? 'active' : ''}`}
           >
             Slip Saldo
           </button>
           <button
             onClick={() => setTab('tutupkas')}
-            style={{
-              padding: '6px 14px',
-              fontSize: '13px',
-              fontWeight: 600,
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              backgroundColor: tab === 'tutupkas' ? 'var(--accent)' : 'transparent',
-              color: tab === 'tutupkas' ? 'var(--accent-text)' : 'var(--text)',
-              cursor: 'pointer',
-            }}
+            className={`laporan-tab-btn ${tab === 'tutupkas' ? 'active' : ''}`}
           >
             Tutup Kas
           </button>
@@ -266,106 +201,69 @@ export function LaporanScreen() {
 
         {/* Filter */}
         {(tab === 'kelas' || tab === 'siswa') && (
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <select
-            value={selectedTaId}
-            onChange={(e) => setSelectedTaId(e.target.value === '' ? '' : Number(e.target.value))}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-              fontSize: '13px',
-            }}
-          >
-            <option value="">Semua Tahun Ajaran</option>
-            {tahunAjaranList.map((ta) => (
-              <option key={ta.id} value={ta.id}>
-                T.A. {ta.nama} {ta.aktif ? '(Aktif)' : ''}
-              </option>
-            ))}
-          </select>
-
-          {tab === 'siswa' && (
+          <div className="laporan-filter-bar">
             <select
-              value={selectedKelasId}
-              onChange={(e) => setSelectedKelasId(e.target.value === '' ? '' : Number(e.target.value))}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--surface)',
-                fontSize: '13px',
-              }}
+              value={selectedTaId}
+              onChange={(e) => setSelectedTaId(e.target.value === '' ? '' : Number(e.target.value))}
+              className="laporan-select"
             >
-              <option value="">Semua Kelas</option>
-              {kelasList.map((k) => (
-                <option key={k.id} value={k.id}>
-                  Kelas {k.nama}
+              <option value="">Semua Tahun Ajaran</option>
+              {tahunAjaranList.map((ta) => (
+                <option key={ta.id} value={ta.id}>
+                  T.A. {ta.nama} {ta.aktif ? '(Aktif)' : ''}
                 </option>
               ))}
             </select>
-          )}
 
-          <button
-            onClick={fetchData}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-              fontSize: '13px',
-              cursor: 'pointer',
-            }}
-          >
-            Segarkan
-          </button>
+            {tab === 'siswa' && (
+              <select
+                value={selectedKelasId}
+                onChange={(e) => setSelectedKelasId(e.target.value === '' ? '' : Number(e.target.value))}
+                className="laporan-select"
+              >
+                <option value="">Semua Kelas</option>
+                {kelasList.map((k) => (
+                  <option key={k.id} value={k.id}>
+                    Kelas {k.nama}
+                  </option>
+                ))}
+              </select>
+            )}
 
-          <button
-            onClick={handlePratinjauLaporan}
-            disabled={cetakLoading || loading}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
-          >
-            {cetakLoading ? 'Menyiapkan...' : 'Cetak / PDF'}
-          </button>
-
-          {tab === 'siswa' && (
-            <button
-              onClick={eksporRekapSiswa}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--surface)',
-                fontSize: '13px',
-                cursor: 'pointer',
-              }}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={fetchData}
             >
-              Ekspor Excel
-            </button>
-          )}
-        </div>
+              Segarkan
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handlePratinjauLaporan}
+              disabled={cetakLoading || loading}
+            >
+              {cetakLoading ? 'Menyiapkan...' : 'Cetak / PDF'}
+            </Button>
+
+            {tab === 'siswa' && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={eksporRekapSiswa}
+              >
+                Ekspor Excel
+              </Button>
+            )}
+          </div>
         )}
       </div>
 
       {pesanEkspor && (
         <div
           role={pesanEkspor.jenis === 'err' ? 'alert' : 'status'}
-          style={{
-            padding: '10px 14px',
-            border: `1px solid ${pesanEkspor.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)'}`,
-            color: pesanEkspor.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '13px',
-          }}
+          className={`laporan-notif-ekspor ${pesanEkspor.jenis}`}
         >
           {pesanEkspor.teks}
         </div>
@@ -378,114 +276,107 @@ export function LaporanScreen() {
 
       {/* Tabel Laporan */}
       {(tab === 'kelas' || tab === 'siswa') && (
-      <div
-        style={{
-          backgroundColor: 'var(--bg)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-sm)',
-          overflow: 'hidden',
-        }}
-      >
-        <table className="tabel">
-          <thead>
-            <tr>
-              {tab === 'kelas' ? (
-                <>
-                  <th>Kelas</th>
-                  <th className="tengah">Jumlah Siswa</th>
-                  <th className="angka">Total Setoran</th>
-                  <th className="angka">Total Penarikan</th>
-                  <th className="angka">Total Saldo</th>
-                </>
-              ) : (
-                <>
-                  <th>No. Rekening</th>
-                  <th>NIS</th>
-                  <th>Nama Siswa</th>
-                  <th>Kelas</th>
-                  <th className="angka">Setoran</th>
-                  <th className="angka">Penarikan</th>
-                  <th className="angka">Saldo Akhir</th>
-                </>
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
+        <Card className="laporan-tabel-kartu">
+          <table className="tabel">
+            <thead>
               <tr>
-                <td colSpan={7} className="kosong">
-                  Memuat data laporan...
-                </td>
+                {tab === 'kelas' ? (
+                  <>
+                    <th>Kelas</th>
+                    <th className="tengah">Jumlah Siswa</th>
+                    <th className="angka">Total Setoran</th>
+                    <th className="angka">Total Penarikan</th>
+                    <th className="angka">Total Saldo</th>
+                  </>
+                ) : (
+                  <>
+                    <th>No. Rekening</th>
+                    <th>NIS</th>
+                    <th>Nama Siswa</th>
+                    <th>Kelas</th>
+                    <th className="angka">Setoran</th>
+                    <th className="angka">Penarikan</th>
+                    <th className="angka">Saldo Akhir</th>
+                  </>
+                )}
               </tr>
-            ) : tab === 'kelas' ? (
-              rekapKelas.length === 0 ? (
+            </thead>
+            <tbody>
+              {loading ? (
                 <tr>
-                  <td colSpan={5} className="kosong">
-                    Belum ada data kelas pada tahun ajaran ini.
+                  <td colSpan={7} className="kosong">
+                    Memuat data laporan...
+                  </td>
+                </tr>
+              ) : tab === 'kelas' ? (
+                rekapKelas.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="kosong">
+                      Belum ada data kelas pada tahun ajaran ini.
+                    </td>
+                  </tr>
+                ) : (
+                  rekapKelas.map((k) => (
+                    <tr key={k.kelas_id}>
+                      <td className="lap-semibold">Kelas {k.kelas_nama}</td>
+                      <td className="tengah">{k.jumlah_siswa} siswa</td>
+                      <td className="angka lap-ok">
+                        {formatRupiah(k.total_setoran)}
+                      </td>
+                      <td className="angka lap-danger">
+                        {formatRupiah(k.total_penarikan)}
+                      </td>
+                      <td className="angka lap-bold">
+                        {formatRupiah(k.total_saldo)}
+                      </td>
+                    </tr>
+                  ))
+                )
+              ) : rekapSiswa.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="kosong">
+                    Belum ada data siswa.
                   </td>
                 </tr>
               ) : (
-                rekapKelas.map((k) => (
-                  <tr key={k.kelas_id}>
-                    <td style={{ fontWeight: 600 }}>Kelas {k.kelas_nama}</td>
-                    <td className="tengah">{k.jumlah_siswa} siswa</td>
-                    <td className="angka" style={{ color: 'var(--ok)' }}>
-                      {formatRupiah(k.total_setoran)}
+                rekapSiswa.map((s) => (
+                  <tr key={s.siswa_id}>
+                    <td className="lap-nomor">{s.nomor}</td>
+                    <td className="lap-muted">{s.nis || '-'}</td>
+                    <td className="lap-medium">{s.nama}</td>
+                    <td>{s.kelas_nama || '-'}</td>
+                    <td className="angka lap-ok">
+                      {formatRupiah(s.total_setoran)}
                     </td>
-                    <td className="angka" style={{ color: 'var(--danger)' }}>
-                      {formatRupiah(k.total_penarikan)}
+                    <td className="angka lap-danger">
+                      {formatRupiah(s.total_penarikan)}
                     </td>
-                    <td className="angka" style={{ fontWeight: 700 }}>
-                      {formatRupiah(k.total_saldo)}
+                    <td className="angka lap-bold">
+                      {formatRupiah(s.saldo_akhir)}
                     </td>
                   </tr>
                 ))
-              )
-            ) : rekapSiswa.length === 0 ? (
+              )}
+            </tbody>
+            {/* Footer Total */}
+            <tfoot>
               <tr>
-                <td colSpan={7} className="kosong">
-                  Belum ada data siswa.
+                <td colSpan={tab === 'kelas' ? 2 : 4}>
+                  TOTAL KESELURUHAN
+                </td>
+                <td className="angka lap-ok">
+                  {formatRupiah(totalSetoran)}
+                </td>
+                <td className="angka lap-danger">
+                  {formatRupiah(totalPenarikan)}
+                </td>
+                <td className="angka lap-total-saldo">
+                  {formatRupiah(totalSaldo)}
                 </td>
               </tr>
-            ) : (
-              rekapSiswa.map((s) => (
-                <tr key={s.siswa_id}>
-                  <td style={{ fontWeight: 600, color: 'var(--accent)' }}>{s.nomor}</td>
-                  <td style={{ color: 'var(--muted)' }}>{s.nis || '-'}</td>
-                  <td style={{ fontWeight: 500 }}>{s.nama}</td>
-                  <td>{s.kelas_nama || '-'}</td>
-                  <td className="angka" style={{ color: 'var(--ok)' }}>
-                    {formatRupiah(s.total_setoran)}
-                  </td>
-                  <td className="angka" style={{ color: 'var(--danger)' }}>
-                    {formatRupiah(s.total_penarikan)}
-                  </td>
-                  <td className="angka" style={{ fontWeight: 700 }}>
-                    {formatRupiah(s.saldo_akhir)}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-          {/* Footer Total */}
-          <tfoot>
-            <tr>
-              <td colSpan={tab === 'kelas' ? 2 : 4}>
-                TOTAL KESELURUHAN
-              </td>
-              <td className="angka" style={{ color: 'var(--ok)' }}>
-                {formatRupiah(totalSetoran)}
-              </td>
-              <td className="angka" style={{ color: 'var(--danger)' }}>
-                {formatRupiah(totalPenarikan)}
-              </td>
-              <td className="angka" style={{ color: 'var(--accent)', fontSize: '14px' }}>
-                {formatRupiah(totalSaldo)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+            </tfoot>
+          </table>
+        </Card>
       )}
 
       {/* Pratinjau Cetak / PDF Modal */}

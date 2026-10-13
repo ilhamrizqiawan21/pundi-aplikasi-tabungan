@@ -1,0 +1,91 @@
+/* Halaman PIN (CAP-16) */
+.kunci-halaman {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+.kunci-kartu {
+  width: 100%;
+  max-width: 380px;
+  padding: var(--space-8) 28px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  align-items: center;
+}
+
+.kunci-logo {
+  border-radius: var(--radius-lg);
+}
+
+.kunci-judul {
+  font-size: var(--text-xl);
+  font-weight: 800;
+}
+
+.kunci-blok {
+  width: 100%;
+}
+
+.kunci-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.kunci-label-tengah label {
+  text-align: center;
+}
+
+.kunci-pin-input.ui-input {
+  text-align: center;
+  font-size: var(--text-2xl);
+  letter-spacing: 10px;
+  padding: var(--space-3);
+}
+
+.kunci-pesan {
+  min-height: 18px;
+  font-size: var(--text-sm);
+  color: var(--danger);
+}
+
+.kunci-pesan-tengah {
+  min-height: 20px;
+  text-align: center;
+}
+
+.kunci-info {
+  font-size: var(--text-sm);
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.kunci-info-tebal {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--space-2);
+}
+
+.kunci-tautan {
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: var(--text-sm);
+}
+
+.kunci-tautan-aksen {
+  color: var(--accent);
+  font-weight: var(--font-semibold);
+}

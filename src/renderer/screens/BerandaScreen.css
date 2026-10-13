@@ -1,0 +1,277 @@
+/* Gaya BerandaScreen (F8-4) */
+
+.beranda-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.ui-card-metrik {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.ui-card-metrik.kartu-metrik-panjang > .kartu-metrik-isi {
+  flex-basis: 100%;
+}
+
+.ui-card-metrik.kartu-metrik-panjang .nilai-uang {
+  font-size: 18px !important;
+}
+
+/* Lingkaran ikon kartu metrik */
+.metrik-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+}
+.metrik-icon-setor {
+  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+.metrik-icon-tarik {
+  background-color: var(--warn-bg);
+  color: var(--warn-text);
+}
+.metrik-icon-siswa {
+  background-color: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent);
+}
+.metrik-icon-saldo {
+  background-color: var(--ok-bg);
+  color: var(--ok);
+}
+
+.metrik-label {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--muted);
+}
+.metrik-nilai {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text);
+  margin-top: 2px;
+  letter-spacing: -0.3px;
+}
+.metrik-sub {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin-top: var(--space-1);
+}
+
+/* Baris Tengah: Grafik & Kelas */
+.beranda-grid-tengah {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+@media (max-width: 1200px) {
+  .beranda-grid-tengah {
+    grid-template-columns: 1fr;
+  }
+}
+
+.grafik-area {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  height: 170px;
+  padding: 0 var(--space-2) var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.grafik-kolom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.grafik-batang-group {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-1);
+  height: 140px;
+}
+
+.grafik-batang {
+  width: 16px;
+  border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+  transition: height var(--dur) var(--ease);
+}
+.grafik-batang-setor {
+  background-color: var(--accent);
+}
+.grafik-batang-tarik {
+  background-color: var(--warn);
+}
+
+.grafik-label {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  font-weight: var(--font-semibold);
+  white-space: nowrap;
+}
+
+/* Saldo per kelas progress bar */
+.kelas-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+  overflow-y: auto;
+}
+
+.kelas-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.kelas-nama {
+  width: 32px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--text);
+}
+
+.kelas-bar-track {
+  flex: 1;
+  height: 8px;
+  background-color: var(--bg);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.kelas-bar-fill {
+  height: 100%;
+  background-color: var(--accent);
+  border-radius: var(--radius-full);
+  transition: width var(--dur) var(--ease);
+}
+
+.kelas-saldo {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--text);
+  min-width: 95px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  text-align: right;
+}
+
+
+/* --- Kartu metrik: isi dapat menyusut --- */
+.kartu-metrik-isi {
+  min-width: 0;
+}
+
+.metrik-nilai.nilai-besar {
+  font-size: var(--text-2xl);
+}
+
+.status-saldo {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  margin-top: var(--space-1);
+}
+
+.status-saldo-ok {
+  color: var(--ok);
+}
+
+.status-saldo-err {
+  color: var(--danger);
+}
+
+.status-saldo-titik {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: currentColor;
+  display: inline-block;
+}
+
+/* --- Legenda grafik --- */
+.grafik-legenda {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.grafik-legenda-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.grafik-legenda-titik {
+  width: 9px;
+  height: 9px;
+  border-radius: var(--radius-full);
+}
+
+.grafik-legenda-setor {
+  background-color: var(--accent);
+}
+
+.grafik-legenda-tarik {
+  background-color: var(--warn);
+}
+
+.kelas-kosong {
+  padding: var(--space-6) 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+/* --- Tabel transaksi terakhir --- */
+.ui-table-container.beranda-tabel {
+  border: none;
+  border-radius: 0;
+}
+
+.tabel tbody td.kosong.beranda-kosong {
+  padding: var(--space-6) var(--space-4);
+}
+
+.tabel tbody td.beranda-waktu {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.tabel tbody td.beranda-tebal,
+.tabel tbody td.beranda-nominal {
+  font-weight: var(--font-bold);
+}
+
+.tabel tbody td.beranda-nominal {
+  color: var(--text);
+}
+
+.tabel tbody td.beranda-nominal-setor {
+  color: var(--ok);
+}
+
+.tabel tbody td.beranda-nominal-tarik {
+  color: var(--danger);
+}

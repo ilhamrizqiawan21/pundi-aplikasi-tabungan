@@ -114,7 +114,7 @@ Nominal dipakai sebagai `number` bilangan bulat aman (< 2^53). Format tampilan `
   backups/auto/, backups/manual/
   logs/
 ```
-Folder data dipisah dari folder program. Uninstall tidak menghapus data kecuali pengguna memilih. Backup otomatis: harian saat aplikasi dibuka dan sebelum migrasi; 7 terakhir disimpan. Restore membuat cadangan `pre-restore` lebih dulu.
+Folder data dipisah dari folder program. Uninstall tidak menghapus data kecuali pengguna memilih. Backup otomatis: harian saat aplikasi dibuka dan sebelum migrasi; 7 terakhir disimpan. Cadangan sebelum migrasi dibuat di `db/index.ts` (satu-satunya jalur) hanya bila basis data sudah punya migrasi terdahulu; **bila cadangan gagal, migrasi dibatalkan** dan aplikasi menampilkan pesan lalu keluar tanpa mengubah data (A-11). Restore membuat cadangan `pre-restore` lebih dulu.
 
 ## 8. Build, rilis, dan lintas platform
 
@@ -157,6 +157,9 @@ Kode aplikasi sama untuk keduanya; yang berbeda hanya build dan penandatanganan.
 | A-07 | Jendela cetak memblokir semua permintaan selain `data:` | HTML cetak dapat berasal dari renderer; tanpa jaringan (NFR-01) |
 | A-08 | Jalur berkas, folder cadangan, dan hash PIN dikelola proses utama | Renderer tidak dipercaya memegang jalur atau rahasia (NFR-07) |
 | A-09 | Setoran hanya untuk siswa aktif; penarikan sisa saldo tetap boleh | Siswa lulus/keluar mungkin masih punya saldo yang harus dapat dicairkan |
+| A-10 | Jendela utama minimum 800 × 560 px (sebelumnya 1024 × 680); tata letak responsif dijelaskan di DESIGN §3a | Laptop 1366 × 768 pada skala 125–150% dan mode split-screen. Diputuskan pemilik 13 Okt 2026; teruji di `responsif.spec.ts` (800 × 600). Tangkapan layar 800/1024/1280/1920 px belum dilampirkan |
+| A-11 | Cadangan sebelum migrasi wajib berhasil; bila gagal, migrasi tidak dijalankan | Migrasi tak boleh mengubah data tanpa jaring pengaman (AGENTS: cadangkan sebelum migrasi) |
+| A-12 | `onboarding_selesai` menjadi kunci pengaturan keempat yang boleh ditulis renderer | Status wizard instalasi baru (F9-2); boolean tanpa data sensitif. Diputuskan pemilik 13 Okt 2026 |
 
 ## 12. Risiko teknis
 

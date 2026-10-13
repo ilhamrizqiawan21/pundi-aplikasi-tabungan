@@ -1,0 +1,43 @@
+/* Kerangka jendela dialog bersama (Modal.tsx). Animasi masuk ada di tokens.css (.modal-latar, .modal-panel). */
+.modal-latar {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  background-color: color-mix(in srgb, black 45%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.modal-panel {
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+  max-width: var(--modal-lebar, 480px);
+  max-height: 85vh;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-xl);
+  overflow: hidden;
+  outline: none;
+}
+
+.modal-kepala {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-judul {
+  font-size: var(--text-md);
+  font-weight: var(--font-semibold);
+}
+
+.modal-isi {
+  padding: var(--space-5);
+  overflow-y: auto;
+}

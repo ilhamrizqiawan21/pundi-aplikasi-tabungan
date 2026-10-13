@@ -1,0 +1,247 @@
+/* Gaya ImporScreen (F8-4) */
+
+.imp-halaman {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Utilitas warna dan teks lokal */
+.imp-ok {
+  color: var(--ok);
+}
+
+.imp-danger {
+  color: var(--danger);
+}
+
+.imp-muted {
+  color: var(--muted);
+}
+
+.imp-tebal {
+  font-weight: var(--font-semibold);
+}
+
+.imp-petunjuk {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.imp-bantuan {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin-top: var(--space-1);
+}
+
+.imp-catatan {
+  padding: 10px 18px;
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+/* Penunjuk langkah */
+.imp-langkah-daftar {
+  display: flex;
+  gap: var(--space-4);
+  list-style: none;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.imp-langkah {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--muted);
+}
+
+.imp-langkah.imp-langkah-aktif {
+  font-weight: var(--font-bold);
+  color: var(--accent);
+}
+
+.imp-langkah.imp-langkah-selesai {
+  color: var(--ok);
+}
+
+.imp-langkah-nomor {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid currentColor;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+}
+
+/* Pesan */
+.imp-berhasil,
+.imp-galat {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+.imp-berhasil {
+  border: 1px solid var(--ok);
+  color: var(--ok);
+  background-color: var(--ok-bg);
+  font-weight: var(--font-semibold);
+}
+
+.imp-galat {
+  border: 1px solid var(--danger);
+  color: var(--danger-text);
+  background-color: var(--danger-bg);
+}
+
+/* 1. Pilih berkas; dua kelas agar menimpa .ui-card */
+.ui-card.imp-pilih {
+  padding: 16px 20px;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.imp-pilih-teks {
+  font-size: var(--text-sm);
+}
+
+.imp-pilih-judul {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--space-1);
+}
+
+.imp-pilih-aksi {
+  display: flex;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.imp-memuat {
+  text-align: center;
+  padding: var(--space-4);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* 2. Petakan kolom */
+.imp-judul-ket {
+  font-weight: var(--font-regular);
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+.imp-peta {
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--space-3);
+}
+
+.imp-label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text);
+  margin-bottom: var(--space-1);
+}
+
+.imp-label.imp-label-atas {
+  margin-top: 10px;
+}
+
+.imp-contoh {
+  overflow-x: auto;
+  border-top: 1px solid var(--border);
+}
+
+.imp-contoh .tabel thead th {
+  padding: 6px 12px;
+  font-weight: var(--font-semibold);
+}
+
+.imp-contoh .tabel tbody td {
+  padding: 6px 12px;
+  color: var(--muted);
+}
+
+/* 3. Pratinjau */
+.imp-centang {
+  font-size: var(--text-xs);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.imp-peringatan-galat {
+  padding: 10px 18px;
+  font-size: var(--text-sm);
+  color: var(--danger-text);
+  background-color: var(--danger-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.imp-peringatan {
+  padding: 10px 18px 10px 34px;
+  font-size: var(--text-xs);
+  color: var(--warn-text);
+  background-color: var(--warn-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.imp-gulir {
+  overflow-x: auto;
+}
+
+/* 4. Cocokkan dan terapkan; dua kelas agar menimpa .ui-card */
+.ui-card.imp-cocok {
+  padding: 16px 20px;
+  gap: var(--space-3);
+}
+
+.imp-cocok-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+}
+
+.imp-kecil-judul {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--muted);
+  margin-bottom: var(--space-1);
+}
+
+.imp-angka-besar {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+}
+
+.imp-status {
+  margin-top: 6px;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.imp-galat-kontrol {
+  font-size: var(--text-xs);
+  color: var(--danger);
+}
+
+.imp-tombolan {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}

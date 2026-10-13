@@ -47,7 +47,7 @@ describe('PengaturanService (CAP-01, CAP-15)', () => {
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.data.tema).toBe('biru');
-      expect(Object.keys(r.data).sort()).toEqual(['backup_otomatis', 'tema', 'ukuran_struk']);
+      expect(Object.keys(r.data).sort()).toEqual(['backup_otomatis', 'onboarding_selesai', 'tema', 'ukuran_struk']);
     }
     const baris = getDb().prepare(`SELECT kunci, nilai_json FROM pengaturan WHERE kunci IN ('pin_hash','folder_backup')`).all();
     expect(baris).toEqual(expect.arrayContaining([{ kunci: 'pin_hash', nilai_json: 'null' }, { kunci: 'folder_backup', nilai_json: '""' }]));

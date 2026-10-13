@@ -1,0 +1,273 @@
+/* Wizard penyiapan awal (CAP-01, CAP-02). Dipasang di Beranda; kelas .onboarding-wizard dipakai uji alur. */
+.onboarding-wizard {
+  background-color: var(--surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  margin-bottom: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.onb-kepala {
+  padding: var(--space-5) var(--space-6) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--card-bg);
+}
+
+.onb-kepala-baris {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.onb-judul {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--text);
+  margin: 0;
+}
+
+.onb-deskripsi {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin: var(--space-1) 0 0;
+}
+
+.onb-stepper {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.onb-langkah {
+  flex: 1;
+  padding: 6px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  background-color: var(--bg);
+  color: var(--muted);
+  text-align: center;
+  transition:
+    background-color var(--dur) ease,
+    color var(--dur) ease;
+}
+
+.onb-langkah.lewat {
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+}
+
+.onb-langkah.aktif {
+  background-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: var(--font-bold);
+}
+
+.onb-isi {
+  padding: var(--space-6);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.onb-galat {
+  margin-bottom: var(--space-4);
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+  border: 1px solid var(--danger);
+  font-size: var(--text-xs);
+}
+
+.onb-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.onb-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.onb-catatan {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin: var(--space-1) 0 0;
+}
+
+.onb-aksi {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.onb-aksi-sebaris {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-4);
+}
+
+.onb-aksi-sebaris.rapat {
+  margin-top: var(--space-2);
+}
+
+.onb-aksi-kelompok {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.onb-aksi-awal {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: var(--space-2);
+}
+
+/* Langkah 3: kelas */
+.onb-kolom {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.onb-subjudul {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  margin: 0 0 6px;
+  color: var(--text);
+}
+
+.onb-catatan-nol {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin: 0;
+}
+
+.onb-form-kelas {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-end;
+}
+
+.onb-field-tingkat {
+  width: 100px;
+}
+
+.onb-field-nama {
+  flex: 1;
+}
+
+.onb-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.onb-preset-label {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  font-weight: var(--font-medium);
+}
+
+.onb-preset-daftar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.onb-daftar-kelas {
+  min-height: 80px;
+  padding: var(--space-3);
+  background-color: var(--card-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.onb-daftar-kelas-judul {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--muted);
+  margin-bottom: var(--space-2);
+}
+
+.onb-daftar-kosong {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Langkah 4: selesai */
+.onb-selesai {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  text-align: center;
+  padding: var(--space-4) var(--space-2);
+}
+
+.onb-centang {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background-color: color-mix(in srgb, var(--ok) 15%, transparent);
+  color: var(--ok);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 14px;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+}
+
+.onb-selesai-judul {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--text);
+  margin: 0 0 6px;
+}
+
+.onb-selesai-teks {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.onb-pilihan {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+  text-align: left;
+}
+
+.onb-kartu-pilihan {
+  padding: 14px;
+  background-color: var(--card-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.onb-kartu-judul {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--text);
+}
+
+.onb-kartu-teks {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  margin-top: var(--space-1);
+}
+
+.onb-kartu-tombol {
+  margin-top: var(--space-3);
+}

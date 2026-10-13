@@ -3,7 +3,8 @@ import type { Kelas, Siswa } from '../../shared/types.js';
 import { hariIniLokal } from '../../shared/tanggal.js';
 import { formatRupiah, parseRupiahKetat } from '../../shared/rupiah.js';
 import { Modal } from './Modal.js';
-import { tombol, tombolUtama, kolom, labelStyle } from '../styles/ui.js';
+import { Button, Field } from './ui/index.js';
+import './panel-bersama.css';
 
 interface SetoranKelasModalProps {
   isOpen: boolean;
@@ -92,62 +93,59 @@ export function SetoranKelasModal({ isOpen, onClose, onSaved }: SetoranKelasModa
 
   return (
     <Modal isOpen={isOpen} onClose={() => (sibuk ? undefined : onClose())} title="Setoran per Kelas" width="760px">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '12px' }}>
-          <div>
-            <label htmlFor="sm-kelas" style={labelStyle}>Kelas</label>
-            <select id="sm-kelas" style={kolom} value={kelasId} onChange={(e) => setKelasId(e.target.value === '' ? '' : Number(e.target.value))}>
+      <div className="pb-kolom">
+        <div className="pb-grid pb-grid-170">
+          <Field label="Kelas" htmlFor="sm-kelas">
+            <select id="sm-kelas" className="ui-input" value={kelasId} onChange={(e) => setKelasId(e.target.value === '' ? '' : Number(e.target.value))}>
               <option value="">-- Pilih --</option>
               {kelasList.map((k) => (
                 <option key={k.id} value={k.id}>{k.nama}</option>
               ))}
             </select>
-          </div>
-          <div>
-            <label htmlFor="sm-tanggal" style={labelStyle}>Tanggal setoran</label>
-            <input id="sm-tanggal" type="date" style={kolom} value={tanggal} max={hariIniLokal()} onChange={(e) => setTanggal(e.target.value)} />
-          </div>
-          <div>
-            <label htmlFor="sm-ket" style={labelStyle}>Keterangan (opsional)</label>
-            <input id="sm-ket" type="text" style={kolom} value={keterangan} maxLength={255} onChange={(e) => setKeterangan(e.target.value)} />
-          </div>
+          </Field>
+          <Field label="Tanggal setoran" htmlFor="sm-tanggal">
+            <input id="sm-tanggal" type="date" className="ui-input" value={tanggal} max={hariIniLokal()} onChange={(e) => setTanggal(e.target.value)} />
+          </Field>
+          <Field label="Keterangan (opsional)" htmlFor="sm-ket">
+            <input id="sm-ket" type="text" className="ui-input" value={keterangan} maxLength={255} onChange={(e) => setKeterangan(e.target.value)} />
+          </Field>
         </div>
 
         {pesan && (
-          <div role="status" style={{ padding: '10px 14px', border: '1px solid var(--ok)', color: 'var(--ok)', borderRadius: 'var(--radius-sm)', fontSize: '13px', fontWeight: 500 }}>
+          <div role="status" className="pb-pesan pb-pesan-ok pb-pesan-ok-tebal">
             {pesan}
           </div>
         )}
         {galat && (
-          <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+          <div role="alert" className="pb-pesan pb-pesan-galat">
             {galat}
           </div>
         )}
 
         {kelasId === '' ? (
-          <p style={{ fontSize: '13px', color: 'var(--muted)', textAlign: 'center', padding: '24px 0' }}>
+          <p className="pb-teks-redup pb-kosong pb-kosong-rapat">
             Pilih kelas, lalu isi nominal setoran tiap siswa. Siswa yang tidak menyetor dikosongkan saja.
           </p>
         ) : siswaList.length === 0 ? (
-          <p style={{ fontSize: '13px', color: 'var(--muted)', textAlign: 'center', padding: '24px 0' }}>
+          <p className="pb-teks-redup pb-kosong pb-kosong-rapat">
             Tidak ada siswa aktif pada kelas ini.
           </p>
         ) : (
-          <div style={{ maxHeight: '44vh', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)' }}>
+          <div className="pb-gulir">
             <table className="tabel">
               <thead>
                 <tr>
                   <th>Siswa</th>
                   <th className="angka">Saldo</th>
-                  <th style={{ width: '190px' }}>Setoran (Rp)</th>
+                  <th className="pb-kolom-angka">Setoran (Rp)</th>
                 </tr>
               </thead>
               <tbody>
                 {siswaList.map((s, idx) => (
                   <tr key={s.id}>
                     <td>
-                      <div style={{ fontWeight: 600 }}>{s.nama}</div>
-                      <div style={{ fontSize: '12px', color: 'var(--muted)' }}>{s.nomor}</div>
+                      <div className="pb-nama">{s.nama}</div>
+                      <div className="pb-nomor">{s.nomor}</div>
                     </td>
                     <td className="angka">{formatRupiah(s.saldo ?? 0)}</td>
                     <td>
@@ -160,7 +158,7 @@ export function SetoranKelasModal({ isOpen, onClose, onSaved }: SetoranKelasModa
                         autoComplete="off"
                         aria-label={`Setoran untuk ${s.nama}`}
                         aria-invalid={hasil.galatBaris[s.id] ? true : undefined}
-                        style={{ ...kolom, padding: '6px 10px', textAlign: 'right', borderColor: hasil.galatBaris[s.id] ? 'var(--danger)' : undefined }}
+                        className={hasil.galatBaris[s.id] ? 'ui-input ui-input-error pb-input-angka' : 'ui-input pb-input-angka'}
                         value={nominal[s.id] ?? ''}
                         onChange={(e) => setNominal({ ...nominal, [s.id]: e.target.value })}
                         onKeyDown={(e) => {
@@ -174,7 +172,7 @@ export function SetoranKelasModal({ isOpen, onClose, onSaved }: SetoranKelasModa
                         }}
                       />
                       {hasil.galatBaris[s.id] && (
-                        <div style={{ fontSize: '12px', color: 'var(--danger)', marginTop: '2px' }}>{hasil.galatBaris[s.id]}</div>
+                        <div className="pb-galat-baris">{hasil.galatBaris[s.id]}</div>
                       )}
                     </td>
                   </tr>
@@ -184,17 +182,17 @@ export function SetoranKelasModal({ isOpen, onClose, onSaved }: SetoranKelasModa
           </div>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ fontSize: '13px' }}>
+        <div className="pb-sebar">
+          <div className="pb-teks-sedang">
             <strong>{hasil.baris.length}</strong> siswa menyetor, total <strong className="tabular-nums">{formatRupiah(hasil.total)}</strong>
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button type="button" style={tombol} disabled={sibuk} onClick={onClose}>
+          <div className="pb-baris">
+            <Button type="button" disabled={sibuk} onClick={onClose}>
               Tutup
-            </button>
-            <button type="button" style={{ ...tombolUtama, opacity: bisaSimpan ? 1 : 0.5 }} disabled={!bisaSimpan} onClick={simpan}>
+            </Button>
+            <Button type="button" variant="primary" disabled={!bisaSimpan} onClick={simpan}>
               {sibuk ? 'Menyimpan...' : `Simpan ${hasil.baris.length} Setoran`}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

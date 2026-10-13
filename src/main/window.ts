@@ -2,6 +2,8 @@ import { app, BrowserWindow, session } from 'electron';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isTrustedUrl, type TrustedConfig } from './security.js';
+import type { FileLogger } from './logger.js';
+import { pasangPenanganRendererCrash } from './logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,7 +25,7 @@ export function trustedConfig(): TrustedConfig {
   };
 }
 
-export function createMainWindow(): BrowserWindow {
+export function createMainWindow(logger?: FileLogger): BrowserWindow {
   // Blokir semua permintaan izin (NFR-01, NFR-07)
   session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => {
     callback(false);
@@ -34,8 +36,8 @@ export function createMainWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1200,
     height: 760,
-    minWidth: 1024,
-    minHeight: 680,
+    minWidth: 800,
+    minHeight: 560,
     show: false,
     icon: iconFile,
     webPreferences: {
@@ -64,6 +66,10 @@ export function createMainWindow(): BrowserWindow {
   win.once('ready-to-show', () => {
     win.show();
   });
+
+  if (logger) {
+    pasangPenanganRendererCrash(win, logger);
+  }
 
   const { devServerUrl } = trustedConfig();
   if (devServerUrl) {

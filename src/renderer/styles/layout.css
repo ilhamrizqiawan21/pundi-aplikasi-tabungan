@@ -1,9 +1,10 @@
 /*
- * Tata letak responsif. Titik henti memakai lebar jendela (viewport); jendela minimum 1024 px.
- *  - < 1100 px : bilah samping menciut menjadi rel ikon (76 px)
+ * Tata letak responsif. Titik henti memakai lebar jendela (viewport); jendela minimum 800 px (F8-5).
+ *  - < 1100 px : bilah samping menciut menjadi rel ikon (76 px), header & padding konten dirapatkan
  *  - < 1360 px : Catat Transaksi dua kolom (ringkasan/riwayat pindah ke bawah form)
  *  - < 1220 px : Data Siswa satu kolom (daftar di atas, buku besar di bawah)
- * Hitungan: konten = lebar jendela - bilah samping (240 / 76) - padding 56.
+ *  - < 860 px  : Catat Transaksi kolom daftar siswa dirapatkan (240 px)
+ * Hitungan: konten = lebar jendela - bilah samping (240 / 76) - padding (56 / 32).
  */
 
 /* ---------- Bilah samping ---------- */
@@ -37,6 +38,55 @@
   .sidebar-backup-card button { padding: 8px 0 !important; display: flex; justify-content: center; }
 }
 
+/* ---------- Header & Main App (F8-5) ---------- */
+.app-header {
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  background-color: var(--bg);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  gap: var(--space-3);
+}
+
+.header-sekolah-text {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.header-badges-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.app-main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 28px;
+  background-color: var(--bg);
+  outline: none;
+}
+
+@media (max-width: 1099px) {
+  .app-header { padding: 0 16px; }
+  .header-sekolah-text { max-width: 220px; font-size: 14px; }
+  .header-badges-container { gap: 8px; }
+  .app-main-content { padding: 16px; }
+}
+
+@media (max-width: 899px) {
+  .header-sekolah-text { max-width: 160px; font-size: 13px; }
+}
+
 /* ---------- Beranda ---------- */
 .grid-metrik { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; }
 .kartu-metrik { flex-wrap: wrap; }
@@ -66,16 +116,25 @@
   .grid-catat > .catat-kiri { grid-row: 1 / span 2; }
   .grid-catat > .catat-kanan { grid-column: 2; }
 }
+@media (max-width: 860px) {
+  .grid-catat {
+    grid-template-columns: 240px minmax(0, 1fr);
+    gap: 14px;
+  }
+}
 
 /* ---------- Data Siswa ---------- */
 .grid-siswa {
   display: grid;
-  grid-template-columns: 400px minmax(500px, 1fr);
-  gap: 22px;
+  grid-template-columns: 380px minmax(0, 1fr);
+  gap: 20px;
   align-items: start;
 }
+.grid-siswa > * {
+  min-width: 0;
+}
 .siswa-daftar { max-height: calc(100vh - 120px); }
-@media (max-width: 1219px) {
+@media (max-width: 1279px) {
   .grid-siswa { grid-template-columns: minmax(0, 1fr); }
   .siswa-daftar { max-height: 420px; }
 }
@@ -88,4 +147,10 @@
   .nav-item { padding-top: 5px; padding-bottom: 5px; }
   .sidebar-backup-card { padding-top: 8px !important; padding-bottom: 8px !important; gap: 6px !important; }
   .sidebar-backup-card > p { display: none; }
+}
+
+@media (max-height: 599px) {
+  .brand-header { padding-top: 6px; padding-bottom: 4px; }
+  .nav-item { padding-top: 3px; padding-bottom: 3px; }
+  .sidebar-backup-card { padding: 4px !important; gap: 4px !important; }
 }

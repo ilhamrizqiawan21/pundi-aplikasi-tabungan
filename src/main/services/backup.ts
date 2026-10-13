@@ -1,7 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Database from 'better-sqlite3';
-import { getDb, getDbPath, closeDb, reopenDb } from '../db/index.js';
+import {
+  getDb,
+  getDbPath,
+  closeDb,
+  reopenDb,
+  pangkasCadanganOtomatis,
+  BATAS_CADANGAN_OTOMATIS,
+} from '../db/index.js';
 import type { Result } from '../../shared/types.js';
 import { ERROR_MESSAGES } from '../../shared/errors.js';
 import { timestampWib } from '../../shared/tanggal.js';
@@ -16,7 +23,6 @@ export interface ItemCadangan {
   tanggal: string;
 }
 
-const BATAS_OTOMATIS = 7;
 const TABEL_WAJIB = [
   'tahun_ajaran',
   'kelas',
@@ -49,8 +55,15 @@ export class BackupService {
     try {
       const timestamp = timestampWib();
       const suffix = keterangan ? `_${keterangan.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
-      const filename = `pundi_${jenis}_${timestamp}${suffix}.sqlite`;
-      const targetPath = path.join(this.baseDir, filename);
+      let filename = `pundi_${jenis}_${timestamp}${suffix}.sqlite`;
+      let targetPath = path.join(this.baseDir, filename);
+
+      let counter = 1;
+      while (fs.existsSync(targetPath)) {
+        filename = `pundi_${jenis}_${timestamp}${suffix}_${counter}.sqlite`;
+        targetPath = path.join(this.baseDir, filename);
+        counter++;
+      }
 
       // Gunakan VACUUM INTO untuk backup SQLite yang konsisten (ERD §4.8)
       // Path di-escape untuk string literal SQL
@@ -126,6 +139,53 @@ export class BackupService {
     if (!res.ok) return res;
     const t = res.data.find((c) => c.jenis !== 'pre-restore');
     return { ok: true, data: t ? { tanggal: t.tanggal, jenis: t.jenis } : null };
+  }
+
+  /**
+   * Memeriksa apakah cadangan otomatis harian perlu dibuat:
+   * 1. Pengaturan `backup_otomatis` aktif di basis data (bawaan true).
+   * 2. Cadangan otomatis terakhir lebih tua dari 24 jam (atau belum pernah dibuat).
+   * Jam dapat disuntikkan lewat argumen `sekarang` (F7-3).
+   */
+  public perluBackupOtomatisHarian(sekarang: Date = new Date()): boolean {
+    try {
+      const db = getDb();
+      const row = db.prepare(`SELECT nilai_json FROM pengaturan WHERE kunci = 'backup_otomatis'`).get() as
+        | { nilai_json: string }
+        | undefined;
+      const aktif = row ? JSON.parse(row.nilai_json) === true : true;
+      if (!aktif) return false;
+
+      const daftarRes = this.daftar();
+      if (!daftarRes.ok) return false;
+
+      const otomatisTerakhir = daftarRes.data.find((c) => c.jenis === 'otomatis');
+      if (!otomatisTerakhir) {
+        // Hanya buat cadangan otomatis pertama jika sudah ada data transaksi (bukan basis data kosong baru)
+        const trxCount = (db.prepare('SELECT COUNT(*) as n FROM transaksi').get() as { n: number })?.n ?? 0;
+        return trxCount > 0;
+      }
+
+      const waktuTerakhir = new Date(otomatisTerakhir.tanggal).getTime();
+      const selisihMs = sekarang.getTime() - waktuTerakhir;
+      const duaPuluhEmpatJamMs = 24 * 60 * 60 * 1000;
+
+      return selisihMs >= duaPuluhEmpatJamMs;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Menjalankan cadangan otomatis harian bila memenuhi syarat (F7-3).
+   */
+  public jalankanBackupOtomatisJikaPerlu(sekarang: Date = new Date()): Result<{ dibuat: boolean; berkas?: string }> {
+    if (!this.perluBackupOtomatisHarian(sekarang)) {
+      return { ok: true, data: { dibuat: false } };
+    }
+    const res = this.buat('harian', 'otomatis');
+    if (!res.ok) return res;
+    return { ok: true, data: { dibuat: true, berkas: res.data.berkas } };
   }
 
   public daftar(): Result<ItemCadangan[]> {
@@ -285,25 +345,6 @@ export class BackupService {
   }
 
   private bersihkanCadanganOtomatis(): void {
-    try {
-      const files = fs
-        .readdirSync(this.baseDir)
-        .filter((f) => f.startsWith('pundi_otomatis_') && f.endsWith('.sqlite'))
-        .map((f) => {
-          const fullPath = path.join(this.baseDir, f);
-          return { name: f, path: fullPath, time: fs.statSync(fullPath).mtimeMs };
-        })
-        .sort((a, b) => b.time - a.time);
-
-      for (const f of files.slice(BATAS_OTOMATIS)) {
-        try {
-          fs.unlinkSync(f.path);
-        } catch {
-          // Abaikan kesalahan penghapusan file lama
-        }
-      }
-    } catch {
-      // Abaikan jika folder belum ada
-    }
+    pangkasCadanganOtomatis(this.baseDir, BATAS_CADANGAN_OTOMATIS);
   }
 }

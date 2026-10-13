@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { IconTutup } from './Icons.js';
+import './modal.css';
 
 interface ModalProps {
   isOpen: boolean;
@@ -72,23 +73,7 @@ export function Modal({ isOpen, onClose, title, children, width = '480px' }: Mod
   if (!isOpen) return null;
 
   return (
-    <div
-      className="modal-latar"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.45)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        backdropFilter: 'blur(2px)',
-      }}
-      onClick={onClose}
-    >
+    <div className="modal-latar" onClick={onClose}>
       <div
         className="modal-panel"
         ref={panelRef}
@@ -96,37 +81,17 @@ export function Modal({ isOpen, onClose, title, children, width = '480px' }: Mod
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        style={{
-          backgroundColor: 'var(--bg)',
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid var(--border)',
-          width: '90%',
-          maxWidth: width,
-          maxHeight: '85vh',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
-          overflow: 'hidden',
-          outline: 'none',
-        }}
+        style={{ '--modal-lebar': width } as CSSProperties}
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          style={{
-            padding: '16px 20px',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <h3 style={{ fontSize: '16px', fontWeight: 600 }}>{title}</h3>
+        <div className="modal-kepala">
+          <h3 className="modal-judul">{title}</h3>
           <button type="button" onClick={onClose} aria-label="Tutup jendela" className="tombol-ikon">
             <IconTutup />
           </button>
         </div>
 
-        <div style={{ padding: '20px', overflowY: 'auto' }}>{children}</div>
+        <div className="modal-isi">{children}</div>
       </div>
     </div>
   );

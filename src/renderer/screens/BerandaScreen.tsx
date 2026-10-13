@@ -3,9 +3,21 @@ import type { RingkasanKasHarian, Transaksi, ItemRekapKelas } from '../../shared
 import { hariIniLokal, formatTanggalIndonesia } from '../../shared/tanggal.js';
 import { formatRupiah } from '../../shared/rupiah.js';
 import { IconWallet } from '../components/Icons.js';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Button,
+  Badge,
+  Skeleton,
+  EmptyState,
+} from '../components/ui/index.js';
+import './BerandaScreen.css';
 
 /** Nominal panjang (miliaran) mendapat kartu yang memberi ruang penuh pada angka agar tidak meluber. */
-const kelasKartu = (n: number) => (formatRupiah(n).length >= 14 ? 'kartu-metrik kartu-metrik-panjang' : 'kartu-metrik');
+const kelasKartu = (n: number) =>
+  formatRupiah(n).length >= 14 ? 'kartu-metrik kartu-metrik-panjang' : 'kartu-metrik';
 
 interface BerandaScreenProps {
   onGoToCatat: () => void;
@@ -52,7 +64,6 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
 
       // Hitung data 7 hari terakhir untuk grafik (dalam ribuan rupiah)
       const baseDate = new Date();
-      // Siapkan 7 tanggal mundur
       const datePromises = [];
       for (let i = 6; i >= 0; i--) {
         const d = new Date(baseDate);
@@ -83,140 +94,51 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
     fetchData();
   }, [fetchData]);
 
-  // Hitung jumlah transaksi setoran & penarikan hari ini
   const countSetoran = transaksiList.filter((t) => t.jenis === 'setoran' && t.tanggal === hariIniLokal()).length;
   const countPenarikan = transaksiList.filter((t) => t.jenis === 'penarikan' && t.tanggal === hariIniLokal()).length;
 
-  // Nilai maksimum untuk skala grafik batang
   const maxChartVal = Math.max(
     ...chartData.map((d) => Math.max(d.setoran, d.penarikan)),
     100
   );
 
-  // Nilai maksimum untuk progress bar kelas
   const maxClassSaldo = Math.max(...rekapKelas.map((k) => k.total_saldo), 1);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '22px' }}>
-      {/* ======================================================== */}
-      {/* EMPAT KARTU RINGKASAN                                    */}
-      {/* ======================================================== */}
+    <div className="beranda-container">
+      {/* 1. Empat Kartu Ringkasan Metrik */}
       <div className="grid-metrik">
-        {/* Card 1: Setoran Hari Ini */}
-        <div
-          className={kelasKartu(kas?.total_setoran || 0)}
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '20px 22px',
-            boxShadow: 'var(--card-shadow)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '16px',
-          }}
-        >
-          <div
-            style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '9999px',
-              backgroundColor: 'color-mix(in srgb, var(--accent) 12%, transparent)',
-              color: 'var(--accent)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '18px',
-              fontWeight: 800,
-              flexShrink: 0,
-            }}
-          >
-            ↓
-          </div>
-          <div className="kartu-metrik-isi" style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
-              Setoran hari ini
-            </div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
+        {/* Setoran Hari Ini */}
+        <Card className={`ui-card-metrik ${kelasKartu(kas?.total_setoran || 0)}`}>
+          <div className="metrik-icon metrik-icon-setor">↓</div>
+          <div className="kartu-metrik-isi">
+            <div className="metrik-label">Setoran hari ini</div>
+            <div className="metrik-nilai tabular-nums nilai-uang">
               {formatRupiah(kas?.total_setoran || 0)}
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
-              {countSetoran || kas?.jumlah_transaksi ? `${countSetoran || kas?.jumlah_transaksi} transaksi` : '0 transaksi'}
+            <div className="metrik-sub">
+              {countSetoran || kas?.jumlah_transaksi
+                ? `${countSetoran || kas?.jumlah_transaksi} transaksi`
+                : '0 transaksi'}
             </div>
           </div>
-        </div>
+        </Card>
 
-        {/* Card 2: Penarikan Hari Ini */}
-        <div
-          className={kelasKartu(kas?.total_penarikan || 0)}
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '20px 22px',
-            boxShadow: 'var(--card-shadow)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '16px',
-          }}
-        >
-          <div
-            style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '9999px',
-              backgroundColor: 'var(--warn-bg)',
-              color: 'var(--warn-text)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '18px',
-              fontWeight: 800,
-              flexShrink: 0,
-            }}
-          >
-            ↑
-          </div>
-          <div className="kartu-metrik-isi" style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
-              Penarikan hari ini
-            </div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
+        {/* Penarikan Hari Ini */}
+        <Card className={`ui-card-metrik ${kelasKartu(kas?.total_penarikan || 0)}`}>
+          <div className="metrik-icon metrik-icon-tarik">↑</div>
+          <div className="kartu-metrik-isi">
+            <div className="metrik-label">Penarikan hari ini</div>
+            <div className="metrik-nilai tabular-nums nilai-uang">
               {formatRupiah(kas?.total_penarikan || 0)}
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
-              {countPenarikan} transaksi
-            </div>
+            <div className="metrik-sub">{countPenarikan} transaksi</div>
           </div>
-        </div>
+        </Card>
 
-        {/* Card 3: Siswa Aktif */}
-        <div
-          className="kartu-metrik"
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '20px 22px',
-            boxShadow: 'var(--card-shadow)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '16px',
-          }}
-        >
-          <div
-            style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '9999px',
-              backgroundColor: '#F3E8FF',
-              color: '#7C3AED',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
+        {/* Siswa Aktif */}
+        <Card className="ui-card-metrik kartu-metrik">
+          <div className="metrik-icon metrik-icon-siswa">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
@@ -224,314 +146,196 @@ export function BerandaScreen({ onGoToCatat }: BerandaScreenProps) {
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
           </div>
-          <div className="kartu-metrik-isi" style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
-              Siswa aktif
-            </div>
-            <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
+          <div className="kartu-metrik-isi">
+            <div className="metrik-label">Siswa aktif</div>
+            <div className="metrik-nilai tabular-nums nilai-uang nilai-besar">
               {siswaCount}
             </div>
-            <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>
-              {kelasCount} kelas
-            </div>
+            <div className="metrik-sub">{kelasCount} kelas</div>
           </div>
-        </div>
+        </Card>
 
-        {/* Card 4: Total Saldo Siswa */}
-        <div
-          className={kelasKartu(kas?.saldo_seluruh_siswa || 0)}
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '20px 22px',
-            boxShadow: 'var(--card-shadow)',
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: '16px',
-          }}
-        >
-          <div
-            style={{
-              width: '42px',
-              height: '42px',
-              borderRadius: '9999px',
-              backgroundColor: 'var(--ok-bg)',
-              color: 'var(--ok)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
+        {/* Total Saldo Siswa */}
+        <Card className={`ui-card-metrik ${kelasKartu(kas?.saldo_seluruh_siswa || 0)}`}>
+          <div className="metrik-icon metrik-icon-saldo">
             <IconWallet width={20} height={20} />
           </div>
-          <div className="kartu-metrik-isi" style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--muted)' }}>
-              Total saldo siswa
-            </div>
-            <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginTop: '2px', letterSpacing: '-0.3px' }} className="tabular-nums nilai-uang">
+          <div className="kartu-metrik-isi">
+            <div className="metrik-label">Total saldo siswa</div>
+            <div className="metrik-nilai tabular-nums nilai-uang">
               {formatRupiah(kas?.saldo_seluruh_siswa || 0)}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', color: isSeimbang ? 'var(--ok)' : 'var(--danger)', marginTop: '4px', fontWeight: 600 }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '9999px', backgroundColor: isSeimbang ? 'var(--ok)' : 'var(--danger)', display: 'inline-block' }} />
+            <div className={`status-saldo ${isSeimbang ? 'status-saldo-ok' : 'status-saldo-err'}`}>
+              <span className="status-saldo-titik" />
               <span>{isSeimbang ? 'Cocok dengan buku besar' : 'Perlu pemeriksaan saldo'}</span>
             </div>
           </div>
-        </div>
+        </Card>
       </div>
 
-      {/* ======================================================== */}
-      {/* BARIS TENGAH: GRAFIK DAN SALDO PER KELAS                  */}
-      {/* ======================================================== */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '18px' }}>
-        {/* Card Kiri: Setoran dan Penarikan (Grafik Batang) */}
-        <div
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '22px',
-            boxShadow: 'var(--card-shadow)',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          {/* Header Grafik */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
+      {/* 2. Baris Tengah: Grafik & Saldo Per Kelas */}
+      <div className="beranda-grid-tengah">
+        {/* Grafik Batang 7 Hari */}
+        <Card>
+          <CardHeader>
             <div>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
-                Setoran dan penarikan
-              </h3>
-              <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px', margin: 0 }}>
-                7 hari kerja terakhir, dalam ribu rupiah
-              </p>
+              <CardTitle>Setoran dan penarikan</CardTitle>
+              <span className="metrik-label">7 hari kerja terakhir, dalam ribu rupiah</span>
             </div>
-
-            {/* Legenda Grafik */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '12px', fontWeight: 600 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '9px', height: '9px', borderRadius: '9999px', backgroundColor: 'var(--accent)' }} />
+            <div className="grafik-legenda">
+              <div className="grafik-legenda-item">
+                <span className="grafik-legenda-titik grafik-legenda-setor" />
                 <span>Setoran</span>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ width: '9px', height: '9px', borderRadius: '9999px', backgroundColor: 'var(--warn)' }} />
+              <div className="grafik-legenda-item">
+                <span className="grafik-legenda-titik grafik-legenda-tarik" />
                 <span>Penarikan</span>
               </div>
             </div>
-          </div>
-
-          {/* Area Batang Grafik */}
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '170px', padding: '0 8px 10px', borderBottom: '1px solid var(--border)' }}>
-            {chartData.map((d, idx) => {
-              const hSetoran = Math.max(Math.round((d.setoran / maxChartVal) * 140), 6);
-              const hPenarikan = Math.max(Math.round((d.penarikan / maxChartVal) * 140), 4);
-
-              return (
-                <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-end', gap: '4px', height: '140px' }}>
-                    {/* Batang Setoran (Biru) */}
-                    <div
-                      title={`Setoran ${d.label}: Rp ${(d.setoran * 1000).toLocaleString('id-ID')}`}
-                      style={{
-                        width: '16px',
-                        height: `${hSetoran}px`,
-                        backgroundColor: 'var(--accent)',
-                        borderRadius: '6px 6px 0 0',
-                        transition: 'height 0.3s ease',
-                      }}
-                    />
-                    {/* Batang Penarikan (Kuning/Amber) */}
-                    <div
-                      title={`Penarikan ${d.label}: Rp ${(d.penarikan * 1000).toLocaleString('id-ID')}`}
-                      style={{
-                        width: '16px',
-                        height: `${hPenarikan}px`,
-                        backgroundColor: 'var(--warn)',
-                        borderRadius: '6px 6px 0 0',
-                        transition: 'height 0.3s ease',
-                      }}
-                    />
-                  </div>
-                  {/* Label Hari */}
-                  <span style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
-                    {d.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Card Kanan: Saldo Per Kelas (Horizontal Progress Bars) */}
-        <div
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '22px',
-            boxShadow: 'var(--card-shadow)',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
-              Saldo per kelas
-            </h3>
-            <span style={{ fontSize: '12px', color: 'var(--muted)' }}>
-              {rekapKelas.length} kelas terdaftar
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, overflowY: 'auto' }}>
-            {rekapKelas.slice(0, 6).map((k) => {
-              const pct = Math.max(Math.round((k.total_saldo / maxClassSaldo) * 100), 5);
-              return (
-                <div key={k.kelas_id} style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                  <span style={{ width: '28px', fontSize: '12px', fontWeight: 700, color: 'var(--text)' }}>
-                    {k.kelas_nama}
-                  </span>
-                  <div style={{ flex: 1, height: '8px', backgroundColor: 'var(--bg)', borderRadius: '9999px', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        width: `${pct}%`,
-                        height: '100%',
-                        backgroundColor: 'var(--accent)',
-                        borderRadius: '9999px',
-                        transition: 'width 0.3s ease',
-                      }}
-                    />
-                  </div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', minWidth: '95px', flexShrink: 0, whiteSpace: 'nowrap', textAlign: 'right' }} className="tabular-nums">
-                    {formatRupiah(k.total_saldo)}
-                  </span>
-                </div>
-              );
-            })}
-
-            {rekapKelas.length === 0 && (
-              <div style={{ padding: '30px 0', textAlign: 'center', color: 'var(--muted)', fontSize: '12px' }}>
-                Belum ada data kelas atau saldo
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* ======================================================== */}
-      {/* BARIS BAWAH: TRANSAKSI TERBARU                            */}
-      {/* ======================================================== */}
-      <div
-        style={{
-          backgroundColor: 'var(--card-bg)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--card-shadow)',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            padding: '16px 22px',
-            borderBottom: '1px solid var(--border)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', margin: 0 }}>
-            Transaksi terbaru
-          </h3>
-          <button
-            onClick={onGoToCatat}
-            style={{
-              fontSize: '12px',
-              fontWeight: 600,
-              color: 'var(--accent)',
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            Lihat semua
-          </button>
-        </div>
-
-        <table className="tabel">
-          <thead>
-            <tr>
-              <th>Waktu / Tanggal</th>
-              <th>Nama Siswa</th>
-              <th>Kelas</th>
-              <th>Jenis</th>
-              <th className="angka">Nominal</th>
-              <th className="angka">Saldo Sesudah</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={6} className="kosong">
-                  Memuat data transaksi...
-                </td>
-              </tr>
-            ) : transaksiList.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="kosong">
-                  Belum ada transaksi tercatat.
-                </td>
-              </tr>
-            ) : (
-              transaksiList.map((t) => {
-                const isSetor = t.jenis === 'setoran' || (t.jenis === 'pembalik' && t.nilai > 0);
-                const isTarik = t.jenis === 'penarikan' || (t.jenis === 'pembalik' && t.nilai < 0);
+          </CardHeader>
+          <CardContent>
+            <div className="grafik-area">
+              {chartData.map((d, idx) => {
+                const hSetoran = Math.max(Math.round((d.setoran / maxChartVal) * 140), 6);
+                const hPenarikan = Math.max(Math.round((d.penarikan / maxChartVal) * 140), 4);
                 return (
-                  <tr key={t.id}>
-                    <td style={{ color: 'var(--muted)', fontSize: '12px' }}>
-                      {formatTanggalIndonesia(t.tanggal, { day: 'numeric', month: 'short' })}
-                    </td>
-                    <td style={{ fontWeight: 600 }}>
-                      {t.siswa_nama || '-'}
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '12px', fontWeight: 600, backgroundColor: 'var(--bg)', padding: '2px 8px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                        {t.kelas_nama || '-'}
-                      </span>
-                    </td>
-                    <td>
-                      <span
-                        style={{
-                          fontSize: '12px',
-                          fontWeight: 700,
-                          padding: '3px 8px',
-                          borderRadius: 'var(--radius-sm)',
-                          backgroundColor: isSetor ? 'var(--ok-bg)' : isTarik ? 'var(--danger-bg)' : 'var(--bg)',
-                          color: isSetor ? 'var(--ok-text)' : isTarik ? 'var(--danger-text)' : 'var(--muted)',
-                        }}
-                      >
-                        {t.jenis === 'setoran' ? 'Setoran' : t.jenis === 'penarikan' ? 'Penarikan' : 'Koreksi'}
-                      </span>
-                    </td>
-                    <td
-                      className="angka"
-                      style={{
-                        fontWeight: 700,
-                        color: isSetor ? 'var(--ok)' : isTarik ? 'var(--danger)' : 'var(--text)',
-                      }}
-                    >
-                      {isSetor ? `+ ${formatRupiah(Math.abs(t.nilai))}` : `− ${formatRupiah(Math.abs(t.nilai))}`}
-                    </td>
-                    <td className="angka" style={{ fontWeight: 700 }}>
-                      {formatRupiah(t.saldo_setelah)}
-                    </td>
-                  </tr>
+                  <div key={idx} className="grafik-kolom">
+                    <div className="grafik-batang-group">
+                      <div
+                        title={`Setoran ${d.label}: Rp ${(d.setoran * 1000).toLocaleString('id-ID')}`}
+                        className="grafik-batang grafik-batang-setor"
+                        style={{ height: `${hSetoran}px` }}
+                      />
+                      <div
+                        title={`Penarikan ${d.label}: Rp ${(d.penarikan * 1000).toLocaleString('id-ID')}`}
+                        className="grafik-batang grafik-batang-tarik"
+                        style={{ height: `${hPenarikan}px` }}
+                      />
+                    </div>
+                    <span className="grafik-label">{d.label}</span>
+                  </div>
                 );
-              })
-            )}
-          </tbody>
-        </table>
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Saldo per Kelas */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Saldo per kelas</CardTitle>
+            <span className="metrik-label">{rekapKelas.length} kelas terdaftar</span>
+          </CardHeader>
+          <CardContent>
+            <div className="kelas-list">
+              {rekapKelas.slice(0, 6).map((k) => {
+                const pct = Math.max(Math.round((k.total_saldo / maxClassSaldo) * 100), 5);
+                return (
+                  <div key={k.kelas_id} className="kelas-row">
+                    <span className="kelas-nama">{k.kelas_nama}</span>
+                    <div className="kelas-bar-track">
+                      <div className="kelas-bar-fill" style={{ width: `${pct}%` }} />
+                    </div>
+                    <span className="kelas-saldo tabular-nums">
+                      {formatRupiah(k.total_saldo)}
+                    </span>
+                  </div>
+                );
+              })}
+              {rekapKelas.length === 0 && (
+                <div className="kelas-kosong">
+                  Belum ada data kelas atau saldo
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* 3. Baris Bawah: Transaksi Terbaru */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Transaksi terbaru</CardTitle>
+          <Button variant="ghost" size="sm" onClick={onGoToCatat}>
+            Lihat semua
+          </Button>
+        </CardHeader>
+        <div className="ui-table-container beranda-tabel">
+          <table className="tabel tabel-kartu">
+            <thead>
+              <tr>
+                <th>Waktu / Tanggal</th>
+                <th>Nama Siswa</th>
+                <th>Kelas</th>
+                <th>Jenis</th>
+                <th className="angka">Nominal</th>
+                <th className="angka">Saldo Sesudah</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <>
+                  {[1, 2, 3, 4].map((idx) => (
+                    <tr key={idx}>
+                      <td data-label="Waktu / Tanggal"><Skeleton width="100px" height="16px" /></td>
+                      <td data-label="Nama Siswa"><Skeleton width="150px" height="16px" /></td>
+                      <td data-label="Kelas"><Skeleton width="60px" height="18px" /></td>
+                      <td data-label="Jenis"><Skeleton width="70px" height="18px" /></td>
+                      <td data-label="Nominal" className="angka"><Skeleton width="90px" height="16px" /></td>
+                      <td data-label="Saldo Sesudah" className="angka"><Skeleton width="90px" height="16px" /></td>
+                    </tr>
+                  ))}
+                </>
+              ) : transaksiList.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="kosong beranda-kosong">
+                    <EmptyState
+                      title="Belum ada transaksi tercatat."
+                      description="Mulai catat setoran atau penarikan siswa hari ini."
+                      action={
+                        <Button variant="primary" size="sm" onClick={onGoToCatat}>
+                          + Catat Transaksi Baru
+                        </Button>
+                      }
+                    />
+                  </td>
+                </tr>
+              ) : (
+                transaksiList.map((t) => {
+                  const isSetor = t.jenis === 'setoran' || (t.jenis === 'pembalik' && t.nilai > 0);
+                  const isTarik = t.jenis === 'penarikan' || (t.jenis === 'pembalik' && t.nilai < 0);
+                  const jenisLabel = t.jenis === 'setoran' ? 'Setoran' : t.jenis === 'penarikan' ? 'Penarikan' : 'Koreksi';
+                  const badgeVariant = isSetor ? 'ok' : isTarik ? 'danger' : 'neutral';
+
+                  return (
+                    <tr key={t.id}>
+                      <td data-label="Waktu / Tanggal" className="beranda-waktu">
+                        {formatTanggalIndonesia(t.tanggal, { day: 'numeric', month: 'short' })}
+                      </td>
+                      <td data-label="Nama Siswa" className="beranda-tebal">{t.siswa_nama || '-'}</td>
+                      <td data-label="Kelas">
+                        <Badge variant="neutral">{t.kelas_nama || '-'}</Badge>
+                      </td>
+                      <td data-label="Jenis">
+                        <Badge variant={badgeVariant}>{jenisLabel}</Badge>
+                      </td>
+                      <td
+                        data-label="Nominal"
+                        className={`angka beranda-nominal ${isSetor ? 'beranda-nominal-setor' : isTarik ? 'beranda-nominal-tarik' : ''}`}
+                      >
+                        {isSetor ? `+ ${formatRupiah(Math.abs(t.nilai))}` : `− ${formatRupiah(Math.abs(t.nilai))}`}
+                      </td>
+                      <td data-label="Saldo Sesudah" className="angka beranda-tebal">
+                        {formatRupiah(t.saldo_setelah)}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      </Card>
     </div>
   );
 }

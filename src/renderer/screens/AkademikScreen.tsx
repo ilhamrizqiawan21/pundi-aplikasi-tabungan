@@ -1,8 +1,17 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
 import type { TahunAjaran, Kelas } from '../../shared/types.js';
 import { Modal } from '../components/Modal.js';
-import { tombol, tombolUtama, kolom, labelStyle, kartu, kartuKepala } from '../styles/ui.js';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  Button,
+  Badge,
+  Input,
+  Select,
+} from '../components/ui/index.js';
 import { formatTanggalIndonesia, hariIniLokal } from '../../shared/tanggal.js';
+import './AkademikScreen.css';
 
 interface AkademikScreenProps {
   /** Dipanggil setelah data berubah agar bilah atas ikut diperbarui. */
@@ -100,169 +109,161 @@ export function AkademikScreen({ onChanged }: AkademikScreenProps) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-      <p style={{ fontSize: '13px', color: 'var(--muted)' }}>
+    <div className="akd-halaman">
+      <p className="akd-intro">
         Hanya satu tahun ajaran yang aktif. Siswa dan transaksi baru dicatat pada tahun ajaran aktif. Mengganti tahun
         ajaran tidak mengubah data tahun-tahun sebelumnya.
       </p>
 
       {pesan && (
-        <div
-          role="status"
-          style={{
-            padding: '10px 14px',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '13px',
-            fontWeight: 500,
-            border: `1px solid ${pesan.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)'}`,
-            color: pesan.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)',
-          }}
-        >
+        <div role="status" className={pesan.jenis === 'ok' ? 'akd-pesan' : 'akd-pesan akd-pesan-err'}>
           {pesan.teks}
         </div>
       )}
 
       {/* Tahun Ajaran */}
-      <section style={kartu} aria-labelledby="judul-tahun">
-        <div style={kartuKepala}>
-          <h3 id="judul-tahun" style={{ fontSize: '14px', fontWeight: 600 }}>
+      <Card aria-labelledby="judul-tahun">
+        <CardHeader>
+          <CardTitle id="judul-tahun">
             Tahun Ajaran
-          </h3>
-          <button type="button" style={tombolUtama} onClick={() => setFormTahun({ edit: null })}>
+          </CardTitle>
+          <Button variant="primary" size="sm" onClick={() => setFormTahun({ edit: null })}>
             + Tambah Tahun Ajaran
-          </button>
-        </div>
+          </Button>
+        </CardHeader>
         {tahunList.length === 0 ? (
-          <div style={{ padding: '28px', textAlign: 'center', color: 'var(--muted)', fontSize: '13px' }}>
+          <div className="akd-kosong">
             Belum ada tahun ajaran. Buat tahun ajaran pertama untuk mulai mengelompokkan siswa ke dalam kelas.
           </div>
         ) : (
-          <table className="tabel">
-            <thead>
-              <tr>
-                <th>Tahun Ajaran</th>
-                <th>Periode</th>
-                <th>Status</th>
-                <th className="angka">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tahunList.map((t) => (
-                <tr
-                  key={t.id}
-                  className={t.id === terpilihId ? 'baris-dipilih' : undefined}
-                >
-                  <td style={{ fontWeight: 600 }}>
-                    <button
-                      type="button"
-                      onClick={() => setTerpilihId(t.id)}
-                      aria-pressed={t.id === terpilihId}
-                      style={{ background: 'none', border: 'none', padding: 0, fontWeight: 600, cursor: 'pointer', color: 'var(--text)', fontSize: '13px' }}
-                    >
-                      {t.nama}
-                    </button>
-                  </td>
-                  <td style={{ color: 'var(--muted)' }}>
-                    {formatTanggalIndonesia(t.mulai)} – {formatTanggalIndonesia(t.selesai)}
-                  </td>
-                  <td>
-                    {t.aktif === 1 ? (
-                      <span style={{ color: 'var(--ok)', fontWeight: 600, border: '1px solid var(--ok)', borderRadius: 'var(--radius-sm)', padding: '2px 8px', fontSize: '12px' }}>
-                        Aktif
-                      </span>
-                    ) : (
-                      <span style={{ color: 'var(--muted)' }}>Tidak aktif</span>
-                    )}
-                  </td>
-                  <td className="angka">
-                    <span style={{ display: 'inline-flex', gap: '6px' }}>
-                      {t.aktif !== 1 && (
-                        <button type="button" style={tombol} onClick={() => setAktivasi(t)}>
-                          Jadikan Aktif
-                        </button>
-                      )}
-                      <button type="button" style={tombol} onClick={() => setFormTahun({ edit: t })}>
-                        Ubah
-                      </button>
-                      {t.aktif !== 1 && (
-                        <button type="button" style={{ ...tombol, color: 'var(--danger)' }} onClick={() => hapusTahun(t)}>
-                          Hapus
-                        </button>
-                      )}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </section>
-
-      {/* Kelas */}
-      {terpilih && (
-        <section style={kartu} aria-labelledby="judul-kelas">
-          <div style={kartuKepala}>
-            <h3 id="judul-kelas" style={{ fontSize: '14px', fontWeight: 600 }}>
-              Kelas Tahun Ajaran {terpilih.nama}
-            </h3>
-            <span style={{ display: 'flex', gap: '8px' }}>
-              {tahunList.length > 1 && (
-                <button type="button" style={{ ...tombol, padding: '8px 14px', fontSize: '13px' }} onClick={() => setSalinOpen(true)}>
-                  Salin Kelas dari Tahun Lain
-                </button>
-              )}
-              <button type="button" style={tombolUtama} onClick={() => setFormKelas({ edit: null })}>
-                + Tambah Kelas
-              </button>
-            </span>
-          </div>
-          <table className="tabel">
-            <thead>
-              <tr>
-                <th>Kelas</th>
-                <th>Tingkat</th>
-                <th>Urutan</th>
-                <th className="angka">Jumlah Siswa</th>
-                <th className="angka">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {kelasList.length === 0 ? (
+          <div className="ui-table-container akd-tabel">
+            <table className="tabel tabel-kartu">
+              <thead>
                 <tr>
-                  <td colSpan={5} className="kosong">
-                    Belum ada kelas pada tahun ajaran ini. Tambah kelas, atau salin dari tahun ajaran lain.
-                  </td>
+                  <th>Tahun Ajaran</th>
+                  <th>Periode</th>
+                  <th>Status</th>
+                  <th className="angka">Aksi</th>
                 </tr>
-              ) : (
-                kelasList.map((k) => (
-                  <tr key={k.id}>
-                    <td style={{ fontWeight: 600 }}>{k.nama}</td>
-                    <td>{k.tingkat}</td>
-                    <td>{k.urutan}</td>
-                    <td className="angka">
-                      {k.jumlah_siswa ?? 0}
+              </thead>
+              <tbody>
+                {tahunList.map((t) => (
+                  <tr
+                    key={t.id}
+                    className={t.id === terpilihId ? 'baris-dipilih' : undefined}
+                  >
+                    <td data-label="Tahun Ajaran" className="akd-tebal">
+                      <button
+                        type="button"
+                        onClick={() => setTerpilihId(t.id)}
+                        aria-pressed={t.id === terpilihId}
+                        className="akd-pilih-tahun"
+                      >
+                        {t.nama}
+                      </button>
                     </td>
-                    <td className="angka">
-                      <span style={{ display: 'inline-flex', gap: '6px' }}>
-                        <button type="button" style={tombol} onClick={() => setFormKelas({ edit: k })} aria-label={`Ubah kelas ${k.nama}`}>
+                    <td data-label="Periode" className="akd-muted">
+                      {formatTanggalIndonesia(t.mulai)} – {formatTanggalIndonesia(t.selesai)}
+                    </td>
+                    <td data-label="Status">
+                      {t.aktif === 1 ? (
+                        <Badge variant="ok">Aktif</Badge>
+                      ) : (
+                        <span className="akd-tak-aktif">Tidak aktif</span>
+                      )}
+                    </td>
+                    <td data-label="Aksi" className="angka">
+                      <span className="akd-aksi akd-aksi-lipat">
+                        {t.aktif !== 1 && (
+                          <Button variant="secondary" size="sm" onClick={() => setAktivasi(t)}>
+                            Jadikan Aktif
+                          </Button>
+                        )}
+                        <Button variant="secondary" size="sm" onClick={() => setFormTahun({ edit: t })}>
                           Ubah
-                        </button>
-                        <button
-                          type="button"
-                          style={{ ...tombol, color: 'var(--danger)' }}
-                          onClick={() => hapusKelas(k)}
-                          aria-label={`Hapus kelas ${k.nama}`}
-                        >
-                          Hapus
-                        </button>
+                        </Button>
+                        {t.aktif !== 1 && (
+                          <Button variant="danger" size="sm" onClick={() => hapusTahun(t)}>
+                            Hapus
+                          </Button>
+                        )}
                       </span>
                     </td>
                   </tr>
-                ))
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
+      {/* Kelas */}
+      {terpilih && (
+        <Card aria-labelledby="judul-kelas">
+          <CardHeader>
+            <CardTitle id="judul-kelas">
+              Kelas Tahun Ajaran {terpilih.nama}
+            </CardTitle>
+            <span className="akd-header-aksi">
+              {tahunList.length > 1 && (
+                <Button variant="secondary" size="sm" onClick={() => setSalinOpen(true)}>
+                  Salin Kelas dari Tahun Lain
+                </Button>
               )}
-            </tbody>
-          </table>
-        </section>
+              <Button variant="primary" size="sm" onClick={() => setFormKelas({ edit: null })}>
+                + Tambah Kelas
+              </Button>
+            </span>
+          </CardHeader>
+          <div className="ui-table-container akd-tabel">
+            <table className="tabel tabel-kartu">
+              <thead>
+                <tr>
+                  <th>Kelas</th>
+                  <th>Tingkat</th>
+                  <th>Urutan</th>
+                  <th className="angka">Jumlah Siswa</th>
+                  <th className="angka">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {kelasList.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="kosong">
+                      Belum ada kelas pada tahun ajaran ini. Tambah kelas, atau salin dari tahun ajaran lain.
+                    </td>
+                  </tr>
+                ) : (
+                  kelasList.map((k) => (
+                    <tr key={k.id}>
+                      <td data-label="Kelas" className="akd-tebal">{k.nama}</td>
+                      <td data-label="Tingkat">{k.tingkat}</td>
+                      <td data-label="Urutan">{k.urutan}</td>
+                      <td data-label="Jumlah Siswa" className="angka">
+                        {k.jumlah_siswa ?? 0}
+                      </td>
+                      <td data-label="Aksi" className="angka">
+                        <span className="akd-aksi">
+                          <Button variant="secondary" size="sm" onClick={() => setFormKelas({ edit: k })} aria-label={`Ubah kelas ${k.nama}`}>
+                            Ubah
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => hapusKelas(k)}
+                            aria-label={`Hapus kelas ${k.nama}`}
+                          >
+                            Hapus
+                          </Button>
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
 
       {formTahun && (
@@ -303,21 +304,21 @@ export function AkademikScreen({ onChanged }: AkademikScreenProps) {
       )}
 
       <Modal isOpen={aktivasi !== null} onClose={() => setAktivasi(null)} title="Jadikan Tahun Ajaran Aktif">
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', fontSize: '13px' }}>
+        <div className="akd-modal-isi">
           <p>
             Tahun ajaran <strong>{aktivasi?.nama}</strong> akan menjadi tahun ajaran aktif.
           </p>
-          <p style={{ color: 'var(--muted)' }}>
+          <p className="akd-muted">
             Data tahun ajaran sebelumnya tidak berubah. Siswa belum memiliki kelas pada tahun ajaran ini sampai
             dipindahkan, misalnya lewat menu Kenaikan Kelas atau dengan mengubah data siswa.
           </p>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-            <button type="button" autoFocus style={{ ...tombol, padding: '8px 16px', fontSize: '13px' }} onClick={() => setAktivasi(null)}>
+          <div className="akd-tombolan">
+            <Button type="button" variant="secondary" size="md" autoFocus onClick={() => setAktivasi(null)}>
               Batal
-            </button>
-            <button type="button" style={tombolUtama} onClick={jadikanAktif}>
+            </Button>
+            <Button type="button" variant="primary" size="md" onClick={jadikanAktif}>
               Jadikan Aktif
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
@@ -328,7 +329,7 @@ export function AkademikScreen({ onChanged }: AkademikScreenProps) {
 function Galat({ teks }: { teks: string | null }) {
   if (!teks) return null;
   return (
-    <div role="alert" style={{ padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+    <div role="alert" className="akd-galat">
       {teks}
     </div>
   );
@@ -336,13 +337,13 @@ function Galat({ teks }: { teks: string | null }) {
 
 function Tombolan({ onClose, simpan, sibuk }: { onClose: () => void; simpan: string; sibuk: boolean }) {
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
-      <button type="button" style={{ ...tombol, padding: '8px 16px', fontSize: '13px' }} onClick={onClose}>
+    <div className="akd-tombolan">
+      <Button type="button" variant="secondary" size="md" onClick={onClose}>
         Batal
-      </button>
-      <button type="submit" disabled={sibuk} style={tombolUtama}>
+      </Button>
+      <Button type="submit" variant="primary" size="md" disabled={sibuk}>
         {sibuk ? 'Menyimpan...' : simpan}
-      </button>
+      </Button>
     </div>
   );
 }
@@ -380,28 +381,53 @@ function FormTahun({
 
   return (
     <Modal isOpen onClose={onClose} title={edit ? 'Ubah Tahun Ajaran' : 'Tambah Tahun Ajaran'}>
-      <form onSubmit={kirim} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={kirim} className="akd-form">
         <Galat teks={galat} />
         <div>
-          <label htmlFor="ta-nama" style={labelStyle}>Nama Tahun Ajaran</label>
-          <input id="ta-nama" style={kolom} value={nama} onChange={(e) => setNama(e.target.value)} required autoFocus placeholder="Contoh: 2026/2027" />
+          <label htmlFor="ta-nama" className="akd-label">
+            Nama Tahun Ajaran
+          </label>
+          <Input
+            id="ta-nama"
+            value={nama}
+            onChange={(e) => setNama(e.target.value)}
+            required
+            autoFocus
+            placeholder="Contoh: 2026/2027"
+          />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className="akd-grid-dua">
           <div>
-            <label htmlFor="ta-mulai" style={labelStyle}>Mulai</label>
-            <input id="ta-mulai" type="date" style={kolom} value={mulai} onChange={(e) => setMulai(e.target.value)} required />
+            <label htmlFor="ta-mulai" className="akd-label">
+              Mulai
+            </label>
+            <Input
+              id="ta-mulai"
+              type="date"
+              value={mulai}
+              onChange={(e) => setMulai(e.target.value)}
+              required
+            />
           </div>
           <div>
-            <label htmlFor="ta-selesai" style={labelStyle}>Selesai</label>
-            <input id="ta-selesai" type="date" style={kolom} value={selesai} onChange={(e) => setSelesai(e.target.value)} required />
+            <label htmlFor="ta-selesai" className="akd-label">
+              Selesai
+            </label>
+            <Input
+              id="ta-selesai"
+              type="date"
+              value={selesai}
+              onChange={(e) => setSelesai(e.target.value)}
+              required
+            />
           </div>
         </div>
-        <label htmlFor="ta-aktif" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px' }}>
+        <label htmlFor="ta-aktif" className="akd-centang">
           <input id="ta-aktif" type="checkbox" checked={aktif} disabled={sedangAktif || pertama} onChange={(e) => setAktif(e.target.checked)} />
           Jadikan tahun ajaran aktif
         </label>
         {sedangAktif && (
-          <p style={{ fontSize: '12px', color: 'var(--muted)' }}>
+          <p className="akd-catatan">
             Tahun ajaran ini sedang aktif. Untuk menggantinya, jadikan tahun ajaran lain sebagai aktif.
           </p>
         )}
@@ -446,20 +472,47 @@ function FormKelas({
 
   return (
     <Modal isOpen onClose={onClose} title={edit ? `Ubah Kelas ${edit.nama}` : `Tambah Kelas — ${tahun.nama}`}>
-      <form onSubmit={kirim} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={kirim} className="akd-form">
         <Galat teks={galat} />
         <div>
-          <label htmlFor="kelas-nama" style={labelStyle}>Nama Kelas</label>
-          <input id="kelas-nama" style={kolom} value={nama} onChange={(e) => setNama(e.target.value)} required autoFocus placeholder="Contoh: 7A" />
+          <label htmlFor="kelas-nama" className="akd-label">
+            Nama Kelas
+          </label>
+          <Input
+            id="kelas-nama"
+            value={nama}
+            onChange={(e) => setNama(e.target.value)}
+            required
+            autoFocus
+            placeholder="Contoh: 7A"
+          />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className="akd-grid-dua">
           <div>
-            <label htmlFor="kelas-tingkat" style={labelStyle}>Tingkat</label>
-            <input id="kelas-tingkat" type="number" min={1} max={20} style={kolom} value={tingkat} onChange={(e) => setTingkat(e.target.value)} required placeholder="Contoh: 7" />
+            <label htmlFor="kelas-tingkat" className="akd-label">
+              Tingkat
+            </label>
+            <Input
+              id="kelas-tingkat"
+              type="number"
+              min={1}
+              max={20}
+              value={tingkat}
+              onChange={(e) => setTingkat(e.target.value)}
+              required
+              placeholder="Contoh: 7"
+            />
           </div>
           <div>
-            <label htmlFor="kelas-urutan" style={labelStyle}>Urutan Tampil</label>
-            <input id="kelas-urutan" type="number" style={kolom} value={urutan} onChange={(e) => setUrutan(e.target.value)} />
+            <label htmlFor="kelas-urutan" className="akd-label">
+              Urutan Tampil
+            </label>
+            <Input
+              id="kelas-urutan"
+              type="number"
+              value={urutan}
+              onChange={(e) => setUrutan(e.target.value)}
+            />
           </div>
         </div>
         <Tombolan onClose={onClose} simpan="Simpan" sibuk={sibuk} />
@@ -501,17 +554,24 @@ function FormSalin({
 
   return (
     <Modal isOpen onClose={onClose} title={`Salin Kelas ke ${tujuan.nama}`}>
-      <form onSubmit={kirim} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={kirim} className="akd-form">
         <Galat teks={galat} />
         <div>
-          <label htmlFor="salin-dari" style={labelStyle}>Salin daftar kelas dari</label>
-          <select id="salin-dari" style={kolom} value={dariId} onChange={(e) => setDariId(e.target.value)} autoFocus>
+          <label htmlFor="salin-dari" className="akd-label">
+            Salin daftar kelas dari
+          </label>
+          <Select
+            id="salin-dari"
+            value={dariId}
+            onChange={(e) => setDariId(e.target.value)}
+            autoFocus
+          >
             {sumber.map((t) => (
               <option key={t.id} value={t.id}>{t.nama}</option>
             ))}
-          </select>
+          </Select>
         </div>
-        <p style={{ fontSize: '12px', color: 'var(--muted)' }}>
+        <p className="akd-catatan">
           Hanya daftar kelas yang disalin, tanpa siswa. Kelas yang namanya sudah ada dilewati.
         </p>
         <Tombolan onClose={onClose} simpan="Salin Kelas" sibuk={sibuk} />

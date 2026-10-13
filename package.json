@@ -19,7 +19,8 @@
     "native:node": "node scripts/native.mjs node",
     "native:electron": "node scripts/native.mjs electron",
     "pretest": "npm run native:node",
-    "test:e2e": "npm run native:electron && npm run build && playwright test"
+    "test:e2e": "npm run native:electron && npm run build && playwright test",
+    "test:perf": "npm run native:node && vitest run --config vitest.perf.config.ts"
   },
   "dependencies": {
     "better-sqlite3": "^11.8.1",

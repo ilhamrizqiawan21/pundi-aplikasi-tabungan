@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { Modal } from './Modal.js';
+import './SiswaFormModal.css';
 import type { Siswa, Kelas, StatusSiswa } from '../../shared/types.js';
 
 interface SiswaFormModalProps {
@@ -81,25 +82,16 @@ export function SiswaFormModal({
       onClose={onClose}
       title={siswaToEdit ? 'Ubah Data Siswa' : 'Tambah Siswa Baru'}
     >
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={handleSubmit} className="sfm-form">
         {errorMsg && (
-          <div
-            style={{
-              padding: '10px 14px',
-              backgroundColor: 'var(--danger-bg)',
-              color: 'var(--danger-text)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '13px',
-              border: '1px solid var(--danger-border)',
-            }}
-          >
+          <div className="sfm-galat">
             {errorMsg}
           </div>
         )}
 
         <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-            Nama Lengkap <span style={{ color: 'var(--danger)' }}>*</span>
+          <label className="sfm-label">
+            Nama Lengkap <span className="sfm-wajib">*</span>
           </label>
           <input
             type="text"
@@ -108,19 +100,13 @@ export function SiswaFormModal({
             value={nama}
             onChange={(e) => setNama(e.target.value)}
             placeholder="Contoh: Ahmad Dahlan"
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-            }}
+            className="sfm-kontrol"
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div className="sfm-grid-dua">
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
+            <label className="sfm-label">
               NIS (Nomor Induk Siswa)
             </label>
             <input
@@ -128,30 +114,18 @@ export function SiswaFormModal({
               value={nis}
               onChange={(e) => setNis(e.target.value)}
               placeholder="Contoh: 2026001"
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--surface)',
-              }}
+              className="sfm-kontrol"
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
+            <label className="sfm-label">
               Kelas
             </label>
             <select
               value={kelasId}
               onChange={(e) => setKelasId(e.target.value === '' ? '' : Number(e.target.value))}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--surface)',
-              }}
+              className="sfm-kontrol"
             >
               <option value="">-- Tanpa Kelas --</option>
               {kelasList.map((k) => (
@@ -161,7 +135,7 @@ export function SiswaFormModal({
               ))}
             </select>
             {kelasList.length === 0 && (
-              <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '6px' }}>
+              <p className="sfm-bantuan">
                 Belum ada kelas pada tahun ajaran aktif. Buat di menu Tahun Ajaran &amp; Kelas.
               </p>
             )}
@@ -169,19 +143,13 @@ export function SiswaFormModal({
         </div>
 
         <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
+          <label className="sfm-label">
             Status Siswa
           </label>
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value as StatusSiswa)}
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-            }}
+            className="sfm-kontrol"
           >
             <option value="aktif">Aktif</option>
             <option value="lulus">Lulus</option>
@@ -190,7 +158,7 @@ export function SiswaFormModal({
         </div>
 
         <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
+          <label className="sfm-label">
             Alamat / Keterangan
           </label>
           <textarea
@@ -198,44 +166,22 @@ export function SiswaFormModal({
             onChange={(e) => setAlamat(e.target.value)}
             rows={2}
             placeholder="Alamat domisili atau catatan tambahan"
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-              resize: 'vertical',
-            }}
+            className="sfm-kontrol sfm-textarea"
           />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '12px' }}>
+        <div className="sfm-aksi">
           <button
             type="button"
             onClick={onClose}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-              cursor: 'pointer',
-              fontWeight: 500,
-            }}
+            className="sfm-btn-batal"
           >
             Batal
           </button>
           <button
             type="submit"
             disabled={loading}
-            style={{
-              padding: '8px 18px',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              backgroundColor: 'var(--accent)',
-              color: 'var(--accent-text)',
-              cursor: 'pointer',
-              fontWeight: 600,
-            }}
+            className="sfm-btn-simpan"
           >
             {loading ? 'Menyimpan...' : 'Simpan'}
           </button>

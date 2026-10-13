@@ -1,144 +1,37 @@
 import { getDb } from '../db/index.js';
-import { hariIniLokal, tanggalKalenderValid } from '../../shared/tanggal.js';
+import { hariIniLokal } from '../../shared/tanggal.js';
 import type { Transaksi, Result } from '../../shared/types.js';
 import { ERROR_MESSAGES } from '../../shared/errors.js';
+import type {
+  SetorInput,
+  SaldoAwalInput,
+  TarikInput,
+  SetorMassalInput,
+  HasilSetorMassal,
+  BiayaAdmInput,
+  BiayaAdmMassalInput,
+  RencanaBiayaAdm,
+  HasilBiayaAdmMassal,
+  BalikInput,
+  RiwayatFilter,
+} from './ledger/types.js';
+import { GagalBarisMassal } from './ledger/types.js';
+import {
+  galatTanggal,
+  generateNomorBukti,
+  getSaldoSiswaDb,
+  getKelasAktifSiswa,
+} from './ledger/helpers.js';
+import { hitungRencanaBiayaAdm } from './ledger/biaya-adm-rencana.js';
 
-export interface SetorInput {
-  siswa_id: number;
-  nominal: number;
-  tanggal?: string;
-  keterangan?: string;
-}
-
-export interface SaldoAwalInput {
-  siswa_id: number;
-  nominal: number;
-  tanggal: string;
-  impor_id?: number | null;
-  keterangan?: string;
-}
-
-export interface TarikInput {
-  siswa_id: number;
-  nominal: number;
-  tanggal?: string;
-  keterangan?: string;
-}
-
-export interface SetorMassalInput {
-  tanggal?: string;
-  keterangan?: string;
-  baris: { siswa_id: number; nominal: number }[];
-}
-
-export interface HasilSetorMassal {
-  jumlah: number;
-  total: number;
-  transaksi_ids: number[];
-}
-
-/** Dilempar di dalam transaksi SQL setoran massal agar semuanya dibatalkan bila satu baris gagal. */
-class GagalBarisMassal extends Error {
-  constructor(public readonly hasil: { kode: string; pesan: string }, public readonly nomorBaris: number) {
-    super('GAGAL_BARIS_MASSAL');
-  }
-}
-
-export interface BiayaAdmInput {
-  siswa_id: number;
-  nominal: number;
-  tanggal?: string;
-  keterangan?: string;
-}
-
-export interface BiayaAdmMassalInput {
-  kelas_id: number;
-  nominal: number;
-  /** Label periode bebas (mis. "Semester 1 2025/2026"); menjadi bagian keterangan dan kunci anti-ganda. */
-  periode: string;
-  tanggal?: string;
-}
-
-export interface RencanaBiayaAdm {
-  keterangan: string;
-  dipotong: { siswa_id: number; nomor: string; nama: string; saldo: number }[];
-  dilewati: { siswa_id: number; nomor: string; nama: string; alasan: string }[];
-}
-
-export interface HasilBiayaAdmMassal {
-  jumlah: number;
-  total: number;
-  dilewati: RencanaBiayaAdm['dilewati'];
-}
-
-export interface BalikInput {
-  transaksi_id: number;
-  alasan: string;
-}
-
-export interface RiwayatFilter {
-  siswa_id?: number;
-  tanggal?: string;
-  dari_tanggal?: string;
-  sampai_tanggal?: string;
-  kelas_id?: number;
-  limit?: number;
-  /** Tanpa batas baris (untuk cetak buku besar yang totalnya harus mencakup seluruh riwayat). Hanya dari main, bukan dari IPC. */
-  semua?: boolean;
-}
-
-/** Tanggal transaksi harus ada di kalender; setoran/penarikan tidak boleh bertanggal masa depan. */
-function galatTanggal(tanggal: string, bolehMasaDepan: boolean): string | null {
-  if (!tanggalKalenderValid(tanggal)) return 'Tanggal tidak valid (format YYYY-MM-DD).';
-  if (!bolehMasaDepan && tanggal > hariIniLokal()) return 'Tanggal transaksi tidak boleh di masa depan.';
-  return null;
-}
+export * from './ledger/types.js';
 
 export class LedgerService {
-  /**
-   * Menghasilkan nomor bukti berurutan atomik dalam transaksi SQL (mis. TRX-2026-000001)
-   */
-  private generateNomorBukti(db: ReturnType<typeof getDb>, tanggal: string): string {
-    const year = tanggal.substring(0, 4);
-    db.prepare(`
-      INSERT INTO sekuens (nama, nilai) VALUES ('nomor_bukti_transaksi', 1)
-      ON CONFLICT(nama) DO UPDATE SET nilai = nilai + 1
-    `).run();
-
-    const row = db.prepare(`SELECT nilai FROM sekuens WHERE nama = 'nomor_bukti_transaksi'`).get() as {
-      nilai: number;
-    };
-    const seq = row.nilai.toString().padStart(6, '0');
-    return `TRX-${year}-${seq}`;
-  }
-
   /**
    * Mengambil saldo terakhir siswa saat ini dari baris transaksi terakhir
    */
   public getSaldoSiswa(siswaId: number): number {
-    const db = getDb();
-    const row = db.prepare(`
-      SELECT saldo_setelah FROM transaksi
-      WHERE siswa_id = ?
-      ORDER BY id DESC LIMIT 1
-    `).get(siswaId) as { saldo_setelah: number } | undefined;
-
-    return row ? row.saldo_setelah : 0;
-  }
-
-  /**
-   * Mengambil kelas aktif siswa saat ini
-   */
-  private getKelasAktifSiswa(db: ReturnType<typeof getDb>, siswaId: number): number | null {
-    const row = db.prepare(`
-      SELECT p.kelas_id
-      FROM penempatan p
-      JOIN tahun_ajaran ta ON ta.id = p.tahun_ajaran_id
-      WHERE p.siswa_id = ? AND ta.aktif = 1
-      LIMIT 1
-    `).get(siswaId) as { kelas_id: number } | undefined;
-
-    return row ? row.kelas_id : null;
+    return getSaldoSiswaDb(getDb(), siswaId);
   }
 
   /**
@@ -175,8 +68,8 @@ export class LedgerService {
         const saldoLama = this.getSaldoSiswa(input.siswa_id);
         const saldoBaru = saldoLama + input.nominal;
         if (!Number.isSafeInteger(saldoBaru)) throw new Error('NOMINAL_TIDAK_VALID');
-        const nomorBukti = this.generateNomorBukti(db, tanggal);
-        const kelasId = this.getKelasAktifSiswa(db, input.siswa_id);
+        const nomorBukti = generateNomorBukti(db, tanggal);
+        const kelasId = getKelasAktifSiswa(db, input.siswa_id);
         const dibuatPada = new Date().toISOString();
 
         const insert = db.prepare(`
@@ -300,8 +193,8 @@ export class LedgerService {
         if (input.nominal > saldoLama) throw new Error('SALDO_TIDAK_CUKUP');
 
         const saldoBaru = saldoLama - input.nominal;
-        const nomorBukti = this.generateNomorBukti(db, tanggal);
-        const kelasId = this.getKelasAktifSiswa(db, input.siswa_id);
+        const nomorBukti = generateNomorBukti(db, tanggal);
+        const kelasId = getKelasAktifSiswa(db, input.siswa_id);
         const dibuatPada = new Date().toISOString();
 
         const insert = db.prepare(`
@@ -351,42 +244,7 @@ export class LedgerService {
    * untuk periode yang sama (dan belum dikoreksi) dilewati agar tidak ganda.
    */
   public rencanaBiayaAdm(input: { kelas_id: number; nominal: number; periode: string }): Result<RencanaBiayaAdm> {
-    const db = getDb();
-    const periode = input.periode.trim();
-    if (!Number.isSafeInteger(input.nominal) || input.nominal <= 0) {
-      return { ok: false, kode: 'NOMINAL_TIDAK_VALID', pesan: ERROR_MESSAGES.NOMINAL_TIDAK_VALID };
-    }
-    if (periode.length < 3 || periode.length > 40) {
-      return { ok: false, kode: 'VALIDASI_GAGAL', pesan: 'Periode harus 3 sampai 40 karakter.' };
-    }
-    const keterangan = `Biaya administrasi ${periode}`;
-    try {
-      const siswaKelas = db.prepare(`
-        SELECT s.id, s.nomor, s.nama, s.status
-        FROM siswa s
-        JOIN penempatan p ON p.siswa_id = s.id AND p.kelas_id = ?
-        ORDER BY s.nama ASC
-      `).all(input.kelas_id) as { id: number; nomor: string; nama: string; status: string }[];
-
-      const sudahDipotong = db.prepare(`
-        SELECT 1 FROM transaksi t
-        WHERE t.siswa_id = ? AND t.jenis = 'biaya_adm' AND t.keterangan = ?
-          AND NOT EXISTS (SELECT 1 FROM transaksi b WHERE b.membalik_id = t.id)
-      `);
-
-      const rencana: RencanaBiayaAdm = { keterangan, dipotong: [], dilewati: [] };
-      for (const s of siswaKelas) {
-        const saldo = this.getSaldoSiswa(s.id);
-        const lewati = (alasan: string) => rencana.dilewati.push({ siswa_id: s.id, nomor: s.nomor, nama: s.nama, alasan });
-        if (s.status !== 'aktif') lewati(s.status === 'lulus' ? 'Sudah lulus' : 'Sudah keluar');
-        else if (sudahDipotong.get(s.id, keterangan)) lewati('Sudah dipotong untuk periode ini');
-        else if (saldo < input.nominal) lewati('Saldo kurang dari biaya');
-        else rencana.dipotong.push({ siswa_id: s.id, nomor: s.nomor, nama: s.nama, saldo });
-      }
-      return { ok: true, data: rencana };
-    } catch {
-      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
-    }
+    return hitungRencanaBiayaAdm(getDb(), input, (id) => this.getSaldoSiswa(id));
   }
 
   /**
@@ -461,8 +319,8 @@ export class LedgerService {
         };
         if (sudahAda.n > 0) throw new Error('SALDO_AWAL_DITOLAK');
 
-        const nomorBukti = this.generateNomorBukti(db, input.tanggal);
-        const kelasId = this.getKelasAktifSiswa(db, input.siswa_id);
+        const nomorBukti = generateNomorBukti(db, input.tanggal);
+        const kelasId = getKelasAktifSiswa(db, input.siswa_id);
         const dibuatPada = new Date().toISOString();
         const keterangan = input.keterangan || 'Saldo awal';
 
@@ -556,8 +414,8 @@ export class LedgerService {
         }
 
         const saldoBaru = saldoLama - input.nominal;
-        const nomorBukti = this.generateNomorBukti(db, tanggal);
-        const kelasId = this.getKelasAktifSiswa(db, input.siswa_id);
+        const nomorBukti = generateNomorBukti(db, tanggal);
+        const kelasId = getKelasAktifSiswa(db, input.siswa_id);
         const dibuatPada = new Date().toISOString();
 
         const insert = db.prepare(`
@@ -655,7 +513,7 @@ export class LedgerService {
         }
 
         const tanggal = hariIniLokal();
-        const nomorBukti = this.generateNomorBukti(db, tanggal);
+        const nomorBukti = generateNomorBukti(db, tanggal);
         const dibuatPada = new Date().toISOString();
 
         const insert = db.prepare(`

@@ -1,0 +1,135 @@
+/* Gaya AkademikScreen (F8-4) */
+
+.akd-halaman {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.akd-intro {
+  font-size: var(--text-sm);
+  color: var(--muted);
+}
+
+.akd-pesan {
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  border: 1px solid var(--ok);
+  color: var(--ok);
+  background-color: var(--ok-bg);
+}
+
+.akd-pesan.akd-pesan-err {
+  border-color: var(--danger);
+  color: var(--danger);
+  background-color: var(--danger-bg);
+}
+
+.akd-kosong {
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* Spesifisitas dua kelas agar menimpa .ui-table-container tanpa !important */
+.ui-table-container.akd-tabel {
+  border: none;
+  border-radius: 0;
+}
+
+.akd-tebal {
+  font-weight: var(--font-semibold);
+}
+
+.akd-muted {
+  color: var(--muted);
+}
+
+.akd-tak-aktif {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.akd-pilih-tahun {
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  color: var(--text);
+  font-size: var(--text-sm);
+}
+
+.akd-aksi {
+  display: inline-flex;
+  gap: var(--space-2);
+}
+
+.akd-aksi.akd-aksi-lipat {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.akd-header-aksi {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.akd-modal-isi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+}
+
+.akd-tombolan {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.akd-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.akd-grid-dua {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.akd-label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text);
+  margin-bottom: var(--space-1);
+}
+
+.akd-centang {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.akd-catatan {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.akd-galat {
+  padding: 10px 14px;
+  border: 1px solid var(--danger);
+  color: var(--danger-text);
+  background-color: var(--danger-bg);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+}

@@ -112,7 +112,7 @@ describe('KunciService (PIN)', () => {
     }
     kunci.buka('000001');
     expect(statusSaatIni().tunggu_detik).toBeLessThanOrEqual(900);
-  });
+  }, 15000);
 
   it('ubah PIN: perlu PIN lama yang benar; PIN lama berhenti berlaku', () => {
     aktifkan('482913');

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { ItemAktivitas } from '../../shared/types.js';
 import { formatWaktuWib } from '../../shared/tanggal.js';
-import { tombol, kartu, kartuKepala } from '../styles/ui.js';
+import { Button } from './ui/index.js';
+import './panel-bersama.css';
 
 const LABEL_AKSI: Record<string, string> = {
   'transaksi.setor': 'Setoran',
@@ -47,27 +48,27 @@ export function RiwayatAktivitasPanel() {
   }, [muat]);
 
   return (
-    <section style={kartu} aria-labelledby="ra-judul">
-      <div style={kartuKepala}>
+    <section className="ui-card" aria-labelledby="ra-judul">
+      <div className="ui-card-header">
         <div>
-          <h3 id="ra-judul" style={{ fontSize: '14px', fontWeight: 600 }}>Riwayat aktivitas</h3>
-          <p style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
+          <h3 id="ra-judul" className="pb-judul">Riwayat aktivitas</h3>
+          <p className="pb-sub">
             Catatan kegiatan penting di aplikasi, terbaru di atas. Nama siswa dan nominal tidak dicatat di sini.
           </p>
         </div>
-        <button type="button" style={tombol} onClick={() => muat()} disabled={memuat}>Segarkan</button>
+        <Button type="button" onClick={() => muat()} disabled={memuat}>Segarkan</Button>
       </div>
       {galat && (
-        <div role="alert" style={{ margin: '12px 18px', padding: '10px 14px', border: '1px solid var(--danger)', color: 'var(--danger)', borderRadius: 'var(--radius-sm)', fontSize: '13px' }}>
+        <div role="alert" className="pb-pesan pb-pesan-galat pb-pesan-margin">
           {galat}
         </div>
       )}
       {daftar.length === 0 && !galat ? (
-        <p style={{ padding: '28px 18px', textAlign: 'center', fontSize: '13px', color: 'var(--muted)' }}>
+        <p className="pb-kosong">
           Belum ada aktivitas yang tercatat.
         </p>
       ) : (
-        <div style={{ maxHeight: '360px', overflowY: 'auto' }}>
+        <div className="pb-gulir-polos">
           <table className="tabel">
             <thead>
               <tr>
@@ -79,9 +80,9 @@ export function RiwayatAktivitasPanel() {
             <tbody>
               {daftar.map((a) => (
                 <tr key={a.id}>
-                  <td style={{ whiteSpace: 'nowrap', color: 'var(--muted)' }}>{waktuTampil(a.waktu)}</td>
-                  <td style={{ fontWeight: 600 }}>{LABEL_AKSI[a.aksi] ?? a.aksi}</td>
-                  <td style={{ color: 'var(--muted)' }}>{a.ringkasan}</td>
+                  <td className="pb-nowrap pb-muted">{waktuTampil(a.waktu)}</td>
+                  <td className="pb-tebal">{LABEL_AKSI[a.aksi] ?? a.aksi}</td>
+                  <td className="pb-muted">{a.ringkasan}</td>
                 </tr>
               ))}
             </tbody>
@@ -89,10 +90,10 @@ export function RiwayatAktivitasPanel() {
         </div>
       )}
       {masihAda && (
-        <div style={{ padding: '12px 18px', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
-          <button type="button" style={tombol} disabled={memuat} onClick={() => muat(daftar[daftar.length - 1]?.id)}>
+        <div className="pb-tengah">
+          <Button type="button" disabled={memuat} onClick={() => muat(daftar[daftar.length - 1]?.id)}>
             Muat lebih lama
-          </button>
+          </Button>
         </div>
       )}
     </section>

@@ -218,4 +218,56 @@ describe('BackupService (CAP-13)', () => {
       expect(saldo(siswaId)).toBe(100000);
     });
   });
+
+  describe('Penjadwal Backup Otomatis & Sebelum Migrasi (F7-3)', () => {
+    it('tidak membuat cadangan harian pada basis data kosong yang belum pernah bertransaksi', () => {
+      expect(backupSvc.perluBackupOtomatisHarian(new Date())).toBe(false);
+    });
+
+    it('membuat cadangan harian bila ada transaksi dan pengaturan aktif', () => {
+      const s = siswaSvc.simpan({ nama: 'Siswa Uji Jadwal', status: 'aktif' });
+      if (s.ok) {
+        ledgerSvc.setor({ siswa_id: s.data.id, nominal: 50000 });
+      }
+
+      const sekarang = new Date();
+      expect(backupSvc.perluBackupOtomatisHarian(sekarang)).toBe(true);
+
+      const hasil = backupSvc.jalankanBackupOtomatisJikaPerlu(sekarang);
+      expect(hasil.ok).toBe(true);
+      if (hasil.ok) {
+        expect(hasil.data.dibuat).toBe(true);
+        expect(hasil.data.berkas).toContain('pundi_otomatis_');
+      }
+
+      // Ambil tanggal cadangan yang baru dibuat
+      const daftar = backupSvc.daftar();
+      expect(daftar.ok).toBe(true);
+      const waktuDibuat = daftar.ok && daftar.data[0] ? new Date(daftar.data[0].tanggal).getTime() : sekarang.getTime();
+
+      // 12 jam kemudian: belum 24 jam, tidak perlu backup lagi
+      const t12 = new Date(waktuDibuat + 12 * 60 * 60 * 1000);
+      expect(backupSvc.perluBackupOtomatisHarian(t12)).toBe(false);
+      const hasil12 = backupSvc.jalankanBackupOtomatisJikaPerlu(t12);
+      expect(hasil12.ok && hasil12.data.dibuat).toBe(false);
+
+      // 25 jam kemudian: sudah melewati 24 jam, perlu backup lagi
+      const t25 = new Date(waktuDibuat + 25 * 60 * 60 * 1000);
+      expect(backupSvc.perluBackupOtomatisHarian(t25)).toBe(true);
+      const hasil25 = backupSvc.jalankanBackupOtomatisJikaPerlu(t25);
+      expect(hasil25.ok && hasil25.data.dibuat).toBe(true);
+    });
+
+    it('tidak membuat cadangan harian jika pengaturan backup_otomatis dinonaktifkan', () => {
+      getDb()
+        .prepare(`UPDATE pengaturan SET nilai_json = 'false' WHERE kunci = 'backup_otomatis'`)
+        .run();
+
+      const t0 = new Date('2026-10-12T08:00:00Z');
+      expect(backupSvc.perluBackupOtomatisHarian(t0)).toBe(false);
+      const hasil = backupSvc.jalankanBackupOtomatisJikaPerlu(t0);
+      expect(hasil.ok && hasil.data.dibuat).toBe(false);
+    });
+  });
 });
+

@@ -155,9 +155,10 @@ Catatan setiap impor (jenis `siswa` atau `saldo_awal`, nama berkas tanpa jalur, 
 | `folder_backup` | jalur; **dikelola proses utama, tidak ditulis atau dibaca renderer** | Dokumen/`Pundi` |
 | `backup_otomatis` | boolean | `true` |
 | `ukuran_struk` | `"58"` \| `"80"` \| `"a6"` | `"80"` (D-10) |
+| `onboarding_selesai` | boolean; ditulis renderer saat wizard instalasi baru selesai atau dilewati (F9-2). Tidak ada baris = belum selesai | `false` |
 | `pin_hash` | hash; **dikelola proses utama, tidak ditulis atau dikirim ke renderer** | kosong |
 
-Renderer hanya boleh menulis `tema`, `backup_otomatis`, dan `ukuran_struk` (daftar putih di layanan dan skema IPC). `profil_sekolah.logo_rel_path` juga tidak diterima dari renderer. Penyimpanan profil menimpa seluruh isian (kolom alamat, kota, bendahara, kepala yang dikosongkan menjadi kosong); logo tidak disentuh.
+Renderer hanya boleh menulis `tema`, `backup_otomatis`, `ukuran_struk`, dan `onboarding_selesai` (daftar putih di layanan dan skema IPC). `profil_sekolah.logo_rel_path` juga tidak diterima dari renderer. Penyimpanan profil menimpa seluruh isian (kolom alamat, kota, bendahara, kepala yang dikosongkan menjadi kosong); logo tidak disentuh.
 
 ### 3.8 `audit_log`
 Aksi penting (`siswa.tambah`, `transaksi.tambah`, `transaksi.balik`, `backup.buat`, `restore`, `impor`). `ringkasan` **tidak memuat nama siswa atau nominal**, hanya kode dan ID (NFR-02).

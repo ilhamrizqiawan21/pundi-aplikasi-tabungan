@@ -322,7 +322,9 @@ const LABEL_BUKU: Record<string, string> = {
 export function generateBukuBesarSiswaHtml(
   profil: ProfilSekolah,
   siswa: Siswa,
-  transaksi: Transaksi[]
+  transaksi: Transaksi[],
+  dari?: string,
+  sampai?: string
 ): string {
   let runningTotalSetoran = 0;
   let runningTotalPenarikan = 0;
@@ -331,6 +333,15 @@ export function generateBukuBesarSiswaHtml(
     if (t.nilai > 0) runningTotalSetoran += t.nilai;
     else if (t.nilai < 0) runningTotalPenarikan += Math.abs(t.nilai);
   }
+
+  const periodeInfo =
+    dari && sampai
+      ? `Periode: ${formatTanggalIndonesia(dari)} s/d ${formatTanggalIndonesia(sampai)}`
+      : dari
+        ? `Sejak: ${formatTanggalIndonesia(dari)}`
+        : sampai
+          ? `Sampai: ${formatTanggalIndonesia(sampai)}`
+          : null;
 
   return `
 <!DOCTYPE html>
@@ -345,7 +356,7 @@ export function generateBukuBesarSiswaHtml(
   <div style="text-align: center; margin-bottom: 12px;">
     <h3 style="margin: 0; font-size: 14px; text-transform: uppercase;">Buku Besar Rekening Tabungan Siswa</h3>
     <div style="font-size: 11px; color: #444; margin-top: 2px;">
-      Dicetak pada: ${formatWaktuWib(new Date())}
+      ${periodeInfo ? `<strong>${esc(periodeInfo)}</strong> &middot; ` : ''}Dicetak pada: ${formatWaktuWib(new Date())}
     </div>
   </div>
 

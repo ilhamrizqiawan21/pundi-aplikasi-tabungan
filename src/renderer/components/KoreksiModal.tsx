@@ -2,6 +2,8 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { Modal } from './Modal.js';
 import type { Transaksi } from '../../shared/types.js';
 import { formatRupiah } from '../../shared/rupiah.js';
+import { Button } from './ui/index.js';
+import './panel-bersama.css';
 
 interface KoreksiModalProps {
   isOpen: boolean;
@@ -57,73 +59,46 @@ export function KoreksiModal({
     }
   };
 
+  const warnaNilai = transaksi.nilai > 0 ? 'pb-ok' : 'pb-danger';
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Koreksi Transaksi (Pembalik)">
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      <form onSubmit={handleSubmit} className="pb-kolom">
         {/* Rincian Transaksi yang akan dikoreksi */}
-        <div
-          style={{
-            padding: '12px 14px',
-            backgroundColor: 'var(--surface)',
-            borderRadius: 'var(--radius-sm)',
-            border: '1px solid var(--border)',
-            fontSize: '13px',
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ color: 'var(--muted)' }}>Nomor Bukti</span>
+        <div className="pb-rincian">
+          <div className="pb-sebelah pb-sebelah-rapat">
+            <span className="pb-muted">Nomor Bukti</span>
             <strong>{transaksi.nomor_bukti}</strong>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-            <span style={{ color: 'var(--muted)' }}>Tanggal & Jenis</span>
+          <div className="pb-sebelah pb-sebelah-rapat">
+            <span className="pb-muted">Tanggal & Jenis</span>
             <span>
               {transaksi.tanggal} •{' '}
-              <span style={{ fontWeight: 600, color: transaksi.nilai > 0 ? 'var(--ok)' : 'var(--danger)' }}>
-                {transaksi.jenis.toUpperCase()}
-              </span>
+              <span className={`pb-tebal ${warnaNilai}`}>{transaksi.jenis.toUpperCase()}</span>
             </span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ color: 'var(--muted)' }}>Nominal</span>
-            <strong style={{ color: transaksi.nilai > 0 ? 'var(--ok)' : 'var(--danger)' }}>
+          <div className="pb-sebelah">
+            <span className="pb-muted">Nominal</span>
+            <strong className={warnaNilai}>
               {transaksi.nilai > 0 ? `+${formatRupiah(transaksi.nilai)}` : formatRupiah(transaksi.nilai)}
             </strong>
           </div>
         </div>
 
-        <div
-          style={{
-            fontSize: '12px',
-            color: 'var(--warn-text)',
-            backgroundColor: 'var(--warn-bg)',
-            border: '1px solid var(--warn)',
-            padding: '8px 12px',
-            borderRadius: 'var(--radius-sm)',
-          }}
-        >
+        <div className="pb-peringatan">
           Transaksi lama tidak akan dihapus. Sistem akan mencatat transaksi pembalik sebesar{' '}
           <strong>{formatRupiah(-transaksi.nilai)}</strong> dengan keterangan alasan yang Anda berikan.
         </div>
 
         {errorMsg && (
-          <div
-            role="alert"
-            style={{
-              padding: '10px 14px',
-              backgroundColor: 'var(--danger-bg)',
-              color: 'var(--danger-text)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '13px',
-              border: '1px solid var(--danger)',
-            }}
-          >
+          <div role="alert" className="pb-pesan pb-pesan-galat pb-pesan-galat-solid">
             {errorMsg}
           </div>
         )}
 
         <div>
-          <label htmlFor="koreksi-alasan" style={{ display: 'block', fontSize: '13px', fontWeight: 600, marginBottom: '6px' }}>
-            Alasan Koreksi <span style={{ color: 'var(--danger)' }}>*</span>
+          <label htmlFor="koreksi-alasan" className="pb-label-biasa">
+            Alasan Koreksi <span className="pb-danger">*</span>
           </label>
           <input
             id="koreksi-alasan"
@@ -134,46 +109,17 @@ export function KoreksiModal({
             value={alasan}
             onChange={(e) => setAlasan(e.target.value)}
             placeholder="Contoh: Salah input nominal oleh bendahara"
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-            }}
+            className="ui-input"
           />
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '8px' }}>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--surface)',
-              cursor: 'pointer',
-              fontWeight: 500,
-            }}
-          >
+        <div className="pb-aksi pb-aksi-atas">
+          <Button type="button" onClick={onClose}>
             Batal
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: '8px 18px',
-              borderRadius: 'var(--radius-sm)',
-              border: 'none',
-              backgroundColor: 'var(--danger)',
-              color: '#fff',
-              cursor: 'pointer',
-              fontWeight: 600,
-            }}
-          >
+          </Button>
+          <Button type="submit" variant="danger" disabled={loading}>
             {loading ? 'Memproses...' : 'Terapkan Koreksi'}
-          </button>
+          </Button>
         </div>
       </form>
     </Modal>

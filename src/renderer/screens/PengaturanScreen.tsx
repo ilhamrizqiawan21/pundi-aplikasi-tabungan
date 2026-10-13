@@ -1,7 +1,17 @@
-import { KeamananPanel } from '../components/KeamananPanel.js';
-import { RiwayatAktivitasPanel } from '../components/RiwayatAktivitasPanel.js';
 import { useState, useEffect, type FormEvent } from 'react';
 import type { TemaAplikasi, UkuranStruk, HasilPeriksaIntegritas } from '../../shared/types.js';
+import './PengaturanScreen.css';
+import { KeamananPanel } from '../components/KeamananPanel.js';
+import { RiwayatAktivitasPanel } from '../components/RiwayatAktivitasPanel.js';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+  Button,
+} from '../components/ui/index.js';
 
 interface PengaturanScreenProps {
   onThemeChange: (tema: TemaAplikasi) => void;
@@ -9,7 +19,7 @@ interface PengaturanScreenProps {
 
 export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
   // Profil
-  const [nama, setNama] = useState('');
+  const [nama, setNama] = useState('Madrasah / Sekolah');
   const [alamat, setAlamat] = useState('');
   const [kota, setKota] = useState('');
   const [bendahara, setBendahara] = useState('');
@@ -90,286 +100,195 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', maxWidth: '800px', margin: '0 auto' }}>
+    <div className="pg-halaman">
       {msg && (
         <div
-          style={{
-            padding: '12px 16px',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '13px',
-            fontWeight: 500,
-            backgroundColor: msg.type === 'ok' ? 'var(--ok-bg)' : 'var(--danger-bg)',
-            color: msg.type === 'ok' ? 'var(--ok-text)' : 'var(--danger-text)',
-            border: `1px solid ${msg.type === 'ok' ? 'var(--ok-border)' : 'var(--danger-border)'}`,
-          }}
+          role={msg.type === 'err' ? 'alert' : 'status'}
+          className={`pg-pesan ${msg.type === 'ok' ? 'pg-pesan-ok' : 'pg-pesan-err'}`}
         >
           {msg.text}
         </div>
       )}
 
       {/* Form Profil Sekolah */}
-      <form
-        onSubmit={handleSimpanProfil}
-        style={{
-          backgroundColor: 'var(--surface)',
-          padding: '24px',
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid var(--border)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-        }}
-      >
-        <h3 style={{ fontSize: '16px', fontWeight: 600, borderBottom: '1px solid var(--border)', paddingBottom: '10px' }}>
-          Profil sekolah
-        </h3>
+      <form onSubmit={handleSimpanProfil}>
+        <Card>
+          <CardHeader>
+            <div>
+              <CardTitle>Profil sekolah</CardTitle>
+              <CardDescription>Nama dan informasi sekolah untuk kop dokumen dan struk cetak</CardDescription>
+            </div>
+          </CardHeader>
 
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-            Nama Sekolah / Lembaga <span style={{ color: 'var(--danger)' }}>*</span>
-          </label>
-          <input
-            type="text"
-            required
-            value={nama}
-            onChange={(e) => setNama(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px 12px',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--bg)',
-            }}
-          />
-        </div>
+          <CardContent className="pg-isi">
+            <div>
+              <label htmlFor="profil-nama" className="pg-label">
+                Nama Sekolah / Lembaga <span className="pg-wajib">*</span>
+              </label>
+              <input
+                id="profil-nama"
+                type="text"
+                required
+                value={nama}
+                onChange={(e) => setNama(e.target.value)}
+                className="pg-kontrol"
+              />
+            </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-              Alamat Sekolah
-            </label>
-            <input
-              type="text"
-              value={alamat}
-              onChange={(e) => setAlamat(e.target.value)}
-              placeholder="Contoh: Jl. Diponegoro No. 45"
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--bg)',
-              }}
-            />
-          </div>
+            <div className="pg-grid-dua">
+              <div>
+                <label htmlFor="profil-alamat" className="pg-label">
+                  Alamat Sekolah
+                </label>
+                <input
+                  id="profil-alamat"
+                  type="text"
+                  value={alamat}
+                  onChange={(e) => setAlamat(e.target.value)}
+                  placeholder="Contoh: Jl. Diponegoro No. 45"
+                  className="pg-kontrol"
+                />
+              </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-              Kota / Kabupaten
-            </label>
-            <input
-              type="text"
-              value={kota}
-              onChange={(e) => setKota(e.target.value)}
-              placeholder="Contoh: Surakarta"
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--bg)',
-              }}
-            />
-          </div>
-        </div>
+              <div>
+                <label htmlFor="profil-kota" className="pg-label">
+                  Kota / Kabupaten
+                </label>
+                <input
+                  id="profil-kota"
+                  type="text"
+                  value={kota}
+                  onChange={(e) => setKota(e.target.value)}
+                  placeholder="Contoh: Surakarta"
+                  className="pg-kontrol"
+                />
+              </div>
+            </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-              Nama Bendahara Tabungan
-            </label>
-            <input
-              type="text"
-              value={bendahara}
-              onChange={(e) => setBendahara(e.target.value)}
-              placeholder="Nama bendahara"
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--bg)',
-              }}
-            />
-          </div>
+            <div className="pg-grid-dua">
+              <div>
+                <label htmlFor="profil-bendahara" className="pg-label">
+                  Nama Bendahara Tabungan
+                </label>
+                <input
+                  id="profil-bendahara"
+                  type="text"
+                  value={bendahara}
+                  onChange={(e) => setBendahara(e.target.value)}
+                  placeholder="Nama bendahara"
+                  className="pg-kontrol"
+                />
+              </div>
 
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-              Nama Kepala Sekolah / Madrasah
-            </label>
-            <input
-              type="text"
-              value={kepala}
-              onChange={(e) => setKepala(e.target.value)}
-              placeholder="Nama kepala sekolah"
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--bg)',
-              }}
-            />
-          </div>
-        </div>
+              <div>
+                <label htmlFor="profil-kepala" className="pg-label">
+                  Nama Kepala Sekolah / Madrasah
+                </label>
+                <input
+                  id="profil-kepala"
+                  type="text"
+                  value={kepala}
+                  onChange={(e) => setKepala(e.target.value)}
+                  placeholder="Nama kepala sekolah"
+                  className="pg-kontrol"
+                />
+              </div>
+            </div>
 
-        <h3
-          style={{
-            fontSize: '16px',
-            fontWeight: 600,
-            borderBottom: '1px solid var(--border)',
-            paddingBottom: '10px',
-            marginTop: '8px',
-          }}
-        >
-          Tampilan dan cetak
-        </h3>
+            <div className="pg-tampilan">
+              <CardTitle className="pg-tampilan-judul">Tampilan dan cetak</CardTitle>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-              Tema Tampilan
-            </label>
-            <select
-              value={tema}
-              onChange={(e) => {
-                const newTheme = e.target.value as TemaAplikasi;
-                setTema(newTheme);
-                onThemeChange(newTheme);
-              }}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--bg)',
-              }}
+              <div className="pg-grid-dua">
+                <div>
+                  <label htmlFor="tema-select" className="pg-label">
+                    Tema Tampilan
+                  </label>
+                  <select
+                    id="tema-select"
+                    value={tema}
+                    onChange={(e) => {
+                      const newTheme = e.target.value as TemaAplikasi;
+                      setTema(newTheme);
+                      onThemeChange(newTheme);
+                    }}
+                    className="pg-kontrol"
+                  >
+                    <option value="putih">Putih (Bawaan)</option>
+                    <option value="hijau">Hijau</option>
+                    <option value="biru">Biru</option>
+                    <option value="ungu">Ungu</option>
+                    <option value="grafit">Grafit (Gelap)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="ukuran-struk-select" className="pg-label">
+                    Ukuran Struk Bukti Transaksi
+                  </label>
+                  <select
+                    id="ukuran-struk-select"
+                    value={ukuranStruk}
+                    onChange={(e) => setUkuranStruk(e.target.value as UkuranStruk)}
+                    className="pg-kontrol"
+                  >
+                    <option value="80">Termal 80 mm (Standar)</option>
+                    <option value="58">Termal 58 mm (Kecil)</option>
+                    <option value="a6">Kertas A6 / Kuitansi</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+
+          <CardFooter>
+            <Button
+              type="submit"
+              variant="primary"
+              size="md"
+              disabled={loading}
             >
-              <option value="putih">Putih (Bawaan)</option>
-              <option value="hijau">Hijau</option>
-              <option value="biru">Biru</option>
-              <option value="ungu">Ungu</option>
-              <option value="grafit">Grafit (Gelap)</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>
-              Ukuran Struk Bukti Transaksi
-            </label>
-            <select
-              value={ukuranStruk}
-              onChange={(e) => setUkuranStruk(e.target.value as UkuranStruk)}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border)',
-                backgroundColor: 'var(--bg)',
-              }}
-            >
-              <option value="80">Termal 80 mm (Standar)</option>
-              <option value="58">Termal 58 mm (Kecil)</option>
-              <option value="a6">Kertas A6 / Kuitansi</option>
-            </select>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: '10px 22px',
-              backgroundColor: 'var(--accent)',
-              color: 'var(--accent-text)',
-              border: 'none',
-              borderRadius: 'var(--radius-sm)',
-              fontWeight: 600,
-              fontSize: '13px',
-              cursor: 'pointer',
-            }}
-          >
-            {loading ? 'Menyimpan...' : 'Simpan Pengaturan'}
-          </button>
-        </div>
+              {loading ? 'Menyimpan...' : 'Simpan Pengaturan'}
+            </Button>
+          </CardFooter>
+        </Card>
       </form>
 
       {/* Pemeriksaan Integritas Saldo (CAP-17) */}
-      <div
-        style={{
-          backgroundColor: 'var(--surface)',
-          padding: '24px',
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid var(--border)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Card className="pg-integritas">
+        <div className="pg-integritas-kepala">
           <div>
-            <h3 style={{ fontSize: '16px', fontWeight: 600 }}>Pemeriksaan saldo</h3>
-            <p style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '2px' }}>
+            <h3 className="pg-integritas-judul">
+              Pemeriksaan saldo
+            </h3>
+            <p className="pg-integritas-ket">
               Memvalidasi setiap baris saldo berjalan dengan kalkulasi total transaksi pada basis data.
             </p>
           </div>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={handlePeriksaIntegritas}
             disabled={checkingIntegritas}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: 'var(--bg)',
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '13px',
-              fontWeight: 600,
-              cursor: 'pointer',
-            }}
           >
             {checkingIntegritas ? 'Memeriksa...' : 'Periksa Sekarang'}
-          </button>
+          </Button>
         </div>
 
         {hasilIntegritas && (
-          <div
-            style={{
-              padding: '14px 18px',
-              borderRadius: 'var(--radius-sm)',
-              backgroundColor: hasilIntegritas.apakah_seimbang ? 'var(--ok-bg)' : 'var(--danger-bg)',
-              border: `1px solid ${hasilIntegritas.apakah_seimbang ? 'var(--ok-border)' : 'var(--danger-border)'}`,
-              fontSize: '13px',
-            }}
-          >
-            <div
-              style={{
-                fontWeight: 700,
-                color: hasilIntegritas.apakah_seimbang ? 'var(--ok)' : 'var(--danger)',
-                fontSize: '14px',
-                marginBottom: '4px',
-              }}
-            >
+          <div className={`pg-hasil ${hasilIntegritas.apakah_seimbang ? 'pg-hasil-ok' : 'pg-hasil-err'}`}>
+            <div className="pg-hasil-judul">
               {hasilIntegritas.apakah_seimbang
                 ? 'Seluruh saldo seimbang (nol selisih)'
                 : `Ditemukan selisih pada ${hasilIntegritas.selisih.length} siswa`}
             </div>
-            <div style={{ color: 'var(--muted)', fontSize: '12px' }}>
+            <div className="pg-hasil-ket">
               Diperiksa {hasilIntegritas.total_siswa_diperiksa} siswa dan{' '}
               {hasilIntegritas.total_transaksi_diperiksa} transaksi.
             </div>
           </div>
         )}
-      </div>
+      </Card>
+
       <KeamananPanel />
       <RiwayatAktivitasPanel />
     </div>

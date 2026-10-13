@@ -1,25 +1,54 @@
-import { app, BrowserWindow, Menu, protocol, net, type MenuItemConstructorOptions } from 'electron';
+import { app, BrowserWindow, dialog, Menu, protocol, net, type MenuItemConstructorOptions } from 'electron';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { initDb, closeDb } from './db/index.js';
-import { createMainWindow } from './window.js';
+import { createMainWindow, getMainWindow } from './window.js';
 import { registerIpcHandlers } from './ipc/index.js';
+import { FileLogger, pasangPenanganCrash } from './logger.js';
+
+import { BackupService } from './services/backup.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Skema custom protocol aman (ARCHITECTURE §3)
-protocol.registerSchemesAsPrivileged([
-  {
-    scheme: 'pundi-app',
-    privileges: {
-      standard: true,
-      secure: true,
-      supportFetchAPI: true,
-      corsEnabled: false,
+// Bila diberikan argumen user-data-dir (mis. saat pengujian E2E), gunakan folder tersebut untuk isolasi data
+const userDirArg = app.commandLine.getSwitchValue('user-data-dir');
+if (userDirArg) {
+  app.setPath('userData', userDirArg);
+}
+
+// Kunci instans tunggal (F7-1): cegah dua proses membuka basis data SQLite bersamaan
+const kunciInstans = app.requestSingleInstanceLock();
+
+if (!kunciInstans) {
+  app.quit();
+} else {
+  // Inisialisasi folder data dan logger berkas lokal (NFR-02 & F7-2)
+  const userDataDir = path.join(app.getPath('userData'), 'Pundi');
+  const logsDir = path.join(userDataDir, 'logs');
+  const logger = new FileLogger({ logsDir });
+  pasangPenanganCrash(logger);
+
+  app.on('second-instance', () => {
+    const win = getMainWindow();
+    if (win) {
+      if (win.isMinimized()) win.restore();
+      win.focus();
+    }
+  });
+
+  // Skema custom protocol aman (ARCHITECTURE §3)
+  protocol.registerSchemesAsPrivileged([
+    {
+      scheme: 'pundi-app',
+      privileges: {
+        standard: true,
+        secure: true,
+        supportFetchAPI: true,
+        corsEnabled: false,
+      },
     },
-  },
-]);
+  ]);
 
 /**
  * Aplikasi terpaket tidak memakai menu bawaan Electron: Ctrl+R memuat ulang halaman (isian transaksi hilang) dan
@@ -50,7 +79,21 @@ async function bootstrap() {
   // Inisialisasi basis data SQLite di folder data pengguna
   const userDataDir = path.join(app.getPath('userData'), 'Pundi');
   const dbPath = path.join(userDataDir, 'pundi.sqlite');
-  initDb({ dbPath });
+  const backupDir = path.join(userDataDir, 'backups');
+  initDb({ dbPath, backupDir });
+
+  // Jalankan cadangan otomatis harian bila memenuhi syarat (F7-3)
+  try {
+    const backupSvc = new BackupService(backupDir);
+    const hasilBackup = backupSvc.jalankanBackupOtomatisJikaPerlu();
+    if (hasilBackup.ok && hasilBackup.data.dibuat) {
+      logger.info('BACKUP_OTOMATIS_HARIAN', {
+        keterangan: `Cadangan otomatis harian dibuat: ${hasilBackup.data.berkas}`,
+      });
+    }
+  } catch {
+    // Gagal membuat cadangan harian tidak boleh membatalkan peluncuran aplikasi
+  }
 
   // Daftarkan penanganan protokol pundi-app
   protocol.handle('pundi-app', (request) => {
@@ -61,14 +104,18 @@ async function bootstrap() {
   });
 
   // Daftarkan handler IPC
-  registerIpcHandlers({ backupDir: path.join(userDataDir, 'backups'), kunciDir: userDataDir });
+  registerIpcHandlers({
+    backupDir: path.join(userDataDir, 'backups'),
+    kunciDir: userDataDir,
+    logger,
+  });
 
   // Buat jendela utama
-  createMainWindow();
+  createMainWindow(logger);
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
-      createMainWindow();
+      createMainWindow(logger);
     }
   });
 }
@@ -85,6 +132,12 @@ app.on('before-quit', () => {
 });
 
 bootstrap().catch((err) => {
+  logger.error('BOOTSTRAP_ERROR', { keterangan: (err as Error)?.name || 'Error' });
   console.error('Gagal menjalankan aplikasi Pundi:', err);
+  dialog.showErrorBox(
+    'Pundi Tidak Dapat Dibuka',
+    'Aplikasi gagal disiapkan. Data Anda tidak diubah. Silakan tutup lalu buka kembali aplikasi, dan hubungi pendamping bila masalah berlanjut.'
+  );
   app.quit();
 });
+}

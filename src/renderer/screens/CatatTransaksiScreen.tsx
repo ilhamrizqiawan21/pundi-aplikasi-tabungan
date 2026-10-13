@@ -1,18 +1,18 @@
 import { useState, useEffect, useRef, useCallback, type FormEvent, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import type { Siswa, Transaksi, JenisTransaksi, RingkasanKasHarian } from '../../shared/types.js';
-import { hariIniLokal, formatTanggalIndonesia } from '../../shared/tanggal.js';
+import { hariIniLokal } from '../../shared/tanggal.js';
 import { formatRupiah, parseRupiah } from '../../shared/rupiah.js';
 import { PratinjauCetakModal } from '../components/PratinjauCetakModal.js';
 import { KoreksiModal } from '../components/KoreksiModal.js';
 import { SetoranKelasModal } from '../components/SetoranKelasModal.js';
 import { BiayaAdminModal } from '../components/BiayaAdminModal.js';
-import { tombol } from '../styles/ui.js';
-import {
-  StudentAvatar,
-  IconSearch,
-  IconCalendar,
-  IconCheck,
-} from '../components/Icons.js';
+import { Button } from '../components/ui/index.js';
+import { StudentAvatar } from '../components/Icons.js';
+import { DaftarSiswaPanel } from './catat/DaftarSiswaPanel.js';
+import { FormTransaksi } from './catat/FormTransaksi.js';
+import { PanelKanan } from './catat/PanelKanan.js';
+import './CatatTransaksiScreen.css';
+import './catat/catat-tambahan.css';
 
 export function CatatTransaksiScreen() {
   const [query, setQuery] = useState('');
@@ -267,694 +267,107 @@ export function CatatTransaksiScreen() {
 
   return (
     <div className="grid-catat">
-      {/* ======================================================== */}
-      {/* KOLOM KIRI: PILIH SISWA                                    */}
-      {/* ======================================================== */}
-      <section
-        className="catat-kiri"
-        style={{
-          backgroundColor: 'var(--card-bg)',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border)',
-          boxShadow: 'var(--card-shadow)',
-          padding: '18px 16px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '14px',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '0 4px' }}>
-          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: '8px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)', whiteSpace: 'nowrap' }}>Pilih siswa</h3>
-            <span style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600, whiteSpace: 'nowrap' }}>
-              {searchResults.length} siswa
-            </span>
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <button type="button" style={{ ...tombol, padding: '5px 8px', fontSize: '12px', whiteSpace: 'nowrap' }} onClick={() => setSetoranKelasTerbuka(true)}>
-              Setoran per Kelas
-            </button>
-            <button type="button" style={{ ...tombol, padding: '5px 8px', fontSize: '12px', whiteSpace: 'nowrap' }} onClick={() => setBiayaAdmTerbuka(true)}>
-              Biaya Adm
-            </button>
-          </div>
-        </div>
+      <DaftarSiswaPanel
+        query={query}
+        onQueryChange={setQuery}
+        onSearchKeyDown={handleSearchKeyDown}
+        searchInputRef={searchInputRef}
+        hasil={searchResults}
+        indeksFokus={selectedIndex}
+        siswaTerpilih={selectedSiswa}
+        onPilih={handleSelectSiswa}
+        onBukaSetoranKelas={() => setSetoranKelasTerbuka(true)}
+        onBukaBiayaAdm={() => setBiayaAdmTerbuka(true)}
+      />
 
-        {/* Input Pencarian */}
-        <div style={{ position: 'relative' }}>
-          <div style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--muted)' }}>
-            <IconSearch width={15} height={15} />
-          </div>
-          <input
-            ref={searchInputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            placeholder="Ketik nama siswa, nomor rekening (T-...), atau NIS..."
-            style={{
-              width: '100%',
-              padding: '9px 12px 9px 34px',
-              fontSize: '13px',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border)',
-              backgroundColor: 'var(--bg)',
-              transition: 'border-color 0.15s ease',
-            }}
-          />
-        </div>
-
-        {/* Daftar Siswa */}
-        <div
-          tabIndex={0}
-          role="region"
-          aria-label="Daftar Siswa"
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '4px',
-            paddingRight: '2px',
-          }}
-        >
-          {searchResults.map((s, idx) => {
-            const isSelected = selectedSiswa?.id === s.id;
-            const isFocused = idx === selectedIndex && !selectedSiswa;
-            return (
-              <div
-                key={s.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => handleSelectSiswa(s)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    handleSelectSiswa(s);
-                  }
-                }}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '9px 10px',
-                  borderRadius: 'var(--radius-md)',
-                  cursor: 'pointer',
-                  backgroundColor: isSelected
-                    ? 'rgba(37, 99, 235, 0.08)'
-                    : isFocused
-                    ? 'rgba(0, 0, 0, 0.04)'
-                    : 'transparent',
-                  border: isSelected
-                    ? '1.5px solid var(--accent)'
-                    : '1.5px solid transparent',
-                  transition: 'all 0.12s ease',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                  <StudentAvatar name={s.nama} size={32} fontSize={11} />
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {s.nama}
-                    </div>
-                    <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '1px' }}>
-                      {s.kelas_nama ? `${s.kelas_nama} · ` : ''}{s.nomor}{s.status !== 'aktif' ? ` · ${s.status === 'lulus' ? 'Lulus' : 'Keluar'}` : ''}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text)', textAlign: 'right', flexShrink: 0, marginLeft: '8px' }}>
-                  {formatRupiah(s.saldo ?? 0)}
-                </div>
-              </div>
-            );
-          })}
-
-          {searchResults.length === 0 && (
-            <div style={{ padding: '24px 12px', textAlign: 'center', color: 'var(--muted)', fontSize: '12px' }}>
-              Tidak ada siswa yang cocok
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* ======================================================== */}
-      {/* KOLOM TENGAH: RUANG KERJA TRANSAKSI                        */}
-      {/* ======================================================== */}
-      <section style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-        {/* Konfirmasi transaksi terakhir */}
+      <section className="catat-tengah">
         {lastTrx && (
-          <div
-            style={{
-              padding: '14px 18px',
-              backgroundColor: 'var(--ok-bg)',
-              border: '1px solid rgba(22, 163, 74, 0.25)',
-              borderRadius: 'var(--radius-lg)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '12px',
-              boxShadow: '0 2px 4px rgba(22, 163, 74, 0.08)',
-            }}
-          >
+          <div className="catat-notif-sukses">
             <div>
-              <div style={{ fontWeight: 600, color: 'var(--ok-text)', fontSize: '13px' }}>
+              <div className="catat-notif-teks">
                 {lastTrx.transaksi.jenis === 'setoran' ? 'Setoran' : 'Penarikan'}{' '}
                 {formatRupiah(Math.abs(lastTrx.transaksi.nilai))} untuk {lastTrx.siswa.nama} berhasil tersimpan.
               </div>
-              <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '2px' }}>
+              <div className="catat-notif-sub">
                 No. Bukti: <strong>{lastTrx.transaksi.nomor_bukti}</strong> | Saldo baru:{' '}
                 <strong>{formatRupiah(lastTrx.transaksi.saldo_setelah)}</strong>
               </div>
             </div>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
+            <div className="catat-notif-aksi">
+              <Button
+                size="sm"
                 onClick={() => handleCetakStruk(lastTrx.transaksi.id)}
                 disabled={cetakLoading}
                 title="Cetak struk transaksi terakhir (Ctrl+P)"
-                style={{
-                  padding: '6px 12px',
-                  backgroundColor: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  color: 'var(--text)',
-                }}
               >
                 {cetakLoading ? 'Memuat...' : 'Cetak Struk (Ctrl+P)'}
-              </button>
-              <button
-                onClick={() => setKoreksiTerbuka(true)}
-                style={{
-                  padding: '6px 12px',
-                  backgroundColor: 'var(--surface)',
-                  border: '1px solid var(--danger-bg)',
-                  color: 'var(--danger)',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                }}
-              >
+              </Button>
+              <Button size="sm" variant="danger" onClick={() => setKoreksiTerbuka(true)}>
                 Batalkan (Koreksi)
-              </button>
+              </Button>
             </div>
           </div>
         )}
 
-        {/* Pesan Kesalahan */}
         {errorMsg && (
-          <div
-            role="alert"
-            style={{
-              padding: '12px 16px',
-              backgroundColor: 'var(--danger-bg)',
-              border: '1px solid rgba(220, 38, 38, 0.25)',
-              color: 'var(--danger-text)',
-              borderRadius: 'var(--radius-md)',
-              fontSize: '13px',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-            }}
-          >
+          <div role="alert" className="catat-error">
             <span>{errorMsg}</span>
           </div>
         )}
 
-        {/* Kartu siswa terpilih */}
         {selectedSiswa ? (
-          <div
-            style={{
-              background: 'linear-gradient(135deg, var(--hero-from) 0%, var(--hero-to) 100%)',
-              borderRadius: 'var(--radius-xl)',
-              padding: '22px 26px',
-              color: 'var(--on-color)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              boxShadow: '0 6px 16px rgba(37, 99, 235, 0.25)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="catat-hero-siswa">
+            <div className="catat-hero-identitas">
               <StudentAvatar name={selectedSiswa.nama} size={52} fontSize={18} border="2px solid rgba(255, 255, 255, 0.3)" />
               <div>
-                <h2 style={{ fontSize: '20px', fontWeight: 800, letterSpacing: '-0.3px', margin: 0 }}>
-                  {selectedSiswa.nama}
-                </h2>
-                <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
-                  {selectedSiswa.kelas_nama && (
-                    <span style={{ fontSize: '12px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
-                      Kelas {selectedSiswa.kelas_nama}
-                    </span>
-                  )}
-                  <span style={{ fontSize: '12px', fontWeight: 600, backgroundColor: 'rgba(255, 255, 255, 0.18)', padding: '2px 8px', borderRadius: 'var(--radius-sm)' }}>
-                    {selectedSiswa.nomor}
-                  </span>
+                <h2 className="catat-hero-nama">{selectedSiswa.nama}</h2>
+                <div className="catat-hero-chips">
+                  {selectedSiswa.kelas_nama && <span className="catat-hero-chip">Kelas {selectedSiswa.kelas_nama}</span>}
+                  <span className="catat-hero-chip">{selectedSiswa.nomor}</span>
                 </div>
               </div>
             </div>
 
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', opacity: 0.85 }}>
-                SALDO SAAT INI
-              </div>
-              <div style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.5px', marginTop: '2px' }} className="tabular-nums">
-                {formatRupiah(selectedSiswa.saldo ?? 0)}
-              </div>
+            <div className="catat-hero-saldo">
+              <div className="catat-hero-saldo-label">SALDO SAAT INI</div>
+              <div className="catat-hero-saldo-nilai tabular-nums">{formatRupiah(selectedSiswa.saldo ?? 0)}</div>
             </div>
           </div>
         ) : (
-          <div
-            className="catat-kosong"
-            style={{
-              borderRadius: 'var(--radius-xl)',
-              border: '2px dashed var(--border)',
-              textAlign: 'center',
-              backgroundColor: 'var(--card-bg)',
-              color: 'var(--muted)',
-            }}
-          >
-            <div style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text)' }}>
-              Belum ada siswa yang dipilih
-            </div>
-            <p style={{ fontSize: '12px', marginTop: '4px' }}>
-              Cari nama atau nomor rekening di sebelah kiri, atau tekan <kbd style={{ padding: '2px 6px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg)', border: '1px solid var(--border)' }}>Ctrl + K</kbd>
+          <div className="catat-kosong">
+            <div className="catat-kosong-judul">Belum ada siswa yang dipilih</div>
+            <p className="catat-kosong-sub">
+              Cari nama atau nomor rekening di sebelah kiri, atau tekan <kbd className="catat-kbd">Ctrl + K</kbd>
             </p>
           </div>
         )}
 
-        {/* Card Form Transaksi Baru */}
-        <form
-          className="catat-form"
+        <FormTransaksi
+          jenis={jenis}
+          onJenisChange={setJenis}
+          bolehSetor={bolehSetor}
+          nominalRaw={nominalRaw}
+          onNominalChange={setNominalRaw}
+          onNominalKeyDown={handleNominalKeyDown}
+          onTambahNominal={handleAddNominal}
+          nominalInputRef={nominalInputRef}
+          tanggal={tanggal}
+          onTanggalChange={setTanggal}
+          keterangan={keterangan}
+          onKeteranganChange={setKeterangan}
+          saldoSesudah={saldoSesudah}
+          sedangMenyimpan={loading}
+          adaSiswa={Boolean(selectedSiswa)}
+          onGantiSiswa={() => {
+            setSelectedSiswa(null);
+            setErrorMsg(null);
+            setTimeout(() => searchInputRef.current?.focus(), 0);
+          }}
           onSubmit={handleSubmit}
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-xl)',
-            boxShadow: 'var(--card-shadow)',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
-          {/* Header Bar Form: Judul & Toggle Setoran / Penarikan */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--text)' }}>
-              Transaksi baru
-            </h3>
-
-            {/* Segmented Control Setoran / Penarikan */}
-            <div style={{ display: 'flex', gap: '6px', backgroundColor: 'var(--bg)', padding: '4px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
-              <button
-                type="button"
-                disabled={!bolehSetor}
-                title={bolehSetor ? undefined : 'Siswa lulus/keluar tidak dapat menyetor; hanya penarikan sisa saldo.'}
-                onClick={() => {
-                  setJenis('setoran');
-                  nominalInputRef.current?.focus();
-                }}
-                style={{
-                  opacity: bolehSetor ? 1 : 0.4,
-                  padding: '6px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  border: 'none',
-                  cursor: 'pointer',
-                  backgroundColor: jenis === 'setoran' ? 'var(--ok)' : 'transparent',
-                  color: jenis === 'setoran' ? 'var(--on-color)' : 'var(--muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span>↓</span> Setoran
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setJenis('penarikan');
-                  nominalInputRef.current?.focus();
-                }}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '12px',
-                  fontWeight: 700,
-                  border: 'none',
-                  cursor: 'pointer',
-                  backgroundColor: jenis === 'penarikan' ? 'var(--danger)' : 'transparent',
-                  color: jenis === 'penarikan' ? 'var(--on-color)' : 'var(--muted)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                <span>↑</span> Penarikan
-              </button>
-            </div>
-          </div>
-
-          {/* Section NOMINAL */}
-          <div>
-            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '8px' }}>
-              NOMINAL
-            </label>
-
-            {/* Input Nominal Besar dengan Pill Enter di Kanan */}
-            <div
-              style={{
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: 'var(--bg)',
-                border: '1.5px solid var(--border)',
-                borderRadius: 'var(--radius-md)',
-                padding: '4px 14px',
-              }}
-            >
-              <input
-                ref={nominalInputRef}
-                type="text"
-                placeholder="Rp 0"
-                value={nominalRaw}
-                onChange={(e) => {
-                  const angka = parseRupiah(e.target.value);
-                  setNominalRaw(angka === 0 ? '' : formatRupiah(angka));
-                }}
-                onKeyDown={handleNominalKeyDown}
-                style={{
-                  width: '100%',
-                  fontSize: '24px',
-                  fontWeight: 800,
-                  color: jenis === 'setoran' ? 'var(--ok-text)' : 'var(--danger-text)',
-                  backgroundColor: 'transparent',
-                  border: 'none',
-                  letterSpacing: '-0.5px',
-                }}
-                className="tabular-nums"
-              />
-
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '4px 8px',
-                  backgroundColor: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: 'var(--muted)',
-                  userSelect: 'none',
-                  flexShrink: 0,
-                }}
-              >
-                <span>Enter</span>
-                <span style={{ fontSize: '12px' }}>↵</span>
-              </div>
-            </div>
-
-            {/* Quick Amount Chips */}
-            <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-              {[10000, 20000, 50000, 100000].map((amt) => (
-                <button
-                  key={amt}
-                  type="button"
-                  onClick={() => handleAddNominal(amt)}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'var(--bg)',
-                    border: '1px solid var(--border)',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    color: 'var(--text)',
-                    cursor: 'pointer',
-                    transition: 'all 0.12s ease',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'var(--bg)')}
-                >
-                  + {formatRupiah(amt).replace('Rp ', '')}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Row Tanggal & Keterangan */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '6px' }}>
-                TANGGAL
-              </label>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '9px 12px',
-                  backgroundColor: 'var(--bg)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
-                }}
-              >
-                <IconCalendar width={15} height={15} style={{ color: 'var(--muted)' }} />
-                <input
-                  type="date"
-                  value={tanggal}
-                  onChange={(e) => setTanggal(e.target.value)}
-                  style={{
-                    border: 'none',
-                    backgroundColor: 'transparent',
-                    fontSize: '13px',
-                    fontWeight: 500,
-                    color: 'var(--text)',
-                    width: '100%',
-                  }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, letterSpacing: '0.8px', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: '6px' }}>
-                KETERANGAN (OPSIONAL)
-              </label>
-              <input
-                type="text"
-                value={keterangan}
-                onChange={(e) => setKeterangan(e.target.value)}
-                placeholder="Misalnya: setoran mingguan"
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  backgroundColor: 'var(--bg)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '13px',
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Footer Form: Saldo Sesudah & Tombol Aksi */}
-          <div
-            style={{
-              paddingTop: '16px',
-              borderTop: '1px solid var(--border)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div>
-              <div style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600 }}>
-                Saldo sesudah transaksi
-              </div>
-              <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--text)', marginTop: '1px' }} className="tabular-nums">
-                {formatRupiah(saldoSesudah)}
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedSiswa(null);
-                  setErrorMsg(null);
-                  setTimeout(() => searchInputRef.current?.focus(), 0);
-                }}
-                style={{
-                  padding: '10px 18px',
-                  backgroundColor: 'var(--surface)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: 'var(--text)',
-                  cursor: 'pointer',
-                }}
-              >
-                Ganti Siswa (Esc)
-              </button>
-
-              <button
-                type="submit"
-                disabled={loading || !selectedSiswa}
-                style={{
-                  padding: '10px 22px',
-                  backgroundColor: 'var(--accent)',
-                  color: 'var(--accent-text)',
-                  border: 'none',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  opacity: loading || !selectedSiswa ? 0.6 : 1,
-                  boxShadow: '0 2px 6px rgba(37, 99, 235, 0.3)',
-                }}
-              >
-                <IconCheck width={16} height={16} />
-                <span>Simpan transaksi</span>
-              </button>
-            </div>
-          </div>
-        </form>
+        />
       </section>
 
-      {/* ======================================================== */}
-      {/* KOLOM KANAN: RINGKASAN HARI INI & RIWAYAT SISWA (Page 1)  */}
-      {/* ======================================================== */}
-      <section className="catat-kanan" style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-        {/* Card 1: Ringkasan hari ini */}
-        <div
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border)',
-            boxShadow: 'var(--card-shadow)',
-            padding: '18px 20px',
-          }}
-        >
-          <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', marginBottom: '14px' }}>
-            Ringkasan hari ini
-          </h4>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div>
-              <div style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600 }}>Setoran</div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--ok)', marginTop: '2px' }} className="tabular-nums">
-                {formatRupiah(kasHariIni?.total_setoran || 0)}
-              </div>
-            </div>
-
-            <div>
-              <div style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 600 }}>Penarikan</div>
-              <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--danger)', marginTop: '2px' }} className="tabular-nums">
-                {formatRupiah(kasHariIni?.total_penarikan || 0)}
-              </div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--border)', fontSize: '12px', color: 'var(--muted)' }}>
-            {kasHariIni?.jumlah_transaksi || 0} transaksi tercatat hari ini
-          </div>
-        </div>
-
-        {/* Card 2: Riwayat Siswa */}
-        <div
-          style={{
-            backgroundColor: 'var(--card-bg)',
-            borderRadius: 'var(--radius-lg)',
-            border: '1px solid var(--border)',
-            boxShadow: 'var(--card-shadow)',
-            padding: '18px 20px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h4 style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>
-              Riwayat siswa
-            </h4>
-            <span style={{ fontSize: '12px', color: 'var(--accent)', fontWeight: 600, cursor: 'pointer' }}>
-              Lihat semua
-            </span>
-          </div>
-
-          {selectedSiswa && riwayatSiswa.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {riwayatSiswa.map((trx) => {
-                const isSetor = trx.jenis === 'setoran' || (trx.jenis === 'pembalik' && trx.nilai > 0);
-                return (
-                  <div
-                    key={trx.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '6px 0',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div
-                        style={{
-                          width: '24px',
-                          height: '24px',
-                          borderRadius: '9999px',
-                          backgroundColor: isSetor ? 'var(--ok-bg)' : 'var(--danger-bg)',
-                          color: isSetor ? 'var(--ok-text)' : 'var(--danger-text)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          fontWeight: 700,
-                        }}
-                      >
-                        {isSetor ? '+' : '−'}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text)' }}>
-                          {trx.jenis === 'setoran' ? 'Setoran' : trx.jenis === 'penarikan' ? 'Penarikan' : 'Koreksi'}
-                        </div>
-                        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>
-                          {formatTanggalIndonesia(trx.tanggal, { day: 'numeric', month: 'short' })}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        color: isSetor ? 'var(--ok)' : 'var(--danger)',
-                      }}
-                      className="tabular-nums"
-                    >
-                      {formatRupiah(Math.abs(trx.nilai))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div style={{ padding: '20px 0', textAlign: 'center', color: 'var(--muted)', fontSize: '12px' }}>
-              {selectedSiswa ? 'Belum ada riwayat transaksi' : 'Pilih siswa untuk melihat riwayat'}
-            </div>
-          )}
-        </div>
-      </section>
+      <PanelKanan kasHariIni={kasHariIni} siswaTerpilih={selectedSiswa} riwayat={riwayatSiswa} />
 
       {/* Modal Koreksi: alasan wajib dari pengguna (CAP-07) */}
       <KoreksiModal

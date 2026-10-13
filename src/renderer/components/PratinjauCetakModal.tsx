@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Modal } from './Modal.js';
-import { tombol, tombolUtama } from '../styles/ui.js';
+import { Button } from './ui/index.js';
+import './panel-bersama.css';
 
 interface PratinjauCetakModalProps {
   terbuka: boolean;
@@ -56,85 +57,40 @@ export function PratinjauCetakModal({
 
   return (
     <Modal isOpen={terbuka} title={`Pratinjau Cetak: ${judul}`} onClose={onTutup} width="880px">
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
+      <div className="pb-pratinjau">
         {pesan && (
           <div
             role={pesan.jenis === 'err' ? 'alert' : 'status'}
-            style={{
-              padding: '8px 12px',
-              border: `1px solid ${pesan.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)'}`,
-              color: pesan.jenis === 'ok' ? 'var(--ok)' : 'var(--danger)',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '12px',
-            }}
+            className={`pb-pesan pb-pesan-kecil ${pesan.jenis === 'ok' ? 'pb-pesan-ok' : 'pb-pesan-galat'}`}
           >
             {pesan.teks}
           </div>
         )}
 
         {/* Iframe Document Preview */}
-        <div
-          style={{
-            backgroundColor: 'var(--viewer-bg)',
-            padding: '20px',
-            borderRadius: 'var(--radius-sm)',
-            display: 'flex',
-            justifyContent: 'center',
-            maxHeight: '65vh',
-            overflowY: 'auto',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#fff',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-              width: potret ? '420px' : '100%',
-              maxWidth: '100%',
-              minHeight: '400px',
-              borderRadius: '2px',
-              overflow: 'hidden',
-            }}
-          >
+        <div className="pb-viewer">
+          <div className={potret ? 'pb-lembar pb-lembar-potret' : 'pb-lembar'}>
             <iframe
               title="Pratinjau Dokumen"
               srcDoc={html}
-              style={{
-                width: '100%',
-                height: potret ? '520px' : '480px',
-                border: 'none',
-                display: 'block',
-              }}
+              className={potret ? 'pb-iframe pb-iframe-potret' : 'pb-iframe'}
             />
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border)' }}>
+        <div className="pb-aksi pb-aksi-bawah">
           {onSimpanPdf && (
-            <button
-              type="button"
-              style={tombol}
-              onClick={handleSimpan}
-              disabled={menyimpanPdf || mencetak}
-            >
+            <Button type="button" onClick={handleSimpan} disabled={menyimpanPdf || mencetak}>
               {menyimpanPdf ? 'Menyimpan PDF...' : 'Simpan PDF'}
-            </button>
+            </Button>
           )}
-          <button
-            type="button"
-            style={tombolUtama}
-            onClick={handleCetak}
-            disabled={mencetak || menyimpanPdf}
-          >
+          <Button type="button" variant="primary" onClick={handleCetak} disabled={mencetak || menyimpanPdf}>
             {mencetak ? 'Mencetak...' : 'Cetak'}
-          </button>
-          <button
-            type="button"
-            style={tombol}
-            onClick={onTutup}
-          >
+          </Button>
+          <Button type="button" onClick={onTutup}>
             Tutup
-          </button>
+          </Button>
         </div>
       </div>
     </Modal>
