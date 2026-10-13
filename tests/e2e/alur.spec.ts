@@ -123,6 +123,15 @@ test.describe.serial('alur utama', () => {
     await wb.xlsx.readFile(target);
     const sheet = wb.getWorksheet('Transaksi')!;
     expect([2, 3, 4, 5].map((i) => sheet.getRow(i).getCell(7).value)).toEqual([100000, -30000, 5000, -5000]);
+
+    await s.page.getByLabel('Nama / nomor siswa').fill('T-000001');
+    await expect(s.page.getByText('4 transaksi')).toBeVisible();
+    const barisRiwayat = s.page.getByRole('row', { name: /Ahmad Dahlan/ }).first();
+    await barisRiwayat.getByRole('button', { name: 'Lihat / cetak struk' }).click();
+    const pratinjau = s.page.getByRole('dialog', { name: /Pratinjau Cetak: Struk/ });
+    await expect(pratinjau).toBeVisible();
+    await expect(pratinjau.locator('iframe')).toHaveAttribute('srcdoc', /T-000001/);
+    await pratinjau.getByRole('button', { name: 'Tutup', exact: true }).click();
   });
 
   test('cadangkan lalu pulihkan mengembalikan data ke saat cadangan', async () => {

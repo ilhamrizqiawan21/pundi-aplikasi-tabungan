@@ -54,6 +54,7 @@ export function registerLaporanHandlers(ctx: IpcContext): void {
             sampai: data.sampai,
             kelasId: data.kelasId,
             jenis: data.jenisTransaksi,
+            cari: data.cari,
           })
         : data.jenis === 'rekapBulanan'
           ? await laporan.eksporRekapBulanan(pilihan.filePath, { dari: data.dari, sampai: data.sampai })

@@ -125,14 +125,18 @@ describe('rutinitas harian bendahara', () => {
   });
 
   it('HTML slip dan berita acara meng-escape data (NFR-01)', () => {
+    const profilLengkap = { ...profil, alamat: '<script>Alamat</script>', kota: 'Kota Fiktif', logo_rel_path: 'data:image/png;base64,ZmFrZQ==' };
     const slip = generateSlipSaldoHtml(
-      profil,
+      profilLengkap,
       [{ siswa_id: 1, nomor: 'A-1', nama: '<img src=x onerror=alert(1)>', kelas_nama: '7A', status: 'aktif', saldo: 5000, transaksi: [] }],
       '7A'
     );
     expect(slip).not.toContain('<img src=x');
     expect(slip).not.toContain('<b>Fiktif</b>');
     expect(slip).toContain('&lt;img');
+    expect(slip).toContain('Kota Fiktif');
+    expect(slip).toContain('src="data:image/png;base64,ZmFrZQ=="');
+    expect(slip).not.toContain('<script>Alamat</script>');
   });
 
   it('berita acara kas: kas seharusnya = awal + setoran - penarikan, selisih ditandai', () => {

@@ -450,7 +450,7 @@ export function generateSlipSaldoHtml(profil: ProfilSekolah, data: ItemSlipSaldo
   const dicetak = formatTanggalIndonesia(new Date());
   const slip = (s: ItemSlipSaldo): string => `
     <div class="slip">
-      <div class="slip-kop">${esc(profil.nama || 'TABUNGAN SISWA')}</div>
+      ${kopSekolahHtml(profil)}
       <div class="slip-judul">Slip Saldo Tabungan</div>
       <div class="slip-nama">${esc(s.nama)}</div>
       <div class="slip-meta">${esc(s.nomor)} &middot; Kelas ${esc(s.kelas_nama || '-')}</div>

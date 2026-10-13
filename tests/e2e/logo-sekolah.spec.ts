@@ -46,6 +46,45 @@ test.describe.serial('logo sekolah (CAP-01)', () => {
     expect(cetak.ok && cetak.data.html).toContain('data:image/png;base64,');
     expect(cetak.ok && cetak.data.html).not.toContain(logoPath);
 
+    const keluaran = await s.page.evaluate(async () => {
+      const p = window.pundi;
+      const simpanProfil = await p.profilSekolahSimpan({ nama: 'Sekolah Sintetis', alamat: '<Jl. Fiktif>', kota: 'Kota Uji', bendahara: 'Bendahara Uji', kepala: 'Kepala Uji' });
+      if (!simpanProfil.ok) throw new Error(simpanProfil.pesan);
+      const ta = await p.tahunAjaranSimpan({ nama: '2026/2027', mulai: '2026-07-01', selesai: '2027-06-30', aktif: true });
+      if (!ta.ok) throw new Error(ta.pesan);
+      const kelas = await p.kelasSimpan({ tahun_ajaran_id: ta.data.id, nama: '7A', tingkat: 7, urutan: 1 });
+      if (!kelas.ok) throw new Error(kelas.pesan);
+      const siswa = await p.siswaSimpan({ nama: 'Siswa Sintetis', status: 'aktif', kelas_id: kelas.data.id });
+      if (!siswa.ok) throw new Error(siswa.pesan);
+      const trx = await p.transaksiSetor({ siswa_id: siswa.data.id, nominal: 5000, tanggal: '2026-10-12' });
+      if (!trx.ok) throw new Error(trx.pesan);
+      const jenis = [
+        { jenis: 'rekapKelas', tahunAjaranId: ta.data.id },
+        { jenis: 'rekapSiswa', tahunAjaranId: ta.data.id },
+        { jenis: 'transaksi', dari: '2026-10-12', sampai: '2026-10-12' },
+        { jenis: 'bukuBesar', siswaId: siswa.data.id },
+        { jenis: 'slipSaldo', kelasId: kelas.data.id },
+        { jenis: 'tutupKas', tanggal: '2026-10-12' },
+        { jenis: 'rekapBulanan', dari: '2026-10-01', sampai: '2026-10-31' },
+      ] as const;
+      const laporan = [];
+      for (const input of jenis) {
+        const r = await p.cetakLaporanHtml(input);
+        if (!r.ok) throw new Error(`${input.jenis}: ${r.pesan}`);
+        laporan.push(r.data.html);
+      }
+      const struk = await p.cetakStrukHtml(trx.data.id);
+      if (!struk.ok) throw new Error(struk.pesan);
+      return [...laporan, struk.data.html];
+    });
+    for (const html of keluaran) {
+      expect(html).toContain('Sekolah Sintetis');
+      expect(html).toMatch(/&lt;Jl\. Fiktif&gt;(?: - |, )Kota Uji/);
+      expect(html).toContain('data:image/png;base64,');
+      expect(html).not.toContain(logoPath);
+      expect(html).not.toContain('<Jl. Fiktif>');
+    }
+
     await s.page.getByRole('button', { name: 'Hapus Logo' }).click();
     await expect(s.page.getByRole('status')).toContainText('Logo sekolah dihapus');
     const sesudah = await s.page.evaluate(() => window.pundi.profilSekolahBaca());

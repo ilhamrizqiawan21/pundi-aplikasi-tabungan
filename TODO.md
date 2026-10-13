@@ -132,3 +132,7 @@ Rincian: [RENCANA_KOMERSIAL](docs/RENCANA_KOMERSIAL.md) §6.
 - Hak atas referensi aplikasi lama belum dipastikan (F0-4).
 - Belum ada printer termal untuk uji (S-02).
 - Belum ada Mac atau runner macOS untuk S-01b.
+
+## Bukti backlog fitur BF-06–BF-09
+
+Rincian status pada [`docs/TODO_FITUR.md`](docs/TODO_FITUR.md). BF-06–BF-08 diimplementasikan dan diverifikasi; bukti regresi saat ini: `npm test` (148 tes), `npm run typecheck`, `npm run lint`, dan `npm run test:e2e` (100 tes). BF-02 masih perlu viewer PDF untuk inspeksi isi/footer yang sebenarnya; BF-04 masih perlu klik dialog folder native Windows; BF-09 menunggu sesi operator nyata (panduan: [`docs/UJI_OPERATOR_BF09.md`](docs/UJI_OPERATOR_BF09.md)).

@@ -23,6 +23,7 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
   const [sampai, setSampai] = useState(hariIniLokal());
   const [jenis, setJenis] = useState<JenisTransaksi | ''>('');
   const [kelasId, setKelasId] = useState<number | ''>('');
+  const [cari, setCari] = useState('');
   const [hasil, setHasil] = useState<HasilLaporanTransaksi | null>(null);
   const [galat, setGalat] = useState<string | null>(null);
   const [pesan, setPesan] = useState<string | null>(null);
@@ -33,6 +34,7 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
     onSimpanPdf?: () => Promise<void>;
   } | null>(null);
   const [cetakLoading, setCetakLoading] = useState(false);
+  const [pratinjauStruk, setPratinjauStruk] = useState<{ html: string; nomor: string } | null>(null);
 
   const muat = useCallback(async () => {
     setPesan(null);
@@ -46,6 +48,7 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
       sampai,
       jenis: jenis === '' ? undefined : jenis,
       kelasId: kelasId === '' ? undefined : kelasId,
+      cari: cari.trim() || undefined,
     });
     if (res.ok) {
       setGalat(null);
@@ -54,7 +57,7 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
       setGalat(res.pesan);
       setHasil(null);
     }
-  }, [dari, sampai, jenis, kelasId]);
+  }, [dari, sampai, jenis, kelasId, cari]);
 
   useEffect(() => {
     muat();
@@ -70,6 +73,7 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
         sampai,
         kelasId: kelasId === '' ? undefined : kelasId,
         jenisTransaksi: jenis === '' ? undefined : jenis,
+        cari: cari.trim() || undefined,
       });
       if (res.ok) {
         setPratinjauData({
@@ -82,6 +86,7 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
               sampai,
               kelasId: kelasId === '' ? undefined : kelasId,
               jenisTransaksi: jenis === '' ? undefined : jenis,
+              cari: cari.trim() || undefined,
             });
             if (saveRes.ok && saveRes.data) {
               setPesan(`PDF berhasil disimpan: ${saveRes.data.nama_berkas}`);
@@ -104,6 +109,7 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
       sampai,
       kelasId: kelasId === '' ? undefined : kelasId,
       jenisTransaksi: jenis === '' ? undefined : jenis,
+      cari: cari.trim() || undefined,
     });
     if (!res.ok) setGalat(res.pesan);
     else if (res.data) setPesan(`Laporan disimpan sebagai ${res.data.nama_berkas}.`);
@@ -112,6 +118,9 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
   return (
     <div className="pb-kolom-sedang">
       <section aria-label="Saring transaksi" className="ui-card pb-grid pb-grid-150 pb-saring">
+        <Field label="Nama / nomor siswa" htmlFor="lt-cari">
+          <input id="lt-cari" className="ui-input" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama atau nomor" />
+        </Field>
         <Field label="Dari tanggal" htmlFor="lt-dari">
           <input id="lt-dari" type="date" className="ui-input" value={dari} onChange={(e) => setDari(e.target.value)} />
         </Field>
@@ -192,12 +201,13 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
                   <th>Jenis</th>
                   <th className="angka">Nilai</th>
                   <th className="angka">Saldo Setelah</th>
+                  <th>Aksi</th>
                 </tr>
               </thead>
               <tbody>
                 {hasil.baris.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="kosong">
+                    <td colSpan={8} className="kosong">
                       Tidak ada transaksi pada rentang tanggal ini.
                     </td>
                   </tr>
@@ -220,6 +230,18 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
                         {formatRupiah(t.nilai)}
                       </td>
                       <td className="angka">{formatRupiah(t.saldo_setelah)}</td>
+                      <td>
+                        <Button
+                          type="button"
+                          onClick={async () => {
+                            const struk = await window.pundi.cetakStrukHtml(t.id);
+                            if (struk.ok) setPratinjauStruk({ html: struk.data.html, nomor: struk.data.nomor_bukti });
+                            else setGalat(struk.pesan);
+                          }}
+                        >
+                          Lihat / cetak struk
+                        </Button>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -238,6 +260,9 @@ export function LaporanTransaksi({ kelasList }: { kelasList: Kelas[] }) {
           onTutup={() => setPratinjauData(null)}
           onSimpanPdf={pratinjauData.onSimpanPdf}
         />
+      )}
+      {pratinjauStruk && (
+        <PratinjauCetakModal terbuka judul={`Struk ${pratinjauStruk.nomor}`} html={pratinjauStruk.html} potret onTutup={() => setPratinjauStruk(null)} />
       )}
     </div>
   );

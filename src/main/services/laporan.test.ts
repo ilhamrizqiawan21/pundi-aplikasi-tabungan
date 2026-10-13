@@ -65,6 +65,13 @@ describe('LaporanService.transaksi (CAP-11)', () => {
     expect(kelas.ok && kelas.data.baris[0].kelas_nama).toBe('7A');
   });
 
+  it('menyaring riwayat lintas siswa memakai sebagian nama/nomor dengan literal wildcard', () => {
+    const nama = laporan.transaksi({ dari: '2026-03-01', sampai: '2026-03-31', cari: 'ani fik' });
+    expect(nama.ok && nama.data.baris.map((b) => b.siswa_nama)).toEqual(['Ani Fiktif', 'Ani Fiktif', 'Ani Fiktif']);
+    const noWildcard = laporan.transaksi({ dari: '2026-03-01', sampai: '2026-03-31', cari: '%' });
+    expect(noWildcard.ok && noWildcard.data.jumlah).toBe(0);
+  });
+
   it('total selalu mencakup semua baris walau tampilan dipotong, dan selaras dengan buku besar', () => {
     const r = laporan.transaksi({ dari: '2026-03-01', sampai: '2026-03-31' }, 2);
     expect(r.ok).toBe(true);

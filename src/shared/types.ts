@@ -225,6 +225,7 @@ export interface FilterLaporanTransaksi {
   sampai: string; // YYYY-MM-DD
   jenis?: JenisTransaksi;
   kelasId?: number;
+  cari?: string;
 }
 
 export interface ItemLaporanTransaksi {
@@ -250,7 +251,7 @@ export interface HasilLaporanTransaksi {
 }
 
 export type PermintaanEkspor =
-  | { jenis: 'transaksi'; dari: string; sampai: string; kelasId?: number; jenisTransaksi?: JenisTransaksi }
+  | { jenis: 'transaksi'; dari: string; sampai: string; kelasId?: number; jenisTransaksi?: JenisTransaksi; cari?: string }
   | { jenis: 'rekapSiswa'; tahunAjaranId?: number; kelasId?: number }
   | { jenis: 'rekapKelas'; tahunAjaranId?: number }
   | { jenis: 'rekapBulanan'; dari: string; sampai: string };
@@ -485,6 +486,7 @@ export interface CetakLaporanInput {
   dari?: string;
   sampai?: string;
   jenisTransaksi?: JenisTransaksi;
+  cari?: string;
 }
 
 declare global {

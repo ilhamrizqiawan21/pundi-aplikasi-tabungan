@@ -62,6 +62,27 @@ function normalisasi(judul: string): string {
     .trim();
 }
 
+function kunciNama(nama: string): string {
+  return nama.toLocaleLowerCase('id-ID').normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function miripNama(a: string, b: string): boolean {
+  const x = kunciNama(a);
+  const y = kunciNama(b);
+  if (!x || !y) return false;
+  if (x === y) return true;
+  if (Math.abs(x.length - y.length) > Math.max(2, Math.ceil(Math.max(x.length, y.length) * 0.18))) return false;
+  let sebelumnya = Array.from({ length: y.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= x.length; i++) {
+    const kini = [i];
+    for (let j = 1; j <= y.length; j++) {
+      kini[j] = Math.min(kini[j - 1] + 1, sebelumnya[j] + 1, sebelumnya[j - 1] + (x[i - 1] === y[j - 1] ? 0 : 1));
+    }
+    sebelumnya = kini;
+  }
+  return 1 - sebelumnya[y.length] / Math.max(x.length, y.length) >= 0.84;
+}
+
 /** Menebak pemetaan dari judul kolom: kecocokan persis dengan sinonim didahulukan, lalu kata kunci utuh. */
 export function tebakPemetaan(judul: string[]): PemetaanKolom {
   const norm = judul.map(normalisasi);
@@ -250,12 +271,16 @@ export class ImporService {
           r.nis.trim().toLowerCase()
         )
       );
-      const namaAda = new Set(
-        (db.prepare(`SELECT nama FROM siswa`).all() as Array<{ nama: string }>).map((r) => r.nama.trim().toLowerCase())
-      );
+      const siswaAda = db.prepare(`
+        SELECT s.nama, k.nama AS kelas
+        FROM siswa s
+        LEFT JOIN penempatan p ON p.siswa_id = s.id
+        LEFT JOIN kelas k ON k.id = p.kelas_id
+      `).all() as Array<{ nama: string; kelas: string | null }>;
 
       const nisDiBerkas = new Set<string>();
       const kelasBaru = new Map<string, string>();
+      const siswaDiBerkas: Array<{ nama: string; kelas: string | null }> = [];
       const baris: BarisImpor[] = [];
       let totalSaldo = 0;
       let denganSaldo = 0;
@@ -301,10 +326,17 @@ export class ImporService {
         }
 
         if (valid) {
-          if (!nis && namaAda.has(nama.toLowerCase())) {
-            catatan = 'Nama sama dengan siswa yang sudah ada (tanpa NIS tidak bisa dipastikan orang yang sama)';
+          const kandidat = [...siswaAda, ...siswaDiBerkas].find(
+            (s) => (!kelas || (s.kelas !== null && kunciNama(s.kelas) === kunciNama(kelas))) && miripNama(nama, s.nama)
+          );
+          if (kandidat) {
+            const samaPersis = kunciNama(nama) === kunciNama(kandidat.nama);
+            catatan = samaPersis
+              ? `Nama sama dengan siswa yang sudah ada (tanpa NIS tidak bisa dipastikan orang yang sama)${kandidat.kelas ? ` di kelas ${kandidat.kelas}` : ''}`
+              : `Nama mirip dengan siswa terdaftar${kandidat.kelas ? ` di kelas ${kandidat.kelas}` : ''}; periksa sebelum melanjutkan`;
             namaSama++;
           }
+          siswaDiBerkas.push({ nama, kelas });
           if (saldo) {
             totalSaldo += saldo;
             denganSaldo++;
@@ -325,7 +357,7 @@ export class ImporService {
         peringatan.push(`${kelasBaru.size} kelas belum ada dan akan dibuat otomatis (tingkat ditebak dari namanya).`);
       }
       if (namaSama > 0) {
-        peringatan.push(`${namaSama} siswa bernama sama dengan siswa yang sudah ada. Periksa agar tidak menggandakan.`);
+        peringatan.push(`${namaSama} siswa bernama sama atau mirip dengan data yang sudah ada. Periksa agar tidak menggandakan.`);
       }
 
       const validCount = baris.filter((x) => x.valid).length;

@@ -323,6 +323,11 @@ export class LaporanService {
         kondisi.push('t.kelas_id = ?');
         params.push(filter.kelasId);
       }
+      if (filter.cari?.trim()) {
+        kondisi.push("(s.nama LIKE ? ESCAPE '\\' OR s.nomor LIKE ? ESCAPE '\\')");
+        const term = `%${filter.cari.trim().replace(/[\\%_]/g, '\\$&')}%`;
+        params.push(term, term);
+      }
       const where = `WHERE ${kondisi.join(' AND ')}`;
 
       const agg = db
@@ -330,7 +335,7 @@ export class LaporanService {
           `SELECT COUNT(*) AS jumlah,
                   COALESCE(SUM(CASE WHEN t.nilai > 0 THEN t.nilai END), 0) AS masuk,
                   COALESCE(SUM(CASE WHEN t.nilai < 0 THEN -t.nilai END), 0) AS keluar
-           FROM transaksi t ${where}`
+           FROM transaksi t JOIN siswa s ON s.id = t.siswa_id ${where}`
         )
         .get(...params) as { jumlah: number; masuk: number; keluar: number };
 

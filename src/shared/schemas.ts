@@ -118,6 +118,7 @@ export const LaporanTransaksiSchema = z
     sampai: Tanggal,
     jenis: JenisTrx.optional(),
     kelasId: z.number().int().positive().optional(),
+    cari: z.string().trim().max(100).optional(),
   })
   .refine((v) => v.sampai >= v.dari, { message: 'Tanggal akhir tidak boleh sebelum tanggal awal.' });
 
@@ -129,6 +130,7 @@ export const LaporanEksporSchema = z.discriminatedUnion('jenis', [
     kelasId: z.number().int().positive().optional(),
     // jenis transaksi disaring lewat kolom terpisah agar tidak bentrok dengan diskriminator
     jenisTransaksi: JenisTrx.optional(),
+    cari: z.string().trim().max(100).optional(),
   }),
   z.object({
     jenis: z.literal('rekapBulanan'),
@@ -228,6 +230,7 @@ export const CetakLaporanSchema = z.object({
   dari: TanggalKalender.optional(),
   sampai: TanggalKalender.optional(),
   jenisTransaksi: z.enum(['setoran', 'penarikan', 'pembalik']).optional(),
+  cari: z.string().trim().max(100).optional(),
 });
 
 export const CetakHtmlSchema = z.object({

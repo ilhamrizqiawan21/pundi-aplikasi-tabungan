@@ -121,6 +121,7 @@ export function registerCetakHandlers(ctx: IpcContext): void {
           sampai,
           kelasId: input.kelasId,
           jenis: input.jenisTransaksi,
+          cari: input.cari,
         },
         null
       );

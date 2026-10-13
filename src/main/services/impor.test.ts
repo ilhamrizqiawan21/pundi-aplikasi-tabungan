@@ -80,6 +80,34 @@ describe('ImporService (CAP-04)', () => {
     }
   });
 
+  it('memberi peringatan nama mirip di kelas yang sama tanpa menggagalkan impor atau mengubah NIS', async () => {
+    const kelas = akademikSvc.kelasSimpan({ tahun_ajaran_id: 1, nama: '7A', tingkat: 7, urutan: 1 });
+    expect(kelas.ok).toBe(true);
+    if (!kelas.ok) return;
+    const awal = siswaSvc.simpan({ nama: 'Siti Aminah', nis: 'NIS-A', status: 'aktif', kelas_id: kelas.data.id });
+    expect(awal.ok).toBe(true);
+
+    const sameClass = await createExcelFile('mirip-kelas-sama.xlsx', [{ nama: 'Siti Aminahh', nis: 'NIS-B', kelas: '7A' }]);
+    const sameClassPreview = await imporSvc.pratinjau(sameClass);
+    expect(sameClassPreview.ok && sameClassPreview.data.baris[0]).toMatchObject({ valid: true, catatan: expect.stringContaining('Nama mirip') });
+
+    const otherClass = await createExcelFile('mirip-kelas-lain.xlsx', [{ nama: 'Siti Aminahh', nis: 'NIS-C', kelas: '8A' }]);
+    const otherClassPreview = await imporSvc.pratinjau(otherClass);
+    expect(otherClassPreview.ok && otherClassPreview.data.baris[0]).toMatchObject({ valid: true, catatan: undefined });
+
+    const duplicateNis = await createExcelFile('nis-tetap-unik.xlsx', [{ nama: 'Siti Aminahh', nis: 'NIS-A', kelas: '7A' }]);
+    const duplicatePreview = await imporSvc.pratinjau(duplicateNis);
+    expect(duplicatePreview.ok && duplicatePreview.data.baris[0]).toMatchObject({ valid: false, alasan_galat: expect.stringContaining('NIS') });
+
+    const duplicatesInFile = await createExcelFile('kemiripan-dalam-berkas.xlsx', [
+      { nama: 'Dewi Kartika', nis: 'NIS-D', kelas: '7A' },
+      { nama: 'Dewi Kartikah', nis: 'NIS-E', kelas: '7A' },
+    ]);
+    const inFilePreview = await imporSvc.pratinjau(duplicatesInFile);
+    expect(inFilePreview.ok && inFilePreview.data.baris[0].catatan).toBeUndefined();
+    expect(inFilePreview.ok && inFilePreview.data.baris[1].catatan).toContain('Nama mirip');
+  });
+
   it('mendeteksi baris bermasalah (nama kosong & NIS duplikat)', async () => {
     // Daftarkan dulu satu siswa di DB dengan NIS 1001
     siswaSvc.simpan({ nama: 'Siswa Awal', nis: '1001', status: 'aktif' });
