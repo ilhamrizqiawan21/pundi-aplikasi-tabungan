@@ -37,7 +37,8 @@
   user-select: none;
   position: relative;
   z-index: 10000;
-  transition: width var(--dur) var(--ease);
+  box-shadow: var(--shadow-sm);
+  transition: width var(--dur) var(--ease), box-shadow var(--dur-cepat) ease;
 }
 
 .app-sidebar.ciut {
@@ -47,8 +48,9 @@
 .brand-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 20px 14px 14px 16px;
+  gap: var(--space-3);
+  padding: 18px 14px 16px 16px;
+  border-bottom: 1px solid var(--border);
 }
 
 .brand-teks {
@@ -57,40 +59,45 @@
 }
 
 .brand-logo {
-  width: 38px;
-  height: 38px;
-  border-radius: var(--radius-md);
+  width: 42px;
+  height: 42px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background-color: var(--surface);
   flex-shrink: 0;
   object-fit: contain;
+  box-shadow: var(--shadow-xs);
 }
 
 .brand-nama {
-  font-size: var(--text-xl);
-  font-weight: 800;
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
   color: var(--text);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.35px;
   line-height: 1.1;
+  margin: 0;
 }
 
 .brand-tagline {
   font-size: var(--text-2xs);
-  font-weight: var(--font-bold);
-  color: var(--accent);
-  letter-spacing: 0.7px;
+  font-weight: var(--font-medium);
+  color: var(--muted);
+  letter-spacing: 0.2px;
   text-transform: uppercase;
   white-space: nowrap;
-  margin-top: 2px;
+  margin: 4px 0 0;
 }
 
 .sidebar-toggle {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   background-color: transparent;
   color: var(--muted);
   cursor: pointer;
@@ -101,6 +108,7 @@
 
 .sidebar-toggle:hover {
   background-color: var(--bg);
+  border-color: var(--border);
   color: var(--text);
 }
 
@@ -115,9 +123,11 @@
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-2) 12px;
+  padding: var(--space-4) 12px;
   display: flex;
   flex-direction: column;
+  scrollbar-color: var(--border) transparent;
+  scrollbar-width: thin;
 }
 
 /* Kelompok menu: tiap kelompok membawa satu warna palet */
@@ -125,13 +135,13 @@
   --grup: var(--accent);
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--space-1);
 }
 
 .nav-grup + .nav-grup {
   margin-top: var(--space-3);
   padding-top: var(--space-3);
-  border-top: 2px solid color-mix(in srgb, var(--grup) 30%, transparent);
+  border-top: 1px solid var(--border);
 }
 
 .nav-grup-harian { --grup: var(--nav-harian); }
@@ -141,29 +151,31 @@
 .nav-grup-label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 10px 4px;
+  gap: var(--space-2);
+  padding: 0 10px var(--space-2);
   font-size: var(--text-2xs);
   font-weight: var(--font-bold);
-  letter-spacing: 0.9px;
+  letter-spacing: 0.7px;
   text-transform: uppercase;
-  color: var(--grup);
+  color: var(--muted);
 }
 
 .nav-grup-label::before {
   content: '';
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: var(--radius-full);
   background-color: var(--grup);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--grup) 10%, var(--surface));
 }
 
 .nav-item {
   display: flex;
   align-items: center;
   width: 100%;
-  padding: 7px 10px;
-  border-radius: var(--radius-md);
+  min-height: 42px;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
   border: none;
   background-color: transparent;
   color: var(--text);
@@ -173,15 +185,18 @@
   text-align: left;
   transition:
     background-color var(--dur-cepat) ease,
-    color var(--dur-cepat) ease;
+    color var(--dur-cepat) ease,
+    box-shadow var(--dur-cepat) ease,
+    transform var(--dur-cepat) ease;
 }
 
 .nav-item:hover:not([aria-current='page']) {
-  background-color: color-mix(in srgb, var(--grup) 8%, transparent);
+  background-color: color-mix(in srgb, var(--grup) 6%, var(--surface));
 }
 
 .nav-item[aria-current='page'] {
-  background-color: color-mix(in srgb, var(--grup) 13%, transparent);
+  background-color: color-mix(in srgb, var(--grup) 9%, var(--surface));
+  color: var(--grup);
   font-weight: var(--font-semibold);
   box-shadow: inset 3px 0 0 var(--grup);
 }
@@ -189,18 +204,19 @@
 .nav-item-inner {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-3);
+  width: 100%;
   min-width: 0;
 }
 
 .nav-item-ikon {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
   display: inline-grid;
   place-items: center;
   border-radius: var(--radius-sm);
-  background-color: color-mix(in srgb, var(--grup) 12%, var(--surface));
+  background-color: color-mix(in srgb, var(--grup) 8%, var(--surface));
   color: var(--grup);
   transition:
     background-color var(--dur-cepat) ease,
@@ -208,8 +224,23 @@
 }
 
 .nav-item[aria-current='page'] .nav-item-ikon {
-  background-color: var(--grup);
-  color: var(--surface);
+  background-color: color-mix(in srgb, var(--grup) 15%, var(--surface));
+  color: var(--grup);
+}
+
+.nav-item-inner > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-item:active:not([aria-current='page']) { transform: scale(0.99); }
+.nav-item:focus-visible,
+.sidebar-toggle:focus-visible,
+.sidebar-backup-tombol:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  z-index: 1;
 }
 
 .sidebar-footer {
@@ -218,13 +249,14 @@
 }
 
 .sidebar-backup-card {
-  padding: 12px 14px;
-  background-color: var(--bg);
+  padding: 12px;
+  background-color: color-mix(in srgb, var(--bg) 72%, var(--surface));
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  box-shadow: var(--shadow-xs);
 }
 
 .sidebar-backup-status {
@@ -234,8 +266,8 @@
 }
 
 .sidebar-backup-titik {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: var(--radius-full);
   background-color: var(--warn);
   display: inline-block;
@@ -250,16 +282,19 @@
   font-size: var(--text-xs);
   font-weight: var(--font-bold);
   color: var(--text);
+  line-height: 1.25;
 }
 
 .sidebar-backup-teks {
   font-size: var(--text-xs);
   color: var(--muted);
-  line-height: 1.35;
+  line-height: 1.45;
+  margin: 0;
 }
 
 .sidebar-backup-tombol {
   width: 100%;
+  min-height: 36px;
   padding: 7px 10px;
   background-color: var(--accent);
   color: var(--accent-text);
@@ -275,23 +310,44 @@
   background-color: var(--accent-hover);
 }
 
+.sidebar-backup-tombol:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
 .rail-only { display: none; }
 
 /* ---------- Rel ikon (.ciut) ---------- */
 .app-sidebar.ciut .brand-header {
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: 16px 0 10px;
+  flex-direction: row;
+  gap: 6px;
+  padding: 12px 5px;
   justify-content: center;
 }
 
+.app-sidebar.ciut .brand-logo { width: 32px; height: 32px; padding: 2px; border-radius: var(--radius-full); }
+.app-sidebar.ciut .sidebar-toggle { width: 24px; height: 24px; }
 .app-sidebar.ciut .nav-grup-label { display: none; }
 .app-sidebar.ciut .nav-item { justify-content: center; padding: 6px 0; }
-.app-sidebar.ciut .nav-item-inner { gap: 0; }
-.app-sidebar.ciut .sidebar-nav { padding: var(--space-2) 8px; }
-.app-sidebar.ciut .sidebar-footer { padding: 10px 8px; }
-.app-sidebar.ciut .sidebar-backup-card { padding: 10px 6px; align-items: center; }
-.app-sidebar.ciut .sidebar-backup-tombol { padding: 8px 0; display: flex; justify-content: center; }
+.app-sidebar.ciut .nav-item-inner { width: auto; gap: 0; }
+.app-sidebar.ciut .nav-item-ikon { width: 34px; height: 34px; border-radius: var(--radius-md); }
+.app-sidebar.ciut .sidebar-nav { padding: var(--space-3) 8px; }
+.app-sidebar.ciut .nav-grup + .nav-grup { margin-top: var(--space-2); padding-top: var(--space-2); }
+.app-sidebar.ciut .sidebar-footer { padding: 12px 8px; }
+.app-sidebar.ciut .sidebar-backup-card { position: relative; padding: 0; align-items: center; gap: 0; border: 0; background: transparent; box-shadow: none; }
+.app-sidebar.ciut .sidebar-backup-status { position: absolute; top: -3px; right: 6px; z-index: 1; }
+.app-sidebar.ciut .sidebar-backup-tombol {
+  width: 40px;
+  min-height: 40px;
+  padding: 8px 0;
+  display: flex;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background-color: var(--bg);
+  color: var(--accent);
+}
+.app-sidebar.ciut .sidebar-backup-tombol:hover:not(:disabled) { background-color: color-mix(in srgb, var(--accent) 8%, var(--surface)); }
 .app-sidebar.ciut .rail-only { display: inline-flex; }
 .app-sidebar.ciut .full-label { display: none; }
 
@@ -321,9 +377,10 @@
 }
 
 @media (max-height: 699px) {
+  .app-sidebar:is(.ciut, :not(.ciut)) .brand-header { padding-top: 8px; padding-bottom: 4px; }
+  .app-sidebar.ciut .brand-header { gap: 4px; }
   .app-sidebar:is(.ciut, :not(.ciut)) .brand-logo { width: 30px; height: 30px; }
   .app-sidebar:is(.ciut, :not(.ciut)) .sidebar-toggle { width: 26px; height: 26px; }
-  .app-sidebar:is(.ciut, :not(.ciut)) .brand-header { padding-top: 8px; padding-bottom: 4px; }
   .app-sidebar:is(.ciut, :not(.ciut)) .nav-grup-label { display: none; }
   .app-sidebar:is(.ciut, :not(.ciut)) .nav-item { padding-top: 2px; padding-bottom: 2px; }
   .app-sidebar:is(.ciut, :not(.ciut)) .nav-item-ikon { width: 24px; height: 24px; }
@@ -337,9 +394,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .app-sidebar,
-  .sidebar-toggle svg {
+  .sidebar-toggle svg,
+  .nav-item,
+  .nav-item-ikon {
     transition: none;
   }
+  .nav-item:active:not([aria-current='page']) { transform: none; }
 }
 
 /* ---------- Bilah atas ---------- */
