@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { ProfilSekolah, StatusKunci, TahunAjaran, TemaAplikasi } from '../shared/types.js';
+import type { ProfilSekolahTampilan, StatusKunci, TahunAjaran, TemaAplikasi } from '../shared/types.js';
 import { LayarKunci } from './components/LayarKunci.js';
 import { Button, ToastProvider, useToast } from './components/ui/index.js';
 
@@ -103,7 +103,7 @@ interface AplikasiUtamaProps {
 
 function AplikasiUtama({ pinAktif, onKunci }: AplikasiUtamaProps) {
   const [screen, setScreen] = useState<ScreenId>('beranda');
-  const [profil, setProfil] = useState<ProfilSekolah | null>(null);
+  const [profil, setProfil] = useState<ProfilSekolahTampilan | null>(null);
   const [tahunAjaranAktif, setTahunAjaranAktif] = useState<TahunAjaran | null>(null);
   const [tema, setTema] = useState<TemaAplikasi>('putih');
   const [showOnboarding, setShowOnboarding] = useState(false);

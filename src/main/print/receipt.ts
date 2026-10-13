@@ -69,6 +69,7 @@ export function generateReceiptHtml(
 </head>
 <body>
 <div class="struk">
+  ${profil.logo_rel_path?.startsWith('data:image/') ? `<div class="text-center"><img alt="Logo sekolah" src="${esc(profil.logo_rel_path)}" style="max-width: 42mm; max-height: 16mm; object-fit: contain;"></div>` : ''}
   <div class="text-center bold" style="font-size: 14px;">${esc(profil.nama)}</div>
   ${profil.alamat ? `<div class="text-center">${esc(profil.alamat)}${profil.kota ? `, ${esc(profil.kota)}` : ''}</div>` : ''}
   <div class="divider"></div>

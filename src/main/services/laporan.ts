@@ -446,6 +446,40 @@ export class LaporanService {
     }
   }
 
+  /** Ekspor rekap per kelas ke Excel (CAP-11). */
+  public async eksporRekapKelas(targetPath: string, tahunAjaranId?: number): Promise<Result<{ berkas: string }>> {
+    const dataRes = this.rekapKelas(tahunAjaranId);
+    if (!dataRes.ok) return dataRes;
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('Rekap Tabungan Kelas');
+      worksheet.columns = [
+        { header: 'Kelas', key: 'kelas_nama', width: 16 },
+        { header: 'Tingkat', key: 'tingkat', width: 12 },
+        { header: 'Jumlah Siswa', key: 'jumlah_siswa', width: 16 },
+        { header: 'Total Setoran (Rp)', key: 'total_setoran', width: 20, style: { numFmt: '#,##0' } },
+        { header: 'Total Penarikan (Rp)', key: 'total_penarikan', width: 22, style: { numFmt: '#,##0' } },
+        { header: 'Total Saldo (Rp)', key: 'total_saldo', width: 20, style: { numFmt: '#,##0' } },
+      ];
+
+      for (const row of dataRes.data) worksheet.addRow(row);
+      worksheet.addRow({});
+      worksheet.addRow({
+        kelas_nama: 'TOTAL',
+        jumlah_siswa: dataRes.data.reduce((total, row) => total + row.jumlah_siswa, 0),
+        total_setoran: dataRes.data.reduce((total, row) => total + row.total_setoran, 0),
+        total_penarikan: dataRes.data.reduce((total, row) => total + row.total_penarikan, 0),
+        total_saldo: dataRes.data.reduce((total, row) => total + row.total_saldo, 0),
+      });
+
+      await workbook.xlsx.writeFile(targetPath);
+      return { ok: true, data: { berkas: targetPath } };
+    } catch {
+      return { ok: false, kode: 'FILE_TIDAK_VALID', pesan: 'Gagal mengekspor laporan ke Excel.' };
+    }
+  }
+
   /** Ekspor rekap bulanan ke Excel (CAP-22). */
   public async eksporRekapBulanan(
     targetPath: string,

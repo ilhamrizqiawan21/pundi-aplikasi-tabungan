@@ -16,6 +16,7 @@ import { esc } from './receipt.js';
 function kopSekolahHtml(profil: ProfilSekolah): string {
   return `
     <div style="text-align: center; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 8px;">
+      ${profil.logo_rel_path?.startsWith('data:image/') ? `<img alt="Logo sekolah" src="${esc(profil.logo_rel_path)}" style="display: block; width: auto; height: auto; max-width: 28mm; max-height: 18mm; margin: 0 auto 6px; object-fit: contain;">` : ''}
       <h2 style="margin: 0; font-size: 18px; text-transform: uppercase;">${esc(profil.nama || 'TABUNGAN SISWA')}</h2>
       ${profil.alamat ? `<div style="font-size: 12px; margin-top: 2px;">${esc(profil.alamat)}${profil.kota ? ` - ${esc(profil.kota)}` : ''}</div>` : ''}
     </div>
@@ -45,7 +46,13 @@ function tandaTanganHtml(profil: ProfilSekolah): string {
 const baseStyles = `
   @page {
     size: A4 portrait;
-    margin: 15mm 12mm 15mm 12mm;
+    margin: 15mm 12mm 18mm;
+    @bottom-right {
+      content: "Halaman " counter(page) " dari " counter(pages);
+      font-family: Arial, sans-serif;
+      font-size: 9px;
+      color: #444;
+    }
   }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -76,6 +83,7 @@ const baseStyles = `
   .bold { font-weight: bold; }
   .tabular-nums { font-variant-numeric: tabular-nums; }
   tr { page-break-inside: avoid; }
+  thead { display: table-header-group; }
 `;
 
 export function generateLaporanKelasHtml(

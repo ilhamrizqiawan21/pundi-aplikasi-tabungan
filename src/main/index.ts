@@ -107,6 +107,7 @@ async function bootstrap() {
   registerIpcHandlers({
     backupDir: path.join(userDataDir, 'backups'),
     kunciDir: userDataDir,
+    dataDir: userDataDir,
     logger,
   });
 

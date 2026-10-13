@@ -128,12 +128,12 @@ export function LaporanScreen() {
     }
   };
 
-  const eksporRekapSiswa = async () => {
+  const eksporRekap = async () => {
     setPesanEkspor(null);
     const res = await window.pundi.laporanEkspor({
-      jenis: 'rekapSiswa',
+      jenis: tab === 'kelas' ? 'rekapKelas' : 'rekapSiswa',
       tahunAjaranId: selectedTaId === '' ? undefined : Number(selectedTaId),
-      kelasId: selectedKelasId === '' ? undefined : Number(selectedKelasId),
+      ...(tab === 'siswa' && selectedKelasId !== '' ? { kelasId: Number(selectedKelasId) } : {}),
     });
     if (!res.ok) setPesanEkspor({ teks: res.pesan, jenis: 'err' });
     else if (res.data) setPesanEkspor({ teks: `Laporan disimpan sebagai ${res.data.nama_berkas}.`, jenis: 'ok' });
@@ -247,11 +247,11 @@ export function LaporanScreen() {
               {cetakLoading ? 'Menyiapkan...' : 'Cetak / PDF'}
             </Button>
 
-            {tab === 'siswa' && (
+            {(tab === 'siswa' || tab === 'kelas') && (
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={eksporRekapSiswa}
+                onClick={eksporRekap}
               >
                 Ekspor Excel
               </Button>

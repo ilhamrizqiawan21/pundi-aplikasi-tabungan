@@ -78,6 +78,7 @@ export function registerIpcHandlers(opts: IpcOptions): void {
     kenaikan: new KenaikanService(),
     audit: new AuditService(),
     kunci,
+    dataDir: opts.dataDir,
     logger: opts.logger,
     handle,
   };

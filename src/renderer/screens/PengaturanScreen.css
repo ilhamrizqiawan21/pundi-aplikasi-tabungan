@@ -67,6 +67,31 @@
   border-top: 1px solid var(--border);
 }
 
+.pg-logo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-top: 1px solid var(--border);
+}
+
+.pg-logo-ket {
+  color: var(--muted);
+  font-size: var(--text-xs);
+}
+
+.pg-logo-aksi {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+@media (max-width: 520px) {
+  .pg-logo { align-items: flex-start; flex-direction: column; }
+}
+
 .ui-card-title.pg-tampilan-judul {
   margin-bottom: var(--space-3);
 }

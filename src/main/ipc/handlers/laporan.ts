@@ -38,7 +38,9 @@ export function registerLaporanHandlers(ctx: IpcContext): void {
         ? `transaksi_${data.dari}_${data.sampai}`
         : data.jenis === 'rekapBulanan'
           ? `rekap_bulanan_${data.dari}_${data.sampai}`
-          : 'rekap_siswa';
+          : data.jenis === 'rekapKelas'
+            ? `rekap_kelas_${data.tahunAjaranId ?? 'aktif'}`
+            : 'rekap_siswa';
     const pilihan = await dialog.showSaveDialog({
       defaultPath: `${judul}.xlsx`,
       filters: [{ name: 'Excel', extensions: ['xlsx'] }],
@@ -55,7 +57,9 @@ export function registerLaporanHandlers(ctx: IpcContext): void {
           })
         : data.jenis === 'rekapBulanan'
           ? await laporan.eksporRekapBulanan(pilihan.filePath, { dari: data.dari, sampai: data.sampai })
-          : await laporan.eksporRekapSiswa(pilihan.filePath, {
+          : data.jenis === 'rekapKelas'
+            ? await laporan.eksporRekapKelas(pilihan.filePath, data.tahunAjaranId)
+            : await laporan.eksporRekapSiswa(pilihan.filePath, {
               tahunAjaranId: data.tahunAjaranId,
               kelasId: data.kelasId,
             });

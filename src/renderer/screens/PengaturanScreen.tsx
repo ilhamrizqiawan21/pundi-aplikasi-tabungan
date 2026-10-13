@@ -24,6 +24,8 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
   const [kota, setKota] = useState('');
   const [bendahara, setBendahara] = useState('');
   const [kepala, setKepala] = useState('');
+  const [logoTersedia, setLogoTersedia] = useState(false);
+  const [logoLoading, setLogoLoading] = useState(false);
 
   // Pengaturan
   const [tema, setTema] = useState<TemaAplikasi>('putih');
@@ -44,6 +46,7 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
         setKota(res.data.kota || '');
         setBendahara(res.data.bendahara || '');
         setKepala(res.data.kepala || '');
+        setLogoTersedia(res.data.logo_tersedia);
       }
     });
 
@@ -54,6 +57,35 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
       }
     });
   }, []);
+
+  const handleLogoPilih = async () => {
+    setLogoLoading(true);
+    setMsg(null);
+    try {
+      const res = await window.pundi.profilLogoPilih();
+      if (!res.ok) setMsg({ text: res.pesan, type: 'err' });
+      else if (res.data) {
+        setLogoTersedia(true);
+        setMsg({ text: `Logo sekolah diperbarui dari ${res.data.nama_berkas}.`, type: 'ok' });
+      }
+    } finally {
+      setLogoLoading(false);
+    }
+  };
+
+  const handleLogoHapus = async () => {
+    setLogoLoading(true);
+    setMsg(null);
+    try {
+      const res = await window.pundi.profilLogoHapus();
+      if (res.ok) {
+        setLogoTersedia(false);
+        setMsg({ text: 'Logo sekolah dihapus.', type: 'ok' });
+      } else setMsg({ text: res.pesan, type: 'err' });
+    } finally {
+      setLogoLoading(false);
+    }
+  };
 
   const handleSimpanProfil = async (e: FormEvent) => {
     e.preventDefault();
@@ -192,6 +224,25 @@ export function PengaturanScreen({ onThemeChange }: PengaturanScreenProps) {
                   placeholder="Nama kepala sekolah"
                   className="pg-kontrol"
                 />
+              </div>
+            </div>
+
+            <div className="pg-logo">
+              <div>
+                <div className="pg-label">Logo sekolah</div>
+                <p className="pg-logo-ket">
+                  {logoTersedia ? 'Logo akan tampil pada struk dan laporan cetak.' : 'Belum ada logo. Gunakan gambar PNG atau JPEG, maksimal 2 MB.'}
+                </p>
+              </div>
+              <div className="pg-logo-aksi">
+                <Button type="button" variant="secondary" size="sm" onClick={handleLogoPilih} disabled={logoLoading}>
+                  {logoLoading ? 'Memproses…' : logoTersedia ? 'Ganti Logo' : 'Pilih Logo'}
+                </Button>
+                {logoTersedia && (
+                  <Button type="button" variant="ghost" size="sm" onClick={handleLogoHapus} disabled={logoLoading}>
+                    Hapus Logo
+                  </Button>
+                )}
               </div>
             </div>
 

@@ -67,6 +67,8 @@ const api: PundiApi = {
   profilSekolahBaca: () => ipcRenderer.invoke('pengaturan.profilBaca'),
   profilSekolahSimpan: (data) =>
     ipcRenderer.invoke('pengaturan.profilSimpan', data),
+  profilLogoPilih: () => ipcRenderer.invoke('pengaturan.logoPilih'),
+  profilLogoHapus: () => ipcRenderer.invoke('pengaturan.logoHapus'),
   pengaturanBaca: () => ipcRenderer.invoke('pengaturan.baca'),
   pengaturanSimpan: (data) =>
     ipcRenderer.invoke('pengaturan.simpan', data),

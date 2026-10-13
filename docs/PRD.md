@@ -31,7 +31,7 @@ Prioritas: **M** wajib rilis 0.1, **S** sebaiknya ada, **C** bila sempat.
 
 | ID | P | Kemampuan | Acceptance criteria |
 | --- | --- | --- | --- |
-| CAP-01 | M | Profil sekolah dan pengaturan | Nama, alamat, kota, kepala/bendahara, logo dapat disimpan; tampil di struk dan laporan |
+| CAP-01 | M | Profil sekolah dan pengaturan | Nama, alamat, kota, kepala/bendahara dapat disimpan; logo PNG/JPEG hingga 2 MB dipilih melalui dialog proses utama dan tampil di struk/laporan; jalur logo tidak dikirim ke renderer |
 | CAP-02 | M | Tahun ajaran dan kelas | Satu tahun ajaran aktif; kelas dibuat per tahun ajaran; mengganti tahun ajaran tidak mengubah data lama |
 | CAP-03 | M | Data siswa | Tambah, ubah, cari (nama/nomor), status `aktif`/`lulus`/`keluar`; nomor rekening otomatis unik; siswa dengan transaksi tidak dapat dihapus permanen |
 | CAP-04 | M | Impor siswa dari Excel/CSV | Unduh format contoh; pratinjau; baris bermasalah dilaporkan dengan nomor baris dan alasan; impor bersifat atomik (semua atau tidak sama sekali); tidak menggandakan siswa yang sama |

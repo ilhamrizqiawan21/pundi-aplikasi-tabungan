@@ -61,6 +61,17 @@ export class PengaturanService {
     }
   }
 
+  /** Mengatur referensi logo relatif yang dibuat proses utama, tidak menerima jalur dari renderer. */
+  public profilLogoSimpan(logoRelPath: string | null): Result<ProfilSekolah> {
+    try {
+      getDb().prepare(`UPDATE profil_sekolah SET logo_rel_path = ?, diubah_pada = ? WHERE id = 1`)
+        .run(logoRelPath, new Date().toISOString());
+      return this.profilBaca();
+    } catch {
+      return { ok: false, kode: 'DATABASE_ERROR', pesan: ERROR_MESSAGES.DATABASE_ERROR };
+    }
+  }
+
   public pengaturanBaca(): Result<Pengaturan> {
     const db = getDb();
     try {

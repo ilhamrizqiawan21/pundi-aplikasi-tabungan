@@ -102,6 +102,9 @@ export interface ProfilSekolah {
   diubah_pada: string;
 }
 
+/** Bentuk aman untuk renderer: status logo saja, tanpa jalur internal. */
+export type ProfilSekolahTampilan = Omit<ProfilSekolah, 'logo_rel_path'> & { logo_tersedia: boolean };
+
 /**
  * Pengaturan yang boleh dibaca/ditulis renderer. Jalur folder cadangan dan hash PIN sengaja tidak
  * termasuk: keduanya dikelola proses utama (NFR-07) dan tidak pernah dikirim ke renderer.
@@ -249,6 +252,7 @@ export interface HasilLaporanTransaksi {
 export type PermintaanEkspor =
   | { jenis: 'transaksi'; dari: string; sampai: string; kelasId?: number; jenisTransaksi?: JenisTransaksi }
   | { jenis: 'rekapSiswa'; tahunAjaranId?: number; kelasId?: number }
+  | { jenis: 'rekapKelas'; tahunAjaranId?: number }
   | { jenis: 'rekapBulanan'; dari: string; sampai: string };
 
 export interface HasilPeriksaIntegritas {
@@ -437,8 +441,10 @@ export interface PundiApi {
   laporanEkspor: (data: PermintaanEkspor) => Promise<Result<{ nama_berkas: string } | null>>;
 
   // Pengaturan & Profil
-  profilSekolahBaca: () => Promise<Result<ProfilSekolah>>;
-  profilSekolahSimpan: (data: ProfilSekolahInput) => Promise<Result<ProfilSekolah>>;
+  profilSekolahBaca: () => Promise<Result<ProfilSekolahTampilan>>;
+  profilSekolahSimpan: (data: ProfilSekolahInput) => Promise<Result<ProfilSekolahTampilan>>;
+  profilLogoPilih: () => Promise<Result<{ nama_berkas: string } | null>>;
+  profilLogoHapus: () => Promise<Result<{ dihapus: boolean }>>;
   pengaturanBaca: () => Promise<Result<Pengaturan>>;
   pengaturanSimpan: (data: Partial<Pengaturan>) => Promise<Result<Pengaturan>>;
 

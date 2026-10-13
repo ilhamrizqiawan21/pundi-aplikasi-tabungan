@@ -18,6 +18,8 @@ export interface IpcOptions {
   backupDir: string;
   /** Folder data pengguna tempat berkas kunci PIN disimpan (di luar basis data). */
   kunciDir: string;
+  /** Direktori data aplikasi untuk aset yang dikelola proses utama. */
+  dataDir: string;
   /** Penulis log berkas lokal (NFR-02 & F7-2). */
   logger?: FileLogger;
 }
@@ -41,6 +43,7 @@ export interface IpcContext {
   audit: AuditService;
   kunci: KunciService;
   logger?: FileLogger;
+  dataDir: string;
   handle: HandleFn;
 }
 

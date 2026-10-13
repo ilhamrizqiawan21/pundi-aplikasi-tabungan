@@ -137,7 +137,7 @@ Satu layar dengan empat langkah yang terbuka bertahap: 1 **Pilih berkas** (Excel
 Tombol **Cadangkan sekarang**, daftar cadangan (tanggal, ukuran), **Pulihkan** (dialog peringatan merah: data saat ini akan diganti; cadangan otomatis dibuat dulu). Teks pengingat: "Simpan salinan di flashdisk atau drive lain."
 
 ### 4.8 Pengaturan
-Profil sekolah (nama, alamat, kota, bendahara, kepala, logo), tampilan (tema), ukuran struk, PIN, periksa saldo. Kolom profil yang dikosongkan benar-benar dikosongkan saat disimpan. Logo dan PIN belum dapat diatur dari layar ini; keduanya kelak lewat dialog di proses utama (ARCHITECTURE A-08).
+Profil sekolah (nama, alamat, kota, bendahara, kepala, logo), tampilan (tema), ukuran struk, PIN, periksa saldo. Kolom profil yang dikosongkan benar-benar dikosongkan saat disimpan. Logo dipilih melalui dialog proses utama sebagai PNG/JPEG maksimal 2 MB; jalur internal tidak dikirim ke renderer (ARCHITECTURE A-08). PIN dikelola panel Keamanan.
 
 ## 5. Komponen
 

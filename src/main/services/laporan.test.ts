@@ -108,6 +108,27 @@ describe('LaporanService.transaksi (CAP-11)', () => {
     const baris = [2, 3].map((i) => [sheet.getRow(i).getCell(3).value, sheet.getRow(i).getCell(8).value]);
     expect(baris).toEqual(expect.arrayContaining([['Ani Fiktif', 75000], ['Budi Fiktif', 40000]]));
   });
+
+  it('mengekspor rekap kelas ke Excel dengan filter tahun ajaran dan total yang sesuai', async () => {
+    const target = path.join(tmpDir, 'rekap-kelas.xlsx');
+    const r = await laporan.eksporRekapKelas(target);
+    expect(r.ok).toBe(true);
+
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.readFile(target);
+    const sheet = wb.getWorksheet('Rekap Tabungan Kelas')!;
+    expect(sheet.getRow(1).getCell(1).value).toBe('Kelas');
+    expect(sheet.getRow(2).values).toContain('7A');
+    expect(sheet.getRow(2).getCell(3).value).toBe(1);
+    expect(sheet.getRow(2).getCell(4).value).toBe(105000);
+    expect(sheet.getRow(2).getCell(5).value).toBe(30000);
+    expect(sheet.getRow(2).getCell(6).value).toBe(75000);
+    expect(sheet.getRow(4).getCell(1).value).toBe('TOTAL');
+    expect(sheet.getRow(4).getCell(3).value).toBe(1);
+    expect(sheet.getRow(4).getCell(4).value).toBe(105000);
+    expect(sheet.getRow(4).getCell(5).value).toBe(30000);
+    expect(sheet.getRow(4).getCell(6).value).toBe(75000);
+  });
 });
 
 describe('Laporan: riwayat panjang dan tahun ajaran non-aktif', () => {

@@ -140,6 +140,10 @@ export const LaporanEksporSchema = z.discriminatedUnion('jenis', [
     tahunAjaranId: z.number().int().positive().optional(),
     kelasId: z.number().int().positive().optional(),
   }),
+  z.object({
+    jenis: z.literal('rekapKelas'),
+    tahunAjaranId: z.number().int().positive().optional(),
+  }),
 ]);
 
 // Transaksi (NFR-03: nominal bilangan bulat positif)

@@ -16,6 +16,7 @@
 
 .laporan-tabs {
   display: flex;
+  flex-wrap: wrap;
   background-color: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -32,6 +33,7 @@
   background-color: transparent;
   color: var(--text);
   cursor: pointer;
+  white-space: nowrap;
   transition: all var(--dur-cepat) ease;
 }
 

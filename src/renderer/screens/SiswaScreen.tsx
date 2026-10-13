@@ -157,17 +157,15 @@ export function SiswaScreen() {
     }
   }, [detailSiswa, filterDari, filterSampai, muatRiwayat]);
 
-  // Pilih otomatis siswa pertama jika belum ada yang terpilih (seperti mockup)
+  // Perbarui saldo detail terpilih setelah daftar siswa dimuat ulang.
   useEffect(() => {
-    if (!detailSiswa && siswaList.length > 0) {
-      handleOpenDetail(siswaList[0]);
-    } else if (detailSiswa) {
+    if (detailSiswa) {
       const updated = siswaList.find((s) => s.id === detailSiswa.id);
       if (updated && updated.saldo !== detailSiswa.saldo) {
         setDetailSiswa(updated);
       }
     }
-  }, [siswaList, detailSiswa, handleOpenDetail]);
+  }, [siswaList, detailSiswa]);
 
   const handleDelete = async (siswa: Siswa) => {
     if (confirm(`Apakah Anda yakin ingin menghapus data siswa "${siswa.nama}" (${siswa.nomor})?`)) {
@@ -184,11 +182,15 @@ export function SiswaScreen() {
     }
   };
 
-  // Filter siswa berdasarkan filter tingkat (7, 8, 9 atau semua)
+  const tingkatTersedia = [...new Set(kelasList.map((kelas) => kelas.tingkat))].sort((a, b) => a - b);
+
+  // Tingkat mengikuti kelas pada tahun ajaran aktif, bukan daftar tingkat tetap.
   const filteredSiswa = siswaList.filter((s) => {
     if (selectedTingkat === 'semua') return true;
     if (selectedTingkat === 'aktif') return s.status === 'aktif';
-    return s.kelas_nama?.startsWith(selectedTingkat);
+    const tingkatDipilih = Number(selectedTingkat);
+    const kelasSiswa = kelasList.find((kelas) => kelas.id === s.kelas_id);
+    return kelasSiswa?.tingkat === tingkatDipilih;
   });
 
   return (
@@ -204,7 +206,7 @@ export function SiswaScreen() {
               Daftar siswa
             </h3>
             <Badge variant="neutral">
-              {siswaList.length} siswa
+              {filteredSiswa.length} siswa
             </Badge>
           </div>
 
@@ -261,13 +263,11 @@ export function SiswaScreen() {
           </select>
         </div>
 
-        {/* Filter Pills: Semua kelas, 7, 8, 9, Aktif */}
+        {/* Filter cepat mengikuti tingkat yang tersedia pada tahun ajaran aktif */}
         <div className="siswa-pills-bar">
           {[
             { id: 'semua', label: 'Semua kelas' },
-            { id: '7', label: '7' },
-            { id: '8', label: '8' },
-            { id: '9', label: '9' },
+            ...tingkatTersedia.map((tingkat) => ({ id: String(tingkat), label: `Tingkat ${tingkat}` })),
             { id: 'aktif', label: 'Aktif' },
           ].map((pill) => {
             const isActive = selectedTingkat === pill.id;
@@ -277,6 +277,7 @@ export function SiswaScreen() {
                 type="button"
                 onClick={() => setSelectedTingkat(pill.id)}
                 className={`siswa-pill-btn ${isActive ? 'active' : ''}`}
+                aria-pressed={isActive}
               >
                 {pill.label}
               </button>

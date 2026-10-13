@@ -5,6 +5,8 @@ import {
 } from '../../../shared/schemas.js';
 import type { Result, CetakLaporanInput, Transaksi, ProfilSekolah } from '../../../shared/types.js';
 import { getDb } from '../../db/index.js';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { hariIniLokal } from '../../../shared/tanggal.js';
 import { generateReceiptHtml } from '../../print/receipt.js';
 import {
@@ -33,6 +35,22 @@ export function registerCetakHandlers(ctx: IpcContext): void {
     diubah_pada: new Date().toISOString(),
   };
 
+  async function profilUntukCetak(): Promise<ProfilSekolah> {
+    const result = pengaturan.profilBaca();
+    if (!result.ok || !result.data.logo_rel_path) return result.ok ? result.data : defaultProfil;
+    const target = path.resolve(ctx.dataDir, result.data.logo_rel_path);
+    const assetDir = path.resolve(ctx.dataDir, 'assets');
+    if (path.dirname(target) !== assetDir || !/^logo-[\w-]+\.(png|jpg)$/.test(path.basename(target))) return result.data;
+    try {
+      const image = await fs.readFile(target);
+      if (image.length > 2 * 1024 * 1024) return result.data;
+      const tipe = path.extname(target) === '.png' ? 'image/png' : 'image/jpeg';
+      return { ...result.data, logo_rel_path: `data:${tipe};base64,${image.toString('base64')}` };
+    } catch {
+      return result.data;
+    }
+  }
+
   async function ambilDataStruk(transaksiId: number): Promise<Result<{ html: string; nomor_bukti: string }>> {
     const db = getDb();
     const trx = db.prepare('SELECT * FROM transaksi WHERE id = ?').get(transaksiId) as Transaksi | undefined;
@@ -41,8 +59,7 @@ export function registerCetakHandlers(ctx: IpcContext): void {
     const siswaRes = siswa.detail(trx.siswa_id);
     if (!siswaRes.ok) return siswaRes;
 
-    const profilRes = pengaturan.profilBaca();
-    const profil = profilRes.ok ? profilRes.data : defaultProfil;
+    const profil = await profilUntukCetak();
 
     const setRes = pengaturan.pengaturanBaca();
     const ukuran = setRes.ok ? setRes.data.ukuran_struk : '80';
@@ -52,8 +69,7 @@ export function registerCetakHandlers(ctx: IpcContext): void {
   }
 
   async function bangunLaporanHtml(input: CetakLaporanInput): Promise<Result<{ html: string; judul: string }>> {
-    const profilRes = pengaturan.profilBaca();
-    const profil = profilRes.ok ? profilRes.data : defaultProfil;
+    const profil = await profilUntukCetak();
 
     if (input.jenis === 'rekapKelas') {
       const dataRes = laporan.rekapKelas(input.tahunAjaranId);
